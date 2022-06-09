@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Platforms>AnyCPU;x64;x86</Platforms>
+    <GenerateDocumentationFile>False</GenerateDocumentationFile>
+    <PackageId>$(AssemblyName)</PackageId>
+    <Authors>Lance Crisang</Authors>
+    <Product>Cerulean Core API</Product>
+    <Description>The Cerulean Core API.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Cerulean.Common\Cerulean.Common.csproj" />
+    <ProjectReference Include="..\Cerulean.Components\Cerulean.Components.csproj" />
+    <ProjectReference Include="..\SDL2-CS\SDL2-CS.Core.csproj" />
+  </ItemGroup>
+
+</Project>

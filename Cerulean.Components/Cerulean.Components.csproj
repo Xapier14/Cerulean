@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Platforms>AnyCPU;x64;x86</Platforms>
+    <Authors>Lance Crisang</Authors>
+    <Product>Cerulean UI Components</Product>
+    <Description>Core UI components for the Cerulean Core API.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Cerulean.Common\Cerulean.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Graphical\" />
+    <Folder Include="Containers\" />
+  </ItemGroup>
+
+</Project>
