@@ -47,12 +47,6 @@
             };
         }
 
-        public void Set(int w, int h)
-        {
-            W = w;
-            H = h;
-        }
-
         public override string ToString()
         {
             return $"({W}, {H})";
