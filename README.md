@@ -9,7 +9,7 @@ Write GUI apps using simple XML and C#.<br>
 <h2>Features</h2>
 
 ### Cerulean API
- - [ ] Window Events
+ - [x] Window Events
  - [ ] Styler Element
 ### Cerulean Components
  - [ ] Functional Components
@@ -21,7 +21,7 @@ Write GUI apps using simple XML and C#.<br>
      - [ ] Save File Dialog
      - [ ] Folder Select Dialog
  - [ ] Graphical Components
-     - [ ] Rectangle
+     - [x] Rectangle
      - [ ] Image
      - [ ] Progress Bar
  - [ ] Input Components
@@ -32,7 +32,7 @@ Write GUI apps using simple XML and C#.<br>
      - [ ] Radio Button
      - [ ] Drop Down List
  - [ ] Container Components
-     - [ ] Grid
+     - [x] Grid
      - [ ] Panel
      - [ ] Group Tab
 ### Cerulean CLI

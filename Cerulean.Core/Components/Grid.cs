@@ -15,7 +15,7 @@ namespace Cerulean.Core
                     throw new ArgumentOutOfRangeException(nameof(value));
                 _columns = new int[value];
                 for (int i = 0; i < value; i++)
-                    _columns[i] = -1;
+                    _columns[i] = 0;
             }
         }
         public int RowCount
@@ -27,7 +27,7 @@ namespace Cerulean.Core
                     throw new ArgumentOutOfRangeException(nameof(value));
                 _rows = new int[value];
                 for (int i = 0; i < value; i++)
-                    _rows[i] = -1;
+                    _rows[i] = 0;
             }
         }
         public override void Update(object? window, Size clientArea)
@@ -74,8 +74,8 @@ namespace Cerulean.Core
             int highWidth = (int)Math.Ceiling((clientArea.W - fixedColumn) / (double)autoColumn);
 
             // for each cell...
-            int autoRowsComputed = 0;
             int autoColumnsComputed = 0;
+            int autoRowsComputed = 0;
             for (int row = 0; row < RowCount; row++)
             {
                 for (int col = 0; col < ColumnCount; col++)
@@ -84,7 +84,7 @@ namespace Cerulean.Core
                     int width = _columns[col];
                     if (height == 0)
                     {
-                        height = autoRowsComputed < autoRow - 2 ? 
+                        height = autoRowsComputed < autoRow - 1 ? 
                             lowHeight :
                             highHeight;
                         autoRowsComputed++;
@@ -92,7 +92,7 @@ namespace Cerulean.Core
 
                     if (width == 0)
                     {
-                        width = autoColumnsComputed < autoColumn - 2 ?
+                        width = autoColumnsComputed < autoColumn - 1 ?
                             lowWidth :
                             highWidth;
                         autoColumnsComputed++;
@@ -100,6 +100,8 @@ namespace Cerulean.Core
                     _cellSizes[row, col].W = width;
                     _cellSizes[row, col].H = height;
                 }
+                autoColumnsComputed = 0;
+                autoRowsComputed = 0;
             }
 
             // update child components
@@ -107,28 +109,51 @@ namespace Cerulean.Core
             {
                 // compute element clientArea
                 var cell = _cellSizes[child.GridRow, child.GridColumn];
-                int width = cell.W;
-                int height = cell.H;
+                int width = 0;
+                int height = 0;
 
                 // add additional space via span
                 // if i < span OR i 0
                 // AND i < row count
-                for (int i = 1;
-                    (i < child.GridRowSpan || child.GridRowSpan == 0) && i < RowCount;
+                for (int i = 0;
+                    (i < child.GridRowSpan || child.GridRowSpan == 0) && child.GridRow + i < RowCount;
                     i++)
                 {
                     height += _cellSizes[child.GridRow + i, child.GridColumn].H;
                 }
                 // if i < span OR i 0
                 // AND i < column count
-                for (int i = 1;
-                    (i < child.GridColumnSpan || child.GridColumnSpan == 0) && i < ColumnCount;
+                for (int i = 0;
+                    (i < child.GridColumnSpan || child.GridColumnSpan == 0) && child.GridColumn + i < ColumnCount;
                     i++)
                 {
-                    width += _cellSizes[child.GridRow + i, child.GridColumn].W;
+                    width += _cellSizes[child.GridRow, child.GridColumn + i].W;
                 }
                 child.Update(window, new(width, height));
             }
+        }
+
+        public override void Draw(IGraphics graphics)
+        {
+            var area = graphics.GetRenderArea(out int areaX, out int areaY);
+            foreach (var child in Children)
+            {
+                int childX = areaX + child.X;
+                int childY = areaY + child.Y;
+
+                for (int column = 0; column < child.GridColumn && column < ColumnCount; ++column)
+                    if (_cellSizes is not null)
+                        childX += _cellSizes[0, column].W;
+
+                for (int row = 0; row < child.GridRow && row < RowCount; ++row)
+                    if (_cellSizes is not null)
+                        childY += _cellSizes[row, 0].H;
+
+                if (child.ClientArea is Size clientArea)
+                    graphics.SetRenderArea(clientArea, childX, childY);
+                child.Draw(graphics);
+            }
+            graphics.SetRenderArea(area, areaX, areaY);
         }
     }
 }

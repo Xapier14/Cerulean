@@ -142,7 +142,7 @@ namespace Cerulean.Core
         {
             GraphicsContext?.RenderClear();
             if (GraphicsContext is not null)
-                Layout.Draw(GraphicsContext, 0, 0);
+                Layout.Draw(GraphicsContext);
             GraphicsContext?.RenderPresent();
         }
 

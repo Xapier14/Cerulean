@@ -12,6 +12,10 @@
     <Description>The Cerulean Core API.</Description>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
+	<DefineConstants>_WINDOWS</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Cerulean.Common\Cerulean.Common.csproj" />
     <ProjectReference Include="..\SDL2-CS\SDL2-CS.Core.csproj" />

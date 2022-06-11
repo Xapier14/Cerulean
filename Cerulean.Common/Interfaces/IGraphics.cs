@@ -13,6 +13,8 @@ namespace Cerulean.Common
 
         public void RenderClear();
         public void RenderPresent();
+
+        public void DrawRectangle(int x, int y, Size size);
         public virtual void Cleanup()
         {
 

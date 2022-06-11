@@ -16,7 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Graphical\" />
     <Folder Include="Containers\" />
   </ItemGroup>
 

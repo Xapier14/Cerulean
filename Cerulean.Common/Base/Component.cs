@@ -13,8 +13,8 @@ namespace Cerulean.Common
         public IDictionary<string, object> Attributes { get; init; } = new Dictionary<string, object>();
         public virtual int GridRow { get; set; } = 0;
         public virtual int GridColumn { get; set; } = 0;
-        public virtual int GridRowSpan { get; set; } = 0;
-        public virtual int GridColumnSpan { get; set; } = 0;
+        public virtual int GridRowSpan { get; set; } = 1;
+        public virtual int GridColumnSpan { get; set; } = 1;
         public virtual int X { get; set; } = 0;
         public virtual int Y { get; set; } = 0;
         public Size? ClientArea { get; protected set; } = null;
@@ -112,31 +112,25 @@ namespace Cerulean.Common
                     child.Update(window, clientArea);
         }
 
-        public virtual void Draw(IGraphics graphics, int x, int y)
+        public virtual void Draw(IGraphics graphics)
         {
             // remember old render area
             Size renderArea = graphics.GetRenderArea(
                 out int areaX,
                 out int areaY);
 
-            // set component position relative to parent;
-            int componentX = x + X;
-            int componentY = y + Y;
-
             // set render area to component clientArea
             if (ClientArea is Size clientArea)
                 graphics.SetRenderArea(
                     clientArea,
-                    componentX,
-                    componentY);
+                    areaX + X,
+                    areaY + Y);
 
             // draw child elements
             if (CanBeParent)
                 foreach (var child in Children)
                     child.Draw(
-                        graphics,
-                        componentX,
-                        componentY);
+                        graphics);
 
             // restore old render area
             graphics.SetRenderArea(renderArea, areaX, areaY);

@@ -56,5 +56,19 @@ namespace Cerulean.Core
         {
             SDL_RenderPresent(RendererPtr);
         }
+
+        public void DrawRectangle(int x, int y, Size size)
+        {
+            SDL_Rect rect = new()
+            {
+                x = x,
+                y = y,
+                w = size.W,
+                h = size.H
+            };
+            SDL_SetRenderDrawColor(RendererPtr, 200, 10, 10, 255);
+            SDL_RenderFillRect(RendererPtr, ref rect);
+            SDL_SetRenderDrawColor(RendererPtr, 0, 0, 0, 255);
+        }
     }
 }
