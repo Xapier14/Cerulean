@@ -38,18 +38,18 @@ namespace Cerulean.CLI
     }
     public static class Builder
     {
-        public static string ParseNestedComponentName(string nestedName)
+        public static string ParseNestedComponentName(string nestedName, string root)
         {
             StringBuilder component = new();
             var nests = nestedName.Split('.');
-            component.Append($"GetChild(\"{nests[0]}\")");
+            component.Append($"{root}GetChild(\"{nests[0]}\")");
             for (int i = 1; i < nests.Length; i++)
             {
                 component.Append($".GetChild(\"{nests[i]}\")");
             }
             return component.ToString();
         }
-        public static string ParseHintedString(string hintedString)
+        public static string ParseHintedString(string hintedString, string root)
         {
             // hinted value pattern ([name]="[type]: [value]")
             var regex = Regex.Match(hintedString, @"^(\w+):\s?(.+)");
@@ -76,7 +76,7 @@ namespace Cerulean.CLI
                         "float" => $"{float.Parse(raw)}",
                         "double" => $"{double.Parse(raw)}",
                         "string" => $"\"{raw}\"",
-                        "component" => $"{ParseNestedComponentName(raw)}",
+                        "component" => $"{ParseNestedComponentName(raw, root)}",
                         "literal" => value,
                         _ => "null"
                     };
@@ -220,6 +220,8 @@ namespace Cerulean.CLI
             {
                 stringBuilder.Append($"using {alias.Key} = {alias.Value};\n");
             }
+            stringBuilder.Append("#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.\n");
+            stringBuilder.Append("#pragma warning disable CS8602 // Dereference of a possibly null reference.\n");
             stringBuilder.Append("// Generated with Cerulean-API Builder\n");
             stringBuilder.Append("namespace Cerulean.App\n");
             stringBuilder.Append("{\n");
@@ -230,6 +232,8 @@ namespace Cerulean.CLI
         {
             stringBuilder.AppendIndented(1, "}\n");
             stringBuilder.Append("}\n");
+            stringBuilder.Append("#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.\n");
+            stringBuilder.Append("#pragma warning restore CS8602 // Dereference of a possibly null reference.\n");
             stringBuilder.Append($"// Generated on: {DateTime.Now}");
         }
         private static void GenerateChildElements(int indent, StringBuilder stringBuilder, XElement element, string root = "")
@@ -247,7 +251,7 @@ namespace Cerulean.CLI
                             child.Attribute("Handler")?.Value is string eventHandler)
                         {
                             if (child.Value != string.Empty)
-                                stringBuilder.AppendIndented(indent, $"(({type})GetChild(\"{componentName}\")).{eventName} += {eventHandler};\n");
+                                stringBuilder.AppendIndented(indent, $"(({type}){root}GetChild(\"{componentName}\")).{eventName} += {eventHandler};\n");
                         }
                         else
                         {
@@ -269,15 +273,15 @@ namespace Cerulean.CLI
                             string target = string.Empty;
                             string type = string.Empty;
                             if (child.Attribute("Args")?.Value is string rawArgs)
-                                args = ParseHintedString(rawArgs);
+                                args = ParseHintedString(rawArgs, root);
                             if (child.Attribute("Type")?.Value is string rawValue)
                                 type = $"({rawValue})";
                             if (child.Attribute("Target")?.Value is string rawTarget)
-                                target = $"{ParseNestedComponentName(rawTarget)}";
+                                target = $"{ParseNestedComponentName(rawTarget, root)}";
                             if (type != string.Empty)
-                                stringBuilder.AppendIndented(indent, $"({type}{target}).{method}({args});\n");
+                                stringBuilder.AppendIndented(indent, $"({type}{root}{target}).{method}({args});\n");
                             else
-                                stringBuilder.AppendIndented(indent, $"{target}.{method}({args});\n");
+                                stringBuilder.AppendIndented(indent, $"{root}{target}.{method}({args});\n");
 
                             /*
                             if (child.Value != string.Empty)
@@ -304,16 +308,25 @@ namespace Cerulean.CLI
                 }
                 stringBuilder.AppendIndented(indent, $"{root}AddChild(\"{name}\", new {child.Name}({(child.Attribute("Data")?.Value ?? "")})\n");
                 stringBuilder.AppendIndented(indent, "{\n");
-                var props = child.Attributes().Where((attribute) =>
+                var props = child.Attributes().Where(attribute =>
                 {
                     return attribute.Name.ToString() != "Name" &&
-                           attribute.Name.ToString() != "Data";
+                           attribute.Name.ToString() != "Data" &&
+                           attribute.Name.NamespaceName != "Attribute";
+                }).ToArray();
+                var attributes = child.Attributes().Where( attribute =>
+                {
+                    return attribute.Name.NamespaceName == "Attribute";
                 }).ToArray();
                 foreach (var prop in props)
                 {
-                    stringBuilder.AppendIndented(indent + 1, $"{prop.Name} = {ParseHintedString(prop.Value)},\n");
+                    stringBuilder.AppendIndented(indent + 1, $"{prop.Name} = {ParseHintedString(prop.Value, root)},\n");
                 }
                 stringBuilder.AppendIndented(indent, "});\n");
+                foreach (var attribute in attributes)
+                {
+                    stringBuilder.AppendIndented(indent, $"{root}GetChild(\"{name}\").AddOrUpdateAttribute(\"{attribute.Name.LocalName}\", {ParseHintedString(attribute.Value, root)});\n");
+                }
                 var events = child.Elements("Event");
                 var invokes = child.Elements("Invoke");
                 foreach (var e in events)
@@ -321,7 +334,7 @@ namespace Cerulean.CLI
                     if (e.Attribute("Name")?.Value is string eventName)
                     {
                         if (e.Attribute("Handler")?.Value is string eventHandler)
-                                stringBuilder.AppendIndented(indent, $"(({child.Name})GetChild(\"{name}\")).{eventName} += {eventHandler};\n");
+                                stringBuilder.AppendIndented(indent, $"(({child.Name}){root}GetChild(\"{name}\")).{eventName} += {eventHandler};\n");
                         else
                             Console.WriteLine("[WARN][EVENT] Event from component '{0}' has no 'Handler' attribute. Ignoring...", name);
                     } else
@@ -337,17 +350,17 @@ namespace Cerulean.CLI
                         string target = string.Empty;
                         string type = string.Empty;
                         if (i.Attribute("Args")?.Value is string rawArgs)
-                            args = ParseHintedString(rawArgs);
+                            args = ParseHintedString(rawArgs, root);
                         if (i.Attribute("Type")?.Value is string rawValue)
                             type = $"({rawValue})";
                         if (i.Attribute("Target")?.Value is string rawTarget)
-                            target = $".{ParseNestedComponentName(rawTarget)}";
+                            target = $".{ParseNestedComponentName(rawTarget, root)}";
                         if (target == string.Empty && type == string.Empty)
                             type = $"({child.Name})";
                         if (type != string.Empty)
-                            stringBuilder.AppendIndented(indent, $"({type}GetChild(\"{name}\"){target}).{method}({args});\n");
+                            stringBuilder.AppendIndented(indent, $"({type}{root}GetChild(\"{name}\"){target}).{method}({args});\n");
                         else
-                            stringBuilder.AppendIndented(indent, $"GetChild(\"{name}\"){target}.{method}({args});\n");
+                            stringBuilder.AppendIndented(indent, $"{root}GetChild(\"{name}\"){target}.{method}({args});\n");
                         /*
                         if (child.Value != string.Empty)
                             stringBuilder.AppendIndented(indent, $"(({type})GetChild(\"{componentName}\")).{eventName} += {eventHandler};\n");
