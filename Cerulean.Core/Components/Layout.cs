@@ -15,13 +15,13 @@ namespace Cerulean.Core
             base.Init();
         }
 
-        public override void Update(Size clientArea)
+        public override void Update(object? window, Size clientArea)
         {
             // update our client area first before the child components
             ClientArea = clientArea;
 
             // update the child components
-            base.Update(clientArea);
+            base.Update(window, clientArea);
         }
     }
 }

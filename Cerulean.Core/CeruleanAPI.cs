@@ -120,7 +120,7 @@ namespace Cerulean.Core
                     var window = pair.Value;
                     var clientArea = window.WindowSize;
                     window.GraphicsContext?.SetRenderArea(clientArea, 0, 0);
-                    window.Layout.Update(clientArea);
+                    window.Layout.Update(window, clientArea);
                     window.Draw();
                 }
             }

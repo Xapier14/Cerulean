@@ -25,7 +25,8 @@ namespace Cerulean.Core
         #endregion
 
         public static readonly Size DefaultWindowSize = new(600, 400);
-        public EventHandler<WindowEventArgs>? OnResize, OnMininize, OnRestore, OnMaximize, OnMoved, OnClose, OnMouseLeave, OnMouseEnter, OnFocusGained, OnFocusLost;
+        public delegate void WindowEventHandler(Window sender, WindowEventArgs e);
+        public WindowEventHandler? OnResize, OnMininize, OnRestore, OnMaximize, OnMoved, OnClose, OnMouseLeave, OnMouseEnter, OnFocusGained, OnFocusLost;
         public bool IsInitialized { get => _initialized; }
         public bool Closed { get; private set; }
         public IGraphics? GraphicsContext { get; private set; } = null;
