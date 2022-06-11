@@ -20,7 +20,10 @@ namespace Cerulean.Components
         private bool _running;
         public bool IsRunning { get { return _running; } }
         public int Interval { get; set; }
-        public EventHandler<TimerEventArgs>? OnElapse;
+        public delegate void TimerEventHandler(Timer sender, 
+                                               object? window, 
+                                               TimerEventArgs e);
+        public TimerEventHandler? OnElapse;
 
         public Timer(int interval = 1000)
         {
@@ -45,9 +48,9 @@ namespace Cerulean.Components
             }
         }
 
-        public override void Update(Size clientArea)
+        public override void Update(object? window, Size clientArea)
         {
-            base.Update(clientArea);
+            ClientArea = clientArea;
             if (!_running)
                 return;
 
@@ -55,7 +58,7 @@ namespace Cerulean.Components
             if (deltaTicks >= TimeSpan.FromMilliseconds(Interval).Ticks)
             {
                 _time = DateTime.Now.Ticks;
-                OnElapse?.Invoke(this, new()
+                OnElapse?.Invoke(this, window, new()
                 {
                     Interval = Interval,
                     InBetween = TimeSpan.FromTicks(deltaTicks)

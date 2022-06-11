@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Cerulean.Common\Cerulean.Common.csproj" />
+    <ProjectReference Include="..\Cerulean.Core\Cerulean.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
