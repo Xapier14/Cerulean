@@ -48,7 +48,7 @@ namespace Cerulean.Core
                 }
                 else
                 {
-                    EnsureThreadSafety("Changing window title must be done on the thread that created the window.");
+                    EnsureMainThread("Changing window title must be done on the thread that created the window.");
                     // change window title via SDL call
                     SDL_SetWindowTitle(_window, value);
                     _windowTitle = value;
@@ -74,7 +74,7 @@ namespace Cerulean.Core
                 }
                 else
                 {
-                    EnsureThreadSafety("Changing window size must be done on the thread that created the window.");
+                    EnsureMainThread("Changing window size must be done on the thread that created the window.");
                     // change window size via SDL call
                     SDL_SetWindowSize(_window, value.W, value.H);
                     SDL_RenderSetLogicalSize(_renderer, value.W, value.H);
@@ -107,13 +107,13 @@ namespace Cerulean.Core
 
         internal void InternalClose()
         {
-            EnsureThreadSafety();
+            EnsureMainThread();
             SDL_DestroyRenderer(_renderer);
             SDL_DestroyWindow(_window);
             Closed = true;
         }
 
-        private void EnsureThreadSafety(string? message = null)
+        private void EnsureMainThread(string? message = null)
         {
             if (_threadId != Environment.CurrentManagedThreadId)
                 throw message == null ?
@@ -123,7 +123,7 @@ namespace Cerulean.Core
 
         internal void Initialize()
         {
-            EnsureThreadSafety("Window initialization must be called from the thread that initialized the CeruleanAPI instance.");
+            EnsureMainThread("Window initialization must be called from the thread that initialized the CeruleanAPI instance.");
             _initialized = true;
             if (SDL_CreateWindowAndRenderer(WindowSize.W, WindowSize.H, SDL_WindowFlags.SDL_WINDOW_RESIZABLE | SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI, out _window, out _renderer) != 0)
             {
@@ -146,7 +146,7 @@ namespace Cerulean.Core
         internal void InvokeOnResize(int w, int h)
         {
             SDL_RenderSetLogicalSize(_renderer, w, h);
-            _windowSize.Set(w, h);
+            _windowSize = new(w, h);
             OnResize?.Invoke(this, new()
             {
                 WindowWidth = w,

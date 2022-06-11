@@ -31,14 +31,6 @@ namespace Cerulean.Core
             _embeddedLayouts = new();
         }
 
-        private void EnsureThreadSafety(string? message = null)
-        {
-            if (_threadId != Environment.CurrentManagedThreadId)
-                throw message == null ?
-                    new ThreadSafetyException() :
-                    new ThreadSafetyException(message);
-        }
-
         private void EnsureInitialized()
         {
             int timer = 0, max = 10;
