@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Cerulean.CLI": {
-      "commandName": "Project",
-      "commandLineArgs": "build-xml \"D:\\Repositories\\Project Repositories\\CeruleanApp\""
-    }
-  }
-}
