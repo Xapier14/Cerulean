@@ -10,16 +10,16 @@ namespace Cerulean.Common
         protected bool CanBeParent { get; init; } = true;
         public Component? Parent { get; set; }
         public IEnumerable<Component> Children { get => _components.Values; }
-        public IDictionary<string, string> Attributes { get; init; } = new Dictionary<string, string>();
-        public int GridRow { get; set; } = 0;
-        public int GridColumn { get; set; } = 0;
-        public int GridRowSpan { get; set; } = 0;
-        public int GridColumnSpan { get; set; } = 0;
-        public int X { get; set; } = 0;
-        public int Y { get; set; } = 0;
+        public IDictionary<string, object> Attributes { get; init; } = new Dictionary<string, object>();
+        public virtual int GridRow { get; set; } = 0;
+        public virtual int GridColumn { get; set; } = 0;
+        public virtual int GridRowSpan { get; set; } = 0;
+        public virtual int GridColumnSpan { get; set; } = 0;
+        public virtual int X { get; set; } = 0;
+        public virtual int Y { get; set; } = 0;
         public Size? ClientArea { get; protected set; } = null;
 
-        protected void AddOrUpdateAttribute(string attribute, string value)
+        protected void AddOrUpdateAttribute(string attribute, object value)
         {
             Attributes[attribute] = value;
         }
@@ -54,7 +54,7 @@ namespace Cerulean.Common
                     result = (pair.Key, pair.Value);
                     return true;
                 case string stringIndex:
-                    var success = Attributes.TryGetValue(stringIndex, out string? attributeValue);
+                    var success = Attributes.TryGetValue(stringIndex, out object? attributeValue);
                     result = attributeValue;
                     return success;
             }
@@ -73,9 +73,9 @@ namespace Cerulean.Common
             return component;
         }
 
-        public string? GetAttribute(string attribute)
+        public object? GetAttribute(string attribute)
         {
-            if (Attributes.TryGetValue(attribute, out string? result))
+            if (Attributes.TryGetValue(attribute, out object? result))
                 return result;
             return null;
         }
@@ -98,7 +98,7 @@ namespace Cerulean.Common
 
         }
 
-        public virtual void Update(Size clientArea)
+        public virtual void Update(object? window, Size clientArea)
         {
             // if component does not use client area
             if (ClientArea is null)
@@ -109,7 +109,7 @@ namespace Cerulean.Common
             }
             if (CanBeParent)
                 foreach (var child in Children)
-                    child.Update(clientArea);
+                    child.Update(window, clientArea);
         }
 
         public virtual void Draw(IGraphics graphics, int x, int y)
