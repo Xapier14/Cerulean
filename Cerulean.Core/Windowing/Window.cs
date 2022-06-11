@@ -14,23 +14,21 @@ namespace Cerulean.Core
     }
     public sealed class Window
     {
-        public static readonly Size DefaultWindowSize = new(600, 400);
-
+        #region Private+Internals
+        private readonly IGraphicsFactory _graphicsFactory;
         private int _threadId;
-        public bool Closed { get; private set; }
-
         private IntPtr _window;
         internal IntPtr WindowPtr { get => _window; }
-        private IntPtr _renderer;
-        internal IntPtr RendererPtr { get => _renderer; }
-        internal bool CloseFromEvent = false;
-
+        internal bool _closeFromEvent = false;
         private bool _initialized = false;
-        public bool IsInitialized { get => _initialized; }
-
         private string _windowTitle = "";
+        #endregion
 
+        public static readonly Size DefaultWindowSize = new(600, 400);
         public EventHandler<WindowEventArgs>? OnResize, OnMininize, OnRestore, OnMaximize, OnMoved, OnClose, OnMouseLeave, OnMouseEnter, OnFocusGained, OnFocusLost;
+        public bool IsInitialized { get => _initialized; }
+        public bool Closed { get; private set; }
+        public IGraphics? GraphicsContext { get; private set; } = null;
 
         public string WindowTitle
         {
@@ -77,7 +75,7 @@ namespace Cerulean.Core
                     EnsureMainThread("Changing window size must be done on the thread that created the window.");
                     // change window size via SDL call
                     SDL_SetWindowSize(_window, value.W, value.H);
-                    SDL_RenderSetLogicalSize(_renderer, value.W, value.H);
+                    GraphicsContext?.SetRenderArea(value, 0, 0);
                     _windowSize = value;
                 }
             }
@@ -95,7 +93,7 @@ namespace Cerulean.Core
                 CeruleanAPI.GetAPI().CloseWindow(this);
         }
 
-        internal Window(Layout windowLayout, string windowTitle, Size windowSize, int threadId, Window? parentWindow = null)
+        internal Window(Layout windowLayout, string windowTitle, Size windowSize, int threadId, IGraphicsFactory graphicsFactory, Window? parentWindow = null)
         {
             _initialized = false;
             _threadId = threadId;
@@ -103,12 +101,13 @@ namespace Cerulean.Core
             WindowSize = windowSize;
             Layout = windowLayout;
             ParentWindow = null;
+            _graphicsFactory = graphicsFactory;
         }
 
         internal void InternalClose()
         {
             EnsureMainThread();
-            SDL_DestroyRenderer(_renderer);
+            GraphicsContext?.Cleanup();
             SDL_DestroyWindow(_window);
             Closed = true;
         }
@@ -125,27 +124,30 @@ namespace Cerulean.Core
         {
             EnsureMainThread("Window initialization must be called from the thread that initialized the CeruleanAPI instance.");
             _initialized = true;
-            if (SDL_CreateWindowAndRenderer(WindowSize.W, WindowSize.H, SDL_WindowFlags.SDL_WINDOW_RESIZABLE | SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI, out _window, out _renderer) != 0)
+            if ((_window = SDL_CreateWindow(WindowTitle,
+                SDL_WINDOWPOS_CENTERED,
+                SDL_WINDOWPOS_CENTERED,
+                WindowSize.W,
+                WindowSize.H,
+                SDL_WindowFlags.SDL_WINDOW_RESIZABLE | SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI)) == IntPtr.Zero)
             {
-                throw new FatalAPIException("Failed to create window and renderer.");
+                throw new FatalAPIException("Failed to create window.");
             }
-            SDL_SetWindowTitle(_window, WindowTitle);
-            SDL_RenderGetLogicalSize(_renderer, out int w, out int h);
+            GraphicsContext = _graphicsFactory.CreateGraphics(this);
             Layout.Init();
         }
 
         internal void Draw()
         {
-            SDL_RenderClear(_renderer);
-
-
-
-            SDL_RenderPresent(_renderer);
+            GraphicsContext?.RenderClear();
+            if (GraphicsContext is not null)
+                Layout.Draw(GraphicsContext, 0, 0);
+            GraphicsContext?.RenderPresent();
         }
 
         internal void InvokeOnResize(int w, int h)
         {
-            SDL_RenderSetLogicalSize(_renderer, w, h);
+            GraphicsContext?.SetRenderArea(new(w, h), 0, 0);
             _windowSize = new(w, h);
             OnResize?.Invoke(this, new()
             {
@@ -167,7 +169,7 @@ namespace Cerulean.Core
             {
                 CeruleanAPI.GetAPI().CloseWindow(this);
             }
-            CloseFromEvent = false;
+            _closeFromEvent = false;
         }
 
         internal void InvokeOnMinimize()

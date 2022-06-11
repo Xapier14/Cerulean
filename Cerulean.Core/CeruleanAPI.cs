@@ -1,5 +1,4 @@
 ﻿using Cerulean.Common;
-using Cerulean.Core.Services;
 using System.Collections.Concurrent;
 using static SDL2.SDL;
 
@@ -17,6 +16,7 @@ namespace Cerulean.Core
         private readonly EmbeddedLayouts _embeddedLayouts;
 
         private ILoggingService? _logger;
+        private IGraphicsFactory? _graphicsFactory;
         private bool _initialized = false;
         private bool _running = false, _stopped = false;
         private int _threadId;
@@ -80,7 +80,7 @@ namespace Cerulean.Core
                                 switch (sdlEvent.window.windowEvent)
                                 {
                                     case SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
-                                        window.CloseFromEvent = true;
+                                        window._closeFromEvent = true;
                                         window.InvokeOnClose();
                                         break;
                                     case SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
@@ -119,6 +119,7 @@ namespace Cerulean.Core
                 {
                     var window = pair.Value;
                     var clientArea = window.WindowSize;
+                    window.GraphicsContext?.SetRenderArea(clientArea, 0, 0);
                     window.Layout.Update(clientArea);
                     window.Draw();
                 }
@@ -173,12 +174,22 @@ namespace Cerulean.Core
             return this;
         }
 
+        public CeruleanAPI UseGraphicsFactory(IGraphicsFactory graphicsFactory)
+        {
+            _graphicsFactory = graphicsFactory;
+            return this;
+        }
+
         public Window CreateWindow(Layout windowLayout, string windowTitle = "CeruleanAPI Window", Size? windowSize = null, bool initialize = true)
         {
             EnsureInitialized();
+            if (_graphicsFactory is null)
+            {
+                throw new FatalAPIException("No graphics factory specified.");
+            }
             object? result = DoOnThread(new Func<Window>(() =>
             {
-                Window window = new(windowLayout, windowTitle, windowSize ?? Window.DefaultWindowSize, _threadId);
+                Window window = new(windowLayout, windowTitle, windowSize ?? Window.DefaultWindowSize, _threadId, _graphicsFactory);
                 if (initialize)
                     InitializeWindow(window);
                 return window;
@@ -201,9 +212,9 @@ namespace Cerulean.Core
             {
                 if (!window.Closed)
                 {
-                    if (!window.CloseFromEvent)
+                    if (!window._closeFromEvent)
                     {
-                        window.CloseFromEvent = true;
+                        window._closeFromEvent = true;
                         window.InvokeOnClose();
                     }
                     else

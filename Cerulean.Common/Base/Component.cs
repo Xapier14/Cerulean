@@ -100,9 +100,46 @@ namespace Cerulean.Common
 
         public virtual void Update(Size clientArea)
         {
+            // if component does not use client area
+            if (ClientArea is null)
+            {
+                // set the origin position to top-left of window.
+                X = 0;
+                Y = 0;
+            }
             if (CanBeParent)
                 foreach (var child in Children)
                     child.Update(clientArea);
+        }
+
+        public virtual void Draw(IGraphics graphics, int x, int y)
+        {
+            // remember old render area
+            Size renderArea = graphics.GetRenderArea(
+                out int areaX,
+                out int areaY);
+
+            // set component position relative to parent;
+            int componentX = x + X;
+            int componentY = y + Y;
+
+            // set render area to component clientArea
+            if (ClientArea is Size clientArea)
+                graphics.SetRenderArea(
+                    clientArea,
+                    componentX,
+                    componentY);
+
+            // draw child elements
+            if (CanBeParent)
+                foreach (var child in Children)
+                    child.Draw(
+                        graphics,
+                        componentX,
+                        componentY);
+
+            // restore old render area
+            graphics.SetRenderArea(renderArea, areaX, areaY);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace Cerulean.Core.Services
+﻿namespace Cerulean.Common
 {
     public interface ILoggingService
     {

@@ -1,7 +1,5 @@
 ﻿using System.Reflection;
 using Cerulean.Common;
-using Cerulean.Core;
-using Cerulean.Core.Services;
 using System.Collections.Concurrent;
 
 namespace Cerulean.Core
