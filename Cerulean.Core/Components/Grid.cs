@@ -68,41 +68,44 @@ namespace Cerulean.Core
                 });
 
             // calculate lows & highs for width and height of auto cells
-            int lowHeight = (int)Math.Floor((clientArea.H - fixedRow) / (double)autoRow);
-            int highHeight = (int)Math.Ceiling((clientArea.H - fixedRow) / (double)autoRow);
-            int lowWidth = (int)Math.Floor((clientArea.W - fixedColumn) / (double)autoColumn);
-            int highWidth = (int)Math.Ceiling((clientArea.W - fixedColumn) / (double)autoColumn);
+            int bigHeight = (int)Math.Ceiling((clientArea.H - fixedRow) / (double)autoRow);
+            int inverseSmallHeight = 0;
+            int bigWidth = (int)Math.Ceiling((clientArea.W - fixedColumn) / (double)autoColumn);
+            int inverseSmallWidth = 0;
 
             // for each cell...
             int autoColumnsComputed = 0;
             int autoRowsComputed = 0;
             for (int row = 0; row < RowCount; row++)
             {
+                int height = _rows[row];
+                if (height == 0)
+                {
+                    height = autoRowsComputed < autoRow - 1 ?
+                        bigHeight :
+                        clientArea.H - fixedRow - inverseSmallHeight;
+                    autoRowsComputed++;
+                    inverseSmallHeight += height;
+                }
                 for (int col = 0; col < ColumnCount; col++)
                 {
-                    int height = _rows[row];
                     int width = _columns[col];
-                    if (height == 0)
-                    {
-                        height = autoRowsComputed < autoRow - 1 ? 
-                            lowHeight :
-                            highHeight;
-                        autoRowsComputed++;
-                    }
-
                     if (width == 0)
                     {
                         width = autoColumnsComputed < autoColumn - 1 ?
-                            lowWidth :
-                            highWidth;
+                            bigWidth :
+                            clientArea.W - fixedColumn - inverseSmallWidth;
                         autoColumnsComputed++;
+                        inverseSmallWidth += width;
                     }
                     _cellSizes[row, col].W = width;
                     _cellSizes[row, col].H = height;
                 }
                 autoColumnsComputed = 0;
-                autoRowsComputed = 0;
+                inverseSmallWidth = 0;
             }
+            autoRowsComputed = 0;
+            inverseSmallHeight = 0;
 
             // update child components
             foreach (var child in Children)
