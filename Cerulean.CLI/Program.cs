@@ -5,11 +5,11 @@ Router router = Router.GetRouter();
 
 /* Register commands */
 // if using .NET 7
-router.RegisterCommands();
+//router.RegisterCommands();
 
 // if using .NET <=6
-//router.RegisterCommand(BuildXML.CommandName, BuildXML.DoAction);
-//router.RegisterCommand(NewProject.CommandName, NewProject.DoAction);
+router.RegisterCommand(BuildXML.CommandName, BuildXML.DoAction);
+router.RegisterCommand(NewProject.CommandName, NewProject.DoAction);
 
 // Display help if no args
 if (args.Length == 0)

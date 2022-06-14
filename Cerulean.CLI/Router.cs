@@ -27,9 +27,10 @@ namespace Cerulean.CLI
             return _router;
         }
 
-        public void RegisterCommand(string commandName, Action<string[]> action)
+        public void RegisterCommand(string? commandName, Action<string[]> action)
         {
-            _commands[commandName] = action;
+            if (commandName is not null)
+                _commands[commandName] = action;
         }
 
         public void RegisterCommands()

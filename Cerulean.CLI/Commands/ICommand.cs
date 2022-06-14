@@ -15,6 +15,6 @@ namespace Cerulean.CLI
         // A known issue with the .NET 6 preview of static abstract interface members.
         // https://github.com/dotnet/runtime/issues/59432
         // https://github.com/dotnet/runtime/issues/63411
-        public static abstract void DoAction(string[] args);
+        // public static abstract void DoAction(string[] args);
     }
 }
