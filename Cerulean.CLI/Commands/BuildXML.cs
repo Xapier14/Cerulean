@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 
 namespace Cerulean.CLI.Commands
 {
-    internal class BuildXML
+    public class BuildXML : ICommand
     {
-        public static void Action(string[] args)
+        public static string? CommandName { get; set; } = "build-xml";
+
+        public static void DoAction(string[] args)
         {
             const string fileExtension = ".xml";
 

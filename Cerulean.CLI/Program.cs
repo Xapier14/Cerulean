@@ -3,12 +3,13 @@ using Cerulean.CLI.Commands;
 
 Router router = Router.GetRouter();
 
-// Register commands
-router.RegisterCommand("build-xml", BuildXML.Action);
-router.RegisterCommand("new", NewProject.Action);
+/* Register commands */
+// if using .NET 7
+router.RegisterCommands();
 
-//router.RegisterCommand("build", Build.Action
-//router.RegisterCommand("run", Run.Action);
+// if using .NET <=6
+//router.RegisterCommand(BuildXML.CommandName, BuildXML.DoAction);
+//router.RegisterCommand(NewProject.CommandName, NewProject.DoAction);
 
 // Display help if no args
 if (args.Length == 0)

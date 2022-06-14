@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace Cerulean.CLI.Commands
 {
-    internal class NewProject
+    public class NewProject : ICommand
     {
-        public static void Action(string[] args)
+        public static string? CommandName { get; set; } = "new";
+        public static void DoAction(string[] args)
         {
 
         }
