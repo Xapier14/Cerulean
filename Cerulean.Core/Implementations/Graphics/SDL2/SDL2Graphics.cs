@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using Cerulean.Common;
 using static SDL2.SDL;
+using static SDL2.SDL_ttf;
 
 namespace Cerulean.Core
 {
@@ -13,6 +14,7 @@ namespace Cerulean.Core
     {
         private readonly Window _window;
         private readonly IntPtr _renderer;
+        private readonly TextureCache _textureCache;
         internal IntPtr WindowPtr => _window.WindowPtr;
         internal IntPtr RendererPtr => _renderer;
         public SDL2Graphics(Window window)
@@ -24,6 +26,7 @@ namespace Cerulean.Core
                 throw new FatalAPIException("Could not create SDL2 renderer.");
             }
             _renderer = renderer;
+            _textureCache = new();
         }
 
         public Size GetRenderArea(out int x, out int y)
@@ -70,5 +73,7 @@ namespace Cerulean.Core
             SDL_RenderFillRect(RendererPtr, ref rect);
             SDL_SetRenderDrawColor(RendererPtr, 0, 0, 0, 255);
         }
+
+        public void 
     }
 }
