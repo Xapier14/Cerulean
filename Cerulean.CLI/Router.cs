@@ -29,30 +29,19 @@ namespace Cerulean.CLI
 
         public void RegisterCommand(string commandName, Action<string[]> action)
         {
-            if (_commands is null)
-                throw new InvalidOperationException("Object not yet initialized.");
             _commands[commandName] = action;
         }
 
         public void RegisterCommands()
         {
             var interfaceType = typeof(ICommand);
-            var commands = new List<Type>();
-            var loadable = typeof(BuildXML).IsAssignableTo(interfaceType);
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                foreach (var type in assembly.GetLoadableTypes())
-                {
-                    if (type is not null
-                        && type.IsAssignableTo(interfaceType)
-                        && type != typeof(object)
-                        && type != interfaceType)
-                        commands.Add(type);
-                }
-            }
-            //var commands = AppDomain.CurrentDomain.GetAssemblies()
-                //.SelectMany(assembly => assembly.GetLoadableTypes())
-                //.Where(x => x is not null && x != interfaceType && x.IsAssignableFrom(interfaceType));
+            var commands = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetLoadableTypes())
+                .Where(x => x is not null
+                         && x != interfaceType
+                         && x.IsAssignableTo(interfaceType)
+                         && x != typeof(object));
+
             foreach (var command in commands)
             {
                 var commandName = (string?)command?.GetProperty("CommandName")?.GetValue(null);
