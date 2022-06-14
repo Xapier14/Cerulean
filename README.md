@@ -6,6 +6,14 @@
 </p><br>
 <h2>Basic Information</h2>
 Write GUI apps using simple XML and C#.<br>
+<h2>Important Notes</h2>
+
+ - Mostly **.NET 6** is required. The CLI tool needs **.NET 7** but can be altered to only require **.NET 6**.
+    - See `Cerulean.CLI\Program.cs` for more info.
+ - Do not use `Any CPU`, either use `x86` or `x64` and use the appropriate SDL2 binaries.
+ - When developing apps for Cerulean UI with Visual Studio, add a pre-build event that calls `%CERULEAN_CLI_PATH%\\crn.exe build-xml`.
+    - Where `%CERULEAN_CLI_PATH%` is the directory to the `crn.exe` binary
+    - Eventually, a build command will be added onto `crn.exe` that automates XML layout building, resource packing and dotnet build process.
 <h2>Features</h2>
 
 ### Cerulean API
