@@ -74,6 +74,9 @@ namespace Cerulean.Core
             SDL_SetRenderDrawColor(RendererPtr, 0, 0, 0, 255);
         }
 
-        public void 
+        public void Update()
+        {
+            // TODO: keep texture cache to a specific size by removing old textures
+        }
     }
 }

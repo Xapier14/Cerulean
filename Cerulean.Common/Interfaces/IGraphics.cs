@@ -24,9 +24,13 @@ namespace Cerulean.Common
 
         #region TEXTURE DRAW
         #endregion
+
+        #region API FUNCTIONS
+        public void Update();
         public virtual void Cleanup()
         {
 
         }
+        #endregion
     }
 }

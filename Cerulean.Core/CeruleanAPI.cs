@@ -119,6 +119,7 @@ namespace Cerulean.Core
                 {
                     var window = pair.Value;
                     var clientArea = window.WindowSize;
+                    window.GraphicsContext?.Update();
                     window.GraphicsContext?.SetRenderArea(clientArea, 0, 0);
                     window.Layout.Update(window, clientArea);
                     window.Draw();
