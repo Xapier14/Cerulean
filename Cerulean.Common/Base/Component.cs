@@ -82,9 +82,16 @@ namespace Cerulean.Common
 
         public dynamic GetChild(string name)
         {
-            if (_components.TryGetValue(name, out Component? value))
-                return value;
-            throw new GeneralAPIException("Child not found.");
+            string[] scopedNames = name.Split('.');
+            Component element = this;
+            foreach (string scopedName in scopedNames)
+            {
+                if (element._components.TryGetValue(scopedName, out Component? value))
+                    element = value;
+            }
+            if (element != this)
+                return element;
+            throw new GeneralAPIException($"Child \"{name}\" not found.");
         }
         public dynamic? GetChildNullable(string name)
         {
