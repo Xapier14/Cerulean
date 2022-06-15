@@ -58,11 +58,17 @@ namespace Cerulean.Core
                 {
                     return (Layout)layoutConstructor.Invoke(Array.Empty<object>());
                 }
+                catch (TargetInvocationException ex)
+                {
+                    _logger?.Log($"Ctor error constructing layout '{name}'.");
+                    if (ex.InnerException is not null)
+                        throw new FatalAPIException(ex.InnerException.Message);
+                }
                 catch (Exception ex)
                 {
-                    _logger?.Log($"Error constructing layout '{name}'.");
+                    _logger?.Log($"General error constructing layout '{name}'.");
                     throw new FatalAPIException(ex.Message);
-                };
+                }
             throw new GeneralAPIException("Layout not found.");
             
         }
