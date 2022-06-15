@@ -250,7 +250,7 @@ namespace Cerulean.CLI
                             child.Attribute("Type")?.Value is string type &&
                             child.Attribute("Handler")?.Value is string eventHandler)
                         {
-                            if (child.Value != string.Empty)
+                            if (child.Value == string.Empty)
                                 stringBuilder.AppendIndented(indent, $"(({type}){root}GetChild(\"{componentName}\")).{eventName} += {eventHandler};\n");
                         }
                         else
