@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 using Cerulean.Common;
 using static SDL2.SDL;
-using static SDL2.SDL_ttf;
 
 namespace Cerulean.Core
 {
@@ -29,6 +23,17 @@ namespace Cerulean.Core
             _textureCache = new();
         }
 
+        public void Update()
+        {
+            // TODO: keep texture cache to a specific size by removing old textures
+        }
+
+        public void Cleanup()
+        {
+
+        }
+
+        #region GENERAL
         public Size GetRenderArea(out int x, out int y)
         {
             _ = SDL_RenderGetViewport(RendererPtr, out SDL_Rect rect);
@@ -48,7 +53,8 @@ namespace Cerulean.Core
             if (SDL_RenderSetViewport(RendererPtr, ref rect) != 0)
                 throw new GeneralAPIException("Could not set viewport data.");
         }
-
+        #endregion
+        #region RENDER
         public void RenderClear()
         {
             if (SDL_RenderClear(RendererPtr) != 0)
@@ -59,8 +65,9 @@ namespace Cerulean.Core
         {
             SDL_RenderPresent(RendererPtr);
         }
-
-        public void DrawRectangle(int x, int y, Size size)
+        #endregion
+        #region PRIMITIVES
+        public void DrawFilledRectangle(int x, int y, Size size)
         {
             SDL_Rect rect = new()
             {
@@ -69,14 +76,33 @@ namespace Cerulean.Core
                 w = size.W,
                 h = size.H
             };
-            SDL_SetRenderDrawColor(RendererPtr, 200, 10, 10, 255);
             SDL_RenderFillRect(RendererPtr, ref rect);
-            SDL_SetRenderDrawColor(RendererPtr, 0, 0, 0, 255);
         }
 
-        public void Update()
+        public void DrawFilledRectangle(int x, int y, Size size, Color color)
         {
-            // TODO: keep texture cache to a specific size by removing old textures
+            SDL_GetRenderDrawColor(
+                RendererPtr,
+                out byte r,
+                out byte g,
+                out byte b,
+                out byte a);
+            SDL_SetRenderDrawColor(
+                RendererPtr,
+                color.R,
+                color.G,
+                color.B,
+                color.A);
+            DrawFilledRectangle(x, y, size);
+            SDL_SetRenderDrawColor(
+                RendererPtr,
+                r,
+                g,
+                b,
+                a);
         }
+        #endregion
+        #region TEXT
+        #endregion
     }
 }
