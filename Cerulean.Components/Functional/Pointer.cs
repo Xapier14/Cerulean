@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Cerulean.Core;
+using Cerulean.Core.Input;
 using Cerulean.Common;
 
 namespace Cerulean.Components
@@ -16,7 +17,10 @@ namespace Cerulean.Components
         public override int X
         {
             get { return _x; }
-            set { _x = value; }
+        }
+        public override int Y
+        {
+            get { return _y; }
         }
 
         public Pointer()
@@ -26,11 +30,17 @@ namespace Cerulean.Components
 
         public override void Update(object? window, Size clientArea)
         {
-            var api = CeruleanAPI.GetAPI();
+            (int globalX, int globalY) = Mouse.GetGlobalMousePosition();
             ClientArea = clientArea;
             if (window is Window ceruleanWindow)
             {
-                
+                (int windowX, int windowY) = ceruleanWindow.WindowPosition;
+                _x = globalX - windowX;
+                _y = globalY - windowY;
+            } else
+            {
+                _x = globalX;
+                _y = globalY;
             }
         }
     }
