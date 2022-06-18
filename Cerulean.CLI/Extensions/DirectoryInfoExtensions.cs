@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Cerulean.CLI
+namespace Cerulean.CLI.Extensions
 {
     internal static class DirectoryInfoExtensions
     {

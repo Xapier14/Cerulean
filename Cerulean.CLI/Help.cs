@@ -22,19 +22,29 @@ namespace Cerulean.CLI
             Console.WriteLine(@" \______\___|_|  \___,_|_|\___|\__,_|_| |_| \_____|_____|___|");
             Console.WriteLine();
             Console.ResetColor();
-            var version = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location);
-            Console.WriteLine(" Cerulean CLI: {0}.{1}.{2}", version.FileMajorPart, version.FileMinorPart, version.FileBuildPart);
-            var name = version.InternalName ?? "crn.exe";
+            string name = "crn.exe";
+            try
+            {
+                var version = FileVersionInfo.GetVersionInfo(Path.Combine(AppContext.BaseDirectory, "crn.exe"));
+                name = version.InternalName ?? "crn.exe";
+                Console.WriteLine(" Cerulean CLI: {0}.{1}.{2}", version.FileMajorPart, version.FileMinorPart, version.FileBuildPart);
+            }
+            catch
+            {
+                Console.WriteLine(" Cerulean CLI: ?.?.? (malformed executable?)");
+            }
             var cli = name.Remove(name.Length-4, 4);
 
-            var process = new Process();
-            process.StartInfo = new()
+            var process = new Process
             {
-                FileName = "dotnet",
-                Arguments = "--version",
-                RedirectStandardOutput = true,
-                CreateNoWindow = true,
-                UseShellExecute = false
+                StartInfo = new()
+                {
+                    FileName = "dotnet",
+                    Arguments = "--version",
+                    RedirectStandardOutput = true,
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                }
             };
             process.Start();
             process.WaitForExit();

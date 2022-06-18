@@ -278,10 +278,16 @@ namespace Cerulean.CLI
                                 type = $"({rawValue})";
                             if (child.Attribute("Target")?.Value is string rawTarget)
                                 target = $"{ParseNestedComponentName(rawTarget, root)}";
-                            if (type != string.Empty)
+                            if (type != string.Empty && target != string.Empty)
+                            {
                                 stringBuilder.AppendIndented(indent, $"({type}{root}{target}).{method}({args});\n");
+                            }
                             else
-                                stringBuilder.AppendIndented(indent, $"{root}{target}.{method}({args});\n");
+                            {
+                                if (target != string.Empty)
+                                    target += ".";
+                                stringBuilder.AppendIndented(indent, $"{root}{target}{method}({args});\n");
+                            }
 
                             /*
                             if (child.Value != string.Empty)
