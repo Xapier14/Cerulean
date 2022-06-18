@@ -82,6 +82,24 @@ namespace Cerulean.Core
             }
         }
 
+        private (int, int) _windowPosition;
+
+        public (int, int) WindowPosition
+        {
+            get
+            {
+                return (_windowPosition.Item1, _windowPosition.Item2);
+            }
+            set
+            {
+                EnsureMainThread("Changing window position must be done on the thread that created the window.");
+                // move window via SDL call
+                SDL_SetWindowPosition(_window, value.Item1, value.Item2);
+                _windowPosition.Item1 = value.Item1;
+                _windowPosition.Item2 = value.Item2;
+            }
+        }
+
         public bool Enabled { get; set; } = true;
         public bool HandleClose { get; set; } = true;
         public Window? ParentWindow { get; init; }
@@ -134,6 +152,7 @@ namespace Cerulean.Core
             {
                 throw new FatalAPIException("Failed to create window.");
             }
+            SDL_GetWindowPosition(_window, out _windowPosition.Item1, out _windowPosition.Item2);
             GraphicsContext = _graphicsFactory.CreateGraphics(this);
             Layout.Init();
         }
@@ -150,6 +169,9 @@ namespace Cerulean.Core
         {
             GraphicsContext?.SetRenderArea(new(w, h), 0, 0);
             _windowSize = new(w, h);
+            SDL_GetWindowPosition(_window,
+                out _windowPosition.Item1,
+                out _windowPosition.Item2);
             OnResize?.Invoke(this, new()
             {
                 WindowWidth = w,
@@ -175,21 +197,31 @@ namespace Cerulean.Core
 
         internal void InvokeOnMinimize()
         {
+            _windowPosition.Item1 = 0;
+            _windowPosition.Item2 = 0;
             OnMininize?.Invoke(this, new());
         }
 
         internal void InvokeOnRestore()
         {
+            SDL_GetWindowPosition(_window,
+                out _windowPosition.Item1,
+                out _windowPosition.Item2);
             OnRestore?.Invoke(this, new());
         }
 
         internal void InvokeOnMaximize()
         {
+            SDL_GetWindowPosition(_window,
+                out _windowPosition.Item1,
+                out _windowPosition.Item2);
             OnMaximize?.Invoke(this, new());
         }
 
         internal void InvokeOnMoved(int x, int y)
         {
+            _windowPosition.Item1 = x;
+            _windowPosition.Item2 = y;
             OnMoved?.Invoke(this, new()
             {
                 WindowX = x,
