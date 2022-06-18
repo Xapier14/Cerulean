@@ -21,9 +21,9 @@ Write GUI apps using simple XML and C#.<br>
  - [x] Window Events
  - [ ] Styler Element
 ### Cerulean Components
- - [ ] Functional Components
+ - [x] Functional Components
      - [x] Timer
-     - [ ] Pointer
+     - [x] Pointer
  - [ ] Dialog Components
      - [ ] Message Box
      - [ ] Open File Dialog
@@ -33,6 +33,7 @@ Write GUI apps using simple XML and C#.<br>
      - [x] Rectangle
      - [ ] Image
      - [ ] Progress Bar
+	 - [ ] Label
  - [ ] Input Components
      - [ ] TextBox
      - [ ] MultiTextBox
