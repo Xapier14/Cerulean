@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
+using Cerulean.Common;
 using Cerulean.Core;
 using Cerulean.Core.Input;
-using Cerulean.Common;
 
 namespace Cerulean.Components
 {
@@ -37,7 +32,8 @@ namespace Cerulean.Components
                 (int windowX, int windowY) = ceruleanWindow.WindowPosition;
                 _x = globalX - windowX;
                 _y = globalY - windowY;
-            } else
+            }
+            else
             {
                 _x = globalX;
                 _y = globalY;

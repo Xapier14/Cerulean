@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Reflection;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 namespace Cerulean.CLI
@@ -33,7 +27,7 @@ namespace Cerulean.CLI
             {
                 Console.WriteLine(" Cerulean CLI: ?.?.? (malformed executable?)");
             }
-            var cli = name.Remove(name.Length-4, 4);
+            var cli = name.Remove(name.Length - 4, 4);
 
             var process = new Process
             {

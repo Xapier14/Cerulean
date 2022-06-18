@@ -1,11 +1,5 @@
-﻿using System;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 using static SDL2.SDL;
-
-using Cerulean.Common.Collections;
 using LinkedList = Cerulean.Common.Collections.LinkedList<Cerulean.Core.Texture>;
 using LinkedListNode = Cerulean.Common.Collections.LinkedListNode<Cerulean.Core.Texture>;
 

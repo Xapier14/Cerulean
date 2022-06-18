@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Cerulean.Common
+﻿namespace Cerulean.Common
 {
     public interface IGraphics
     {
@@ -19,7 +13,8 @@ namespace Cerulean.Common
         #endregion
 
         #region PRIMITIVE DRAW
-        public void DrawRectangle(int x, int y, Size size);
+        public void DrawFilledRectangle(int x, int y, Size size);
+        public void DrawFilledRectangle(int x, int y, Size size, Color color);
         #endregion
 
         #region TEXTURE DRAW

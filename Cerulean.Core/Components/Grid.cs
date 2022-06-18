@@ -7,7 +7,8 @@ namespace Cerulean.Core
         private int[] _columns = { 0 };
         private int[] _rows = { 0 };
         private Size[,]? _cellSizes;
-        public int ColumnCount {
+        public int ColumnCount
+        {
             get => _columns.Length;
             set
             {

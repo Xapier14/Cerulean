@@ -1,6 +1,6 @@
-﻿using System.Reflection;
-using Cerulean.Common;
+﻿using Cerulean.Common;
 using System.Collections.Concurrent;
+using System.Reflection;
 
 namespace Cerulean.Core
 {
@@ -39,13 +39,14 @@ namespace Cerulean.Core
                     _logger?.Log($"A constructor for layout '{layoutType.Name}' is already registered.");
                     continue;
                 }
-                
+
                 _logger?.Log($"Loaded layout '{layoutType.Name}'.");
             }
             if (_layouts.IsEmpty)
             {
                 _logger?.Log("No layouts loaded.");
-            } else
+            }
+            else
             {
                 _logger?.Log($"Loaded {_layouts.Count} layout(s).");
             }
@@ -70,7 +71,7 @@ namespace Cerulean.Core
                     throw new FatalAPIException(ex.Message);
                 }
             throw new GeneralAPIException("Layout not found.");
-            
+
         }
     }
 }

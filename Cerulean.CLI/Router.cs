@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Reflection;
-
-using Cerulean.CLI.Commands;
-using Cerulean.CLI.Extensions;
+﻿using Cerulean.CLI.Extensions;
 
 namespace Cerulean.CLI
 {
@@ -50,7 +42,8 @@ namespace Cerulean.CLI
                 if (commandName is not null && action is not null)
                 {
                     _commands[commandName] = action;
-                } else
+                }
+                else
                 {
                     Console.WriteLine($"[Router.RegisterCommands()] Could not load command \"{command?.Name}\".");
                 }
@@ -61,7 +54,7 @@ namespace Cerulean.CLI
         {
             if (_commands.TryGetValue(commandName, out Delegate? command))
             {
-                command?.DynamicInvoke(new[]{ args });
+                command?.DynamicInvoke(new[] { args });
                 return true;
             }
             return false;

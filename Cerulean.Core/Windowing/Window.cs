@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using Cerulean.Common;
+﻿using Cerulean.Common;
 using static SDL2.SDL;
 
 namespace Cerulean.Core
@@ -8,7 +7,7 @@ namespace Cerulean.Core
     {
         public int WindowWidth { get; init; }
         public int WindowHeight { get; init; }
-        public int WindowX { get ; init; }
+        public int WindowX { get; init; }
         public int WindowY { get; init; }
         public bool Cancel { get; set; }
     }

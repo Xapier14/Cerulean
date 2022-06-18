@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 using Cerulean.Common;
 
 namespace Cerulean.Components
@@ -20,8 +15,8 @@ namespace Cerulean.Components
         private bool _running;
         public bool IsRunning { get { return _running; } }
         public int Interval { get; set; }
-        public delegate void TimerEventHandler(Timer sender, 
-                                               object? window, 
+        public delegate void TimerEventHandler(Timer sender,
+                                               object? window,
                                                TimerEventArgs e);
         public TimerEventHandler? OnElapse;
 

@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
-
-using Cerulean.Common;
 
 namespace Cerulean.CLI
 {
@@ -138,7 +132,8 @@ namespace Cerulean.CLI
                         string name = GenerateLayout(context, layout, out string content);
                         context.Layouts.Add(name, content);
                         Console.WriteLine("[GOOD][LAYOUT] Generated layout '{0}'.", name);
-                    } catch (Exception e)
+                    }
+                    catch (Exception e)
                     {
                         Console.WriteLine("[FAIL][LAYOUT] Failed generating layout for XML-Fragment:");
                         if (((IXmlLineInfo)layout).HasLineInfo())
@@ -169,7 +164,8 @@ namespace Cerulean.CLI
                     Console.WriteLine();
                 }
                 return true;
-            } catch (Exception)
+            }
+            catch (Exception)
             {
                 return false;
             }
@@ -320,10 +316,10 @@ namespace Cerulean.CLI
                            attribute.Name.ToString() != "Data" &&
                            attribute.Name.NamespaceName != "Attribute";
                 }).ToArray();
-                var attributes = child.Attributes().Where( attribute =>
-                {
-                    return attribute.Name.NamespaceName == "Attribute";
-                }).ToArray();
+                var attributes = child.Attributes().Where(attribute =>
+               {
+                   return attribute.Name.NamespaceName == "Attribute";
+               }).ToArray();
                 foreach (var prop in props)
                 {
                     stringBuilder.AppendIndented(indent + 1, $"{prop.Name} = {ParseHintedString(prop.Value, root)},\n");
@@ -340,10 +336,11 @@ namespace Cerulean.CLI
                     if (e.Attribute("Name")?.Value is string eventName)
                     {
                         if (e.Attribute("Handler")?.Value is string eventHandler)
-                                stringBuilder.AppendIndented(indent, $"(({child.Name}){root}GetChild(\"{name}\")).{eventName} += {eventHandler};\n");
+                            stringBuilder.AppendIndented(indent, $"(({child.Name}){root}GetChild(\"{name}\")).{eventName} += {eventHandler};\n");
                         else
                             Console.WriteLine("[WARN][EVENT] Event from component '{0}' has no 'Handler' attribute. Ignoring...", name);
-                    } else
+                    }
+                    else
                     {
                         Console.WriteLine("[WARN][EVENT] Event from component '{0}' has no 'Name' attribute. Ignoring...", name);
                     }

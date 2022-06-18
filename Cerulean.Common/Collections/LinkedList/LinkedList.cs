@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections;
 
 namespace Cerulean.Common.Collections
 {
@@ -39,12 +34,14 @@ namespace Cerulean.Common.Collections
             {
                 _head = new(data);
                 _tail = _head;
-            } else if (_head == _tail)
+            }
+            else if (_head == _tail)
             {
                 _head.Next = new(data);
                 _tail = _head.Next;
                 _tail.Previous = _head;
-            } else if (_tail is not null)
+            }
+            else if (_tail is not null)
             {
                 _tail.Next = new(data);
                 _tail.Next.Previous = _tail;
@@ -59,7 +56,8 @@ namespace Cerulean.Common.Collections
             if (node1 == _head)
             {
                 _head = node2;
-            } else if (node2 == _head)
+            }
+            else if (node2 == _head)
             {
                 _head = node1;
             }
@@ -67,7 +65,8 @@ namespace Cerulean.Common.Collections
             if (node1 == _tail)
             {
                 _tail = node2;
-            } else if (node2 == _tail)
+            }
+            else if (node2 == _tail)
             {
                 _tail = node1;
             }
