@@ -6,6 +6,7 @@ namespace Cerulean.Core
 {
     public sealed class CeruleanAPI
     {
+        #region Private
         private static readonly CeruleanAPI _instance = new();
 
         private const int MAX_WORKITEMS = 5;
@@ -20,6 +21,7 @@ namespace Cerulean.Core
         private bool _initialized = false;
         private bool _running = false, _stopped = false;
         private int _threadId;
+        #endregion
 
         public IEnumerable<Window> Windows { get => _windows.Values; }
 
@@ -165,6 +167,16 @@ namespace Cerulean.Core
                     Thread.Sleep(500);
                 }
             }
+        }
+
+        public void WaitAllWindows(bool quitOnComplete = false)
+        {
+            while (Windows.Any())
+            {
+                Thread.Sleep(100);
+            }
+            if (quitOnComplete)
+                Quit();
         }
 
         public CeruleanAPI UseLogger(ILoggingService loggingService)
