@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
@@ -43,6 +44,66 @@ namespace Cerulean.CLI
             }
             return component.ToString();
         }
+
+        public static string Repeat(string str, int repetition)
+        {
+            StringBuilder builder = new();
+            for (int i = 0; i < repetition; ++i)
+                builder.Append(str);
+            return builder.ToString();
+        }
+
+        public static int FromHex(string str)
+            => int.Parse(str, NumberStyles.HexNumber);
+
+        public static string ParseHexColor(string hexColor)
+        {
+            string color = "Colors.None";
+            // #RGB
+            var pattern1 = Regex.Match(hexColor, @"^#([\da-f])([\da-f])([\da-f])$", RegexOptions.IgnoreCase);
+            if (pattern1.Success)
+            {
+                int r = FromHex(Repeat(pattern1.Groups[1].Value, 2));
+                int g = FromHex(Repeat(pattern1.Groups[2].Value, 2));
+                int b = FromHex(Repeat(pattern1.Groups[3].Value, 2));
+                color = $"new Color({r}, {g}, {b})";
+            }
+
+            // #RGBA
+            var pattern2 = Regex.Match(hexColor, @"^#([\da-f])([\da-f])([\da-f])([\da-f])$", RegexOptions.IgnoreCase);
+            if (pattern2.Success)
+            {
+                int r = FromHex(Repeat(pattern2.Groups[1].Value, 2));
+                int g = FromHex(Repeat(pattern2.Groups[2].Value, 2));
+                int b = FromHex(Repeat(pattern2.Groups[3].Value, 2));
+                int a = FromHex(Repeat(pattern2.Groups[4].Value, 2));
+                color = $"new Color({r}, {g}, {b}, {a})";
+            }
+
+            // #RRGGBB
+            var pattern3 = Regex.Match(hexColor, @"^#([\da-f]{2})([\da-f]{2})([\da-f]{2})$", RegexOptions.IgnoreCase);
+            if (pattern3.Success)
+            {
+                int r = FromHex(pattern3.Groups[1].Value[..2]);
+                int g = FromHex(pattern3.Groups[2].Value[..2]);
+                int b = FromHex(pattern3.Groups[3].Value[..2]);
+                color = $"new Color({r}, {g}, {b})";
+            }
+
+            // #RRGGBBAA
+            var pattern4 = Regex.Match(hexColor, @"^#([\da-f]{2})([\da-f]{2})([\da-f]{2})([\da-f]{2})$", RegexOptions.IgnoreCase);
+            if (pattern4.Success)
+            {
+                int r = FromHex(pattern4.Groups[1].Value[..2]);
+                int g = FromHex(pattern4.Groups[2].Value[..2]);
+                int b = FromHex(pattern4.Groups[3].Value[..2]);
+                int a = FromHex(pattern4.Groups[4].Value[..2]);
+                color = $"new Color({r}, {g}, {b}, {a})";
+            }
+
+            return color;
+        }
+
         public static string ParseHintedString(string hintedString, string root)
         {
             // hinted value pattern ([name]="[type]: [value]")
@@ -70,12 +131,15 @@ namespace Cerulean.CLI
                         "float" => $"{float.Parse(raw)}",
                         "double" => $"{double.Parse(raw)}",
                         "string" => $"\"{raw}\"",
-                        "component" => $"{ParseNestedComponentName(raw, root)}",
+                        "component" => ParseNestedComponentName(raw, root),
+                        "color" => ParseHexColor(raw),
                         "literal" => value,
                         _ => "null"
                     };
                     if (value == "null")
                         Console.WriteLine("[WARN][COMPONENT] Type '{0}' for attribute '{1}' not recognized, using null instead.", type, hintedString);
+                    if (value == "Colors.None" && type == "color")
+                        Console.WriteLine("[WARN][COMPONENT] Color '{0}' not parsed correctly, using Colors.None instead.", hintedString);
                 }
                 catch (Exception ex)
                 {
