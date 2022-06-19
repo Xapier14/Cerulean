@@ -105,11 +105,7 @@ namespace Cerulean.Core
 
         public dynamic Layout { get; private set; }
 
-        public void Close()
-        {
-            if (!Closed)
-                CeruleanAPI.GetAPI().CloseWindow(this);
-        }
+        public Color BackgroundColor { get; set; }
 
         internal Window(Layout windowLayout, string windowTitle, Size windowSize, int threadId, IGraphicsFactory graphicsFactory, Window? parentWindow = null)
         {
@@ -120,6 +116,7 @@ namespace Cerulean.Core
             Layout = windowLayout;
             ParentWindow = null;
             _graphicsFactory = graphicsFactory;
+            BackgroundColor = new Color(230, 230, 230);
         }
 
         internal void InternalClose()
@@ -128,6 +125,11 @@ namespace Cerulean.Core
             GraphicsContext?.Cleanup();
             SDL_DestroyWindow(_window);
             Closed = true;
+        }
+        public void Close()
+        {
+            if (!Closed)
+                CeruleanAPI.GetAPI().CloseWindow(this);
         }
 
         private void EnsureMainThread(string? message = null)
@@ -158,7 +160,8 @@ namespace Cerulean.Core
 
         internal void Draw()
         {
-            GraphicsContext?.RenderClear();
+
+            GraphicsContext?.RenderClear(BackgroundColor);
             if (GraphicsContext is not null)
                 Layout.Draw(GraphicsContext);
             GraphicsContext?.RenderPresent();

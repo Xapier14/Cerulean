@@ -55,10 +55,37 @@ namespace Cerulean.Core
         }
         #endregion
         #region RENDER
-        public void RenderClear()
+        public void RenderClear(Color clearColor)
         {
+            _ = SDL_GetRenderDrawColor(
+                RendererPtr,
+                out byte r,
+                out byte g,
+                out byte b,
+                out byte a);
+            _ = SDL_SetRenderDrawColor(
+                RendererPtr,
+                clearColor.R,
+                clearColor.G,
+                clearColor.B,
+                clearColor.A);
             if (SDL_RenderClear(RendererPtr) != 0)
+            {
+                _ = SDL_SetRenderDrawColor(
+                    RendererPtr,
+                    r,
+                    g,
+                    b,
+                    a);
                 throw new GeneralAPIException("Could not clear renderer.");
+            }
+            _ = SDL_SetRenderDrawColor(
+                RendererPtr,
+                r,
+                g,
+                b,
+                a);
+
         }
 
         public void RenderPresent()
@@ -76,25 +103,25 @@ namespace Cerulean.Core
                 w = size.W,
                 h = size.H
             };
-            SDL_RenderFillRect(RendererPtr, ref rect);
+            _ = SDL_RenderFillRect(RendererPtr, ref rect);
         }
 
         public void DrawFilledRectangle(int x, int y, Size size, Color color)
         {
-            SDL_GetRenderDrawColor(
+            _ = SDL_GetRenderDrawColor(
                 RendererPtr,
                 out byte r,
                 out byte g,
                 out byte b,
                 out byte a);
-            SDL_SetRenderDrawColor(
+            _ = SDL_SetRenderDrawColor(
                 RendererPtr,
                 color.R,
                 color.G,
                 color.B,
                 color.A);
             DrawFilledRectangle(x, y, size);
-            SDL_SetRenderDrawColor(
+            _ = SDL_SetRenderDrawColor(
                 RendererPtr,
                 r,
                 g,
