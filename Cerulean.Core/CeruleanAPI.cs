@@ -169,7 +169,7 @@ namespace Cerulean.Core
             }
         }
 
-        public void WaitAllWindows(bool quitOnComplete = false)
+        public void WaitForAllWindowsClosed(bool quitOnComplete = false)
         {
             while (Windows.Any())
             {
