@@ -26,10 +26,14 @@ namespace Cerulean.Components
             base.Draw(graphics);
             if (ClientArea is Size fullArea)
             {
-                if (Size is Size size)
-                    graphics.DrawFilledRectangle(X, Y, size);
-                else
-                    graphics.DrawFilledRectangle(0, 0, fullArea);
+                // Draw fill
+                if (FillColor is Color fillColor)
+                {
+                    if (Size is Size size)
+                        graphics.DrawFilledRectangle(X, Y, size, fillColor);
+                    else
+                        graphics.DrawFilledRectangle(0, 0, fullArea, fillColor);
+                }
             }
 
         }
