@@ -191,11 +191,17 @@ namespace Cerulean.Core
             return this;
         }
 
+        public CeruleanAPI UseConsoleLogger()
+            => UseLogger(new ConsoleLoggingService());
+
         public CeruleanAPI UseGraphicsFactory(IGraphicsFactory graphicsFactory)
         {
             _graphicsFactory = graphicsFactory;
             return this;
         }
+
+        public CeruleanAPI UseSDL2Graphics()
+            => UseGraphicsFactory(new SDL2GraphicsFactory());
 
         public Window CreateWindow(Layout windowLayout, string windowTitle = "CeruleanAPI Window", Size? windowSize = null, bool initialize = true)
         {
