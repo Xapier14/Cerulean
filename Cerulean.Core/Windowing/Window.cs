@@ -135,9 +135,13 @@ namespace Cerulean.Core
         private void EnsureMainThread(string? message = null)
         {
             if (_threadId != Environment.CurrentManagedThreadId)
-                throw message == null ?
+            {
+                var exception = message == null ?
                     new ThreadSafetyException() :
                     new ThreadSafetyException(message);
+                CeruleanAPI.GetAPI().Log(exception.Message, LogSeverity.Error, exception);
+                throw exception;
+            }
         }
 
         internal void Initialize()
@@ -151,7 +155,9 @@ namespace Cerulean.Core
                 WindowSize.H,
                 SDL_WindowFlags.SDL_WINDOW_RESIZABLE | SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI)) == IntPtr.Zero)
             {
-                throw new FatalAPIException("Failed to create window.");
+                var exception = new FatalAPIException("Failed to create window.");
+                CeruleanAPI.GetAPI().Log(exception.Message, LogSeverity.Fatal, exception);
+                throw exception;
             }
             SDL_GetWindowPosition(_window, out _windowPosition.Item1, out _windowPosition.Item2);
             GraphicsContext = _graphicsFactory.CreateGraphics(this);

@@ -30,13 +30,13 @@ namespace Cerulean.Core
                 var layoutConstructor = layoutType.GetConstructor(Array.Empty<Type>());
                 if (layoutConstructor is null)
                 {
-                    _logger?.Log($"Could not get constructor for layout '{layoutType.Name}'.");
+                    _logger?.Log($"Could not get constructor for layout '{layoutType.Name}'.", LogSeverity.Warning);
                     continue;
                 }
 
                 if (!_layouts.TryAdd(layoutType.Name, layoutConstructor))
                 {
-                    _logger?.Log($"A constructor for layout '{layoutType.Name}' is already registered.");
+                    _logger?.Log($"A constructor for layout '{layoutType.Name}' is already registered.", LogSeverity.Warning);
                     continue;
                 }
 
@@ -61,13 +61,14 @@ namespace Cerulean.Core
                 }
                 catch (TargetInvocationException ex)
                 {
-                    _logger?.Log($"Ctor error constructing layout '{name}'.");
+                    _logger?.Log($"Ctor error constructing layout '{name}'.", LogSeverity.Fatal);
                     if (ex.InnerException is not null)
                         throw new FatalAPIException(ex.InnerException.Message);
+                    throw new FatalAPIException("Layout construction error.");
                 }
                 catch (Exception ex)
                 {
-                    _logger?.Log($"General error constructing layout '{name}'.");
+                    _logger?.Log($"General error constructing layout '{name}'.", LogSeverity.Fatal);
                     throw new FatalAPIException(ex.Message);
                 }
             throw new GeneralAPIException("Layout not found.");

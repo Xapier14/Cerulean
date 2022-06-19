@@ -42,7 +42,11 @@ namespace Cerulean.Core
                 if (timer < max)
                     timer++;
                 else
-                    throw new InvalidOperationException("The CeruleanAPI instance needs to be initialized first.");
+                {
+                    var exception = new InvalidOperationException("The CeruleanAPI instance needs to be initialized first.");
+                    _logger?.Log(exception.Message, LogSeverity.Error, exception);
+                    throw exception;
+                }
             }
         }
 
@@ -198,7 +202,9 @@ namespace Cerulean.Core
             EnsureInitialized();
             if (_graphicsFactory is null)
             {
-                throw new FatalAPIException("No graphics factory specified.");
+                var exception = new FatalAPIException("No graphics factory specified.");
+                _logger?.Log(exception.Message, LogSeverity.Fatal, exception);
+                throw exception;
             }
             object? result = DoOnThread(new Func<Window>(() =>
             {
@@ -209,7 +215,11 @@ namespace Cerulean.Core
             }));
 
             if (result is not Window)
-                throw new GeneralAPIException("Window could not be created.");
+            {
+                var exception = new GeneralAPIException("Window could not be created.");
+                _logger?.Log(exception.Message, LogSeverity.Error, exception);
+                throw exception;
+            }
             return (Window)result;
         }
 
@@ -298,6 +308,15 @@ namespace Cerulean.Core
             }
 
             work.WaitForCompletion();
+        }
+        public void Log(string message, LogSeverity severity = LogSeverity.General)
+        {
+            _logger?.Log(message, severity);
+        }
+
+        public void Log(string message, LogSeverity severity, Exception exception)
+        {
+            _logger?.Log(message, severity, exception);
         }
     }
 }
