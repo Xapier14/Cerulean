@@ -166,8 +166,8 @@ namespace Cerulean.Core
 
         internal void Draw()
         {
-
-            GraphicsContext?.RenderClear(BackgroundColor);
+            GraphicsContext?.RenderClear();
+            GraphicsContext?.DrawFilledRectangle(0, 0, _windowSize, BackgroundColor);
             if (GraphicsContext is not null)
                 Layout.Draw(GraphicsContext);
             GraphicsContext?.RenderPresent();
