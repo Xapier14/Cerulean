@@ -19,6 +19,7 @@ namespace Cerulean.Core
             {
                 throw new FatalAPIException("Could not create SDL2 renderer.");
             }
+            SDL_SetRenderDrawBlendMode(renderer, SDL_BlendMode.SDL_BLENDMODE_BLEND);
             _renderer = renderer;
             _textureCache = new();
         }
@@ -55,37 +56,9 @@ namespace Cerulean.Core
         }
         #endregion
         #region RENDER
-        public void RenderClear(Color clearColor)
+        public void RenderClear()
         {
-            _ = SDL_GetRenderDrawColor(
-                RendererPtr,
-                out byte r,
-                out byte g,
-                out byte b,
-                out byte a);
-            _ = SDL_SetRenderDrawColor(
-                RendererPtr,
-                clearColor.R,
-                clearColor.G,
-                clearColor.B,
-                clearColor.A);
-            if (SDL_RenderClear(RendererPtr) != 0)
-            {
-                _ = SDL_SetRenderDrawColor(
-                    RendererPtr,
-                    r,
-                    g,
-                    b,
-                    a);
-                throw new GeneralAPIException("Could not clear renderer.");
-            }
-            _ = SDL_SetRenderDrawColor(
-                RendererPtr,
-                r,
-                g,
-                b,
-                a);
-
+            SDL_RenderClear(_renderer);
         }
 
         public void RenderPresent()

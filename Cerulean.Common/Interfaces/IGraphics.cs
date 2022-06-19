@@ -8,7 +8,7 @@
         #endregion
 
         #region TOOLS
-        public void RenderClear(Color clearColor);
+        public void RenderClear();
         public void RenderPresent();
         #endregion
 
