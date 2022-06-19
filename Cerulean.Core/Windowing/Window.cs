@@ -114,7 +114,7 @@ namespace Cerulean.Core
             WindowTitle = windowTitle;
             WindowSize = windowSize;
             Layout = windowLayout;
-            ParentWindow = null;
+            ParentWindow = parentWindow;
             _graphicsFactory = graphicsFactory;
             BackgroundColor = new Color(230, 230, 230);
         }
