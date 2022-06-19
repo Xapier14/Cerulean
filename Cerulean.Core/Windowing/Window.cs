@@ -105,7 +105,7 @@ namespace Cerulean.Core
 
         public dynamic Layout { get; private set; }
 
-        public Color BackgroundColor { get; set; }
+        public Color BackColor { get; set; }
 
         internal Window(Layout windowLayout, string windowTitle, Size windowSize, int threadId, IGraphicsFactory graphicsFactory, Window? parentWindow = null)
         {
@@ -116,7 +116,7 @@ namespace Cerulean.Core
             Layout = windowLayout;
             ParentWindow = parentWindow;
             _graphicsFactory = graphicsFactory;
-            BackgroundColor = new Color(230, 230, 230);
+            BackColor = new Color(230, 230, 230);
         }
 
         internal void InternalClose()
@@ -167,7 +167,7 @@ namespace Cerulean.Core
         internal void Draw()
         {
             GraphicsContext?.RenderClear();
-            GraphicsContext?.DrawFilledRectangle(0, 0, _windowSize, BackgroundColor);
+            GraphicsContext?.DrawFilledRectangle(0, 0, _windowSize, BackColor);
             if (GraphicsContext is not null)
                 Layout.Draw(GraphicsContext);
             GraphicsContext?.RenderPresent();
