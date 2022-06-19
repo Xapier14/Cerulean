@@ -10,7 +10,7 @@
         public Color(byte r,
                      byte g,
                      byte b,
-                     byte a = 0)
+                     byte a = 255)
         {
             R = r;
             G = g;
