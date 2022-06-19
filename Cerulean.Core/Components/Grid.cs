@@ -31,6 +31,7 @@ namespace Cerulean.Core
                     _rows[i] = 0;
             }
         }
+        public Color? BackColor { get; set; }
         public override void Update(object? window, Size clientArea)
         {
             // anchor to top left
@@ -139,6 +140,14 @@ namespace Cerulean.Core
 
         public override void Draw(IGraphics graphics)
         {
+            if (ClientArea is Size fullArea)
+            {
+                // Draw fill
+                if (BackColor is Color backColor)
+                {
+                    graphics.DrawFilledRectangle(0, 0, fullArea, backColor);
+                }
+            }
             var area = graphics.GetRenderArea(out int areaX, out int areaY);
             foreach (var child in Children)
             {
