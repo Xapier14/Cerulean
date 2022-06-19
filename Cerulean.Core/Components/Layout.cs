@@ -4,7 +4,7 @@ namespace Cerulean.Core
 {
     public class Layout : Component
     {
-        public dynamic This => this;
+        public dynamic DynamicLayout => this;
         public Layout()
         {
             CanBeChild = false;
