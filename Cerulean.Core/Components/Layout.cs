@@ -11,11 +11,6 @@ namespace Cerulean.Core
             CanBeParent = true;
         }
 
-        public override void Init()
-        {
-            base.Init();
-        }
-
         public override void Update(object? window, Size clientArea)
         {
             // update our client area first before the child components
