@@ -33,7 +33,7 @@ Write GUI apps using simple XML and C#.<br>
      - [x] Rectangle
      - [ ] Image
      - [ ] Progress Bar
-	 - [ ] Label
+	 - [x] Label
  - [ ] Input Components
      - [ ] TextBox
      - [ ] MultiTextBox
