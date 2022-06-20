@@ -18,6 +18,12 @@
         #endregion
 
         #region TEXTURE DRAW
+        // DrawImage()
+        // DrawImageBMP(byte[])
+        #endregion
+
+        #region TEXT DRAW
+        public void DrawText(int x, int y, string text, string fontName, int fontPointSize, Color color, uint textWrap = 0, double angle = 0.0);
         #endregion
 
         #region API FUNCTIONS
