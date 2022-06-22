@@ -1,9 +1,6 @@
 .vs/
+.vscode/
 Cerulean.Stub.*/
 bin/
 obj/
-<<<<<<< HEAD
 Cerulean.CLI/Properties/
-=======
-/Cerulean.CLI/Properties/
->>>>>>> 37dac9cbccd11427646a1bdba7da6f5d6417bb07
