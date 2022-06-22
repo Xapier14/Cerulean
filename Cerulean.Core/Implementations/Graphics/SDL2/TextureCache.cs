@@ -71,7 +71,8 @@ namespace Cerulean.Core
                     SDL_DestroyTexture(_cache[i].SDLTexture);
                     _cache.DeleteNode(i);
                     i--;
-                } else
+                }
+                else
                 {
                     _cache[i].AccScore(-1);
                 }

@@ -158,7 +158,8 @@ namespace Cerulean.Core
                         _profiler.EndProfilingCurrentPoint();
                     }
                 }
-            } catch (CeruleanQuitException)
+            }
+            catch (CeruleanQuitException)
             {
                 _logger?.Log("CeruleanAPI thread stopped (called by event on main thread).");
             }
@@ -205,7 +206,9 @@ namespace Cerulean.Core
                     {
                         Thread.Sleep(500);
                     }
-                } else {
+                }
+                else
+                {
                     _logger?.Log("Quit() was called from the CeruleanAPI thread, interuptting thread...");
                     throw new CeruleanQuitException();
                 }
