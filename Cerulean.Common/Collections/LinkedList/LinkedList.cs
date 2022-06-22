@@ -48,6 +48,32 @@ namespace Cerulean.Common.Collections
                 _tail = _tail.Next;
             }
         }
+
+        public void DeleteNode(LinkedListNode<T> node)
+        {
+            var prev = node.Previous;
+            var next = node.Next;
+            if (prev is not null)
+                prev.Next = next;
+            if (next is not null)
+                next.Previous = prev;
+            if (_tail == node)
+                _tail = prev;
+            if (_head == node)
+                _head = next;
+        }
+
+        public void DeleteNode(int index)
+        {
+            if (_head is null)
+                return;
+            LinkedListNode<T> node = _head;
+            for (int i = 1; i <= index; ++i)
+                if (node.Next is not null)
+                    node = node.Next;
+            DeleteNode(node);
+        }
+
         public void SwitchNodes(LinkedListNode<T> node1, LinkedListNode<T> node2)
         {
             if (_head is null || _tail is null || node1 == node2)
@@ -104,6 +130,23 @@ namespace Cerulean.Common.Collections
         IEnumerator IEnumerable.GetEnumerator()
         {
             return new LinkedListEnumerator<T>(_head);
+        }
+
+        public ref T? this[int index]
+        {
+            get
+            {
+                if (index < 0 || index >= Count || _head is null)
+                    throw new IndexOutOfRangeException();
+                LinkedListNode<T> node = _head;
+                for (int i = 0; i < index; ++i)
+                    if (node.Next is not null)
+                        node = node.Next;
+                ref var data = ref node.GetRefData();
+                if (node.Data is null)
+                    throw new NullReferenceException();
+                return ref data;
+            }
         }
     }
 

@@ -7,17 +7,27 @@ namespace Cerulean.Core
 {
     internal class TextureCache
     {
+        private int _maxCount;
         private readonly LinkedList _cache;
 
-        public TextureCache()
+        public TextureCache(int maxCount)
         {
             _cache = new();
+            _maxCount = maxCount;
         }
 
         public void AddTexture(Texture texture)
         {
             if (!TryGetTexture(texture.Identity, out _))
+            {
+                if (_cache.Count >= _maxCount && _cache.Tail is not null)
+                {
+                    IntPtr ptr = _cache.Tail.Data.SDLTexture;
+                    SDL_DestroyTexture(ptr);
+                    _cache.DeleteNode(_cache.Tail);
+                }
                 _cache.AddLast(texture);
+            }
         }
 
         public bool TryGetTexture(string identifier, out Texture? texture)
@@ -51,5 +61,24 @@ namespace Cerulean.Core
                 SDL_DestroyTexture(texture.SDLTexture);
             _cache.Clear();
         }
+
+        public void DevalueTextures()
+        {
+            for (int i = 0; i < _cache.Count; ++i)
+            {
+                if (_cache[i].Score <= 0)
+                {
+                    SDL_DestroyTexture(_cache[i].SDLTexture);
+                    _cache.DeleteNode(i);
+                    i--;
+                } else
+                {
+                    _cache[i].AccScore(-1);
+                }
+            }
+        }
+
+        public int Count()
+            => _cache.Count;
     }
 }

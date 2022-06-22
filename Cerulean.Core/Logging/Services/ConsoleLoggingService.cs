@@ -3,7 +3,7 @@ using Cerulean.Common;
 
 namespace Cerulean.Core
 {
-    public class ConsoleLoggingService : ILoggingService
+    public sealed class ConsoleLoggingService : ILoggingService
     {
         private readonly object _lock = new();
         public LogSeverity LoggingLevel { get; set; } = LogSeverity.Fatal;

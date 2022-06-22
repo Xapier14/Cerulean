@@ -14,5 +14,16 @@ namespace Cerulean.Core
         public TextureType Type { get; init; }
         public object? UserData { get; init; }
         public IntPtr SDLTexture { get; init; }
+        public long Score { get; set; }
+
+        public void SetScore(long score)
+        {
+            Score = score;
+        }
+
+        public void AccScore(long acc = -1)
+        {
+            Score += acc;
+        }
     }
 }

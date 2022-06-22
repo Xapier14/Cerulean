@@ -14,6 +14,7 @@
                 throw new GeneralAPIException("Node data is null.");
             }
         }
+        public object? Metadata { get; set; }
 
         private LinkedListNode()
         {
@@ -26,5 +27,10 @@
         }
 
         public static LinkedListNode<T> Null => new LinkedListNode<T>();
+
+        internal ref T? GetRefData()
+        {
+            return ref _data;
+        }
     }
 }

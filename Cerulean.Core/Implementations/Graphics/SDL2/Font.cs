@@ -26,7 +26,7 @@ namespace Cerulean.Core
             if (Directory.Exists(basePath))
             {
                 var dirInfo = new DirectoryInfo(basePath);
-                var files = dirInfo.GetFiles(name, SearchOption.TopDirectoryOnly)
+                var files = dirInfo.GetFiles(name + "*", SearchOption.TopDirectoryOnly)
                     .Where(file =>
                     {
                         return file.Extension.ToLower() == ".ttf"
@@ -47,11 +47,11 @@ namespace Cerulean.Core
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-
+                systemPath = "/usr/share/fonts";
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-
+                systemPath = "/Library/Fonts";
             }
             if (Directory.Exists(systemPath))
             {

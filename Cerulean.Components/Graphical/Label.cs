@@ -11,6 +11,7 @@ namespace Cerulean.Components
         public string Text { get; set; } = "";
         public string FontName { get; set; } = "Arial";
         public int FontSize { get; set; } = 12;
+        public bool WrapText { get; set; } = true;
 
         public override void Update(object? window, Size clientArea)
         {
@@ -32,7 +33,7 @@ namespace Cerulean.Components
                 if (ForeColor is Color foreColor && Text != string.Empty)
                 {
                     var size = Size ?? fullArea;
-                    graphics.DrawText(X, Y, Text, FontName, FontSize, foreColor, (uint)(size.W - X));
+                    graphics.DrawText(X, Y, Text, FontName, FontSize, foreColor, WrapText ? (uint)(size.W - X) : 0);
                 }
             }
         }

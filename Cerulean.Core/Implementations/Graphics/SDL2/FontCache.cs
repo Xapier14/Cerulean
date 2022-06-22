@@ -54,5 +54,15 @@ namespace Cerulean.Core
 
             return found;
         }
+
+        public void Clear()
+        {
+            foreach (Font font in _cache)
+                font.Dispose();
+            _cache.Clear();
+        }
+
+        public int Count()
+            => _cache.Count;
     }
 }

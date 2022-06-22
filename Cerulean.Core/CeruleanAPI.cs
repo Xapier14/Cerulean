@@ -1,9 +1,16 @@
 ﻿using Cerulean.Common;
+using Cerulean.Core.Logging;
 using System.Collections.Concurrent;
 using static SDL2.SDL;
 
 namespace Cerulean.Core
 {
+    internal sealed class CeruleanQuitException : Exception
+    {
+        public CeruleanQuitException() : base("Cerulean Quit")
+        {
+        }
+    }
     public sealed class CeruleanAPI
     {
         #region Private
@@ -15,15 +22,17 @@ namespace Cerulean.Core
         private readonly ConcurrentDictionary<uint, Window> _windows;
         private readonly ConcurrentQueue<WorkItem> _workItems;
         private readonly EmbeddedLayouts _embeddedLayouts;
+        private readonly Profiler _profiler;
 
         private ILoggingService? _logger;
         private IGraphicsFactory? _graphicsFactory;
         private bool _initialized = false;
-        private bool _running = false, _stopped = false;
+        private bool _running = false, _stopped = false, _quitting = false;
         private int _threadId;
         #endregion
 
         public IEnumerable<Window> Windows { get => _windows.Values; }
+        public Profiler Profiler => _profiler;
 
         private CeruleanAPI()
         {
@@ -31,6 +40,15 @@ namespace Cerulean.Core
             _windows = new();
             _workItems = new();
             _embeddedLayouts = new();
+            _profiler = new();
+            _profiler.OnLog += (s, e) =>
+            {
+                lock (_profiler)
+                {
+                    File.AppendAllText("profiler.txt", $"[{e.CallStack}] {e.Action}\n");
+                }
+                //Log($"[{e.CallStack}] {e.Action}");
+            };
         }
 
         private void EnsureInitialized()
@@ -52,6 +70,7 @@ namespace Cerulean.Core
 
         private void WorkerThread()
         {
+            _profiler.StartProfilingPoint("WorkerThread");
             _logger?.Log("CeruleanAPI thread started...");
             _threadId = Environment.CurrentManagedThreadId;
 
@@ -65,72 +84,85 @@ namespace Cerulean.Core
             _logger?.Log("Initialized SDL2.");
 
             // Start event loop
-            while (_running)
+            try
             {
-                int offloaded = 0;
-                while (!_workItems.IsEmpty && offloaded < MAX_WORKITEMS)
+                while (_running)
                 {
-                    if (_workItems.TryDequeue(out var workItem))
+                    _profiler.StartProfilingPoint("WorkQueue_Offload");
+                    int offloaded = 0;
+                    while (!_workItems.IsEmpty && offloaded < MAX_WORKITEMS)
                     {
-                        workItem.BeginTask();
+                        if (_workItems.TryDequeue(out var workItem))
+                        {
+                            workItem.BeginTask();
+                        }
+                        offloaded++;
                     }
-                    offloaded++;
-                }
-                while (SDL_PollEvent(out SDL_Event sdlEvent) != 0)
-                {
-                    switch (sdlEvent.type)
+                    _profiler.EndProfilingCurrentPoint();
+                    _profiler.StartProfilingPoint("Handle_SDLEvents");
+                    while (SDL_PollEvent(out SDL_Event sdlEvent) != 0)
                     {
-                        case SDL_EventType.SDL_WINDOWEVENT:
-                            if (_windows.TryGetValue(sdlEvent.window.windowID, out Window? window))
-                            {
-                                switch (sdlEvent.window.windowEvent)
+                        switch (sdlEvent.type)
+                        {
+                            case SDL_EventType.SDL_WINDOWEVENT:
+                                if (_windows.TryGetValue(sdlEvent.window.windowID, out Window? window))
                                 {
-                                    case SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
-                                        window._closeFromEvent = true;
-                                        window.InvokeOnClose();
-                                        break;
-                                    case SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
-                                        window.InvokeOnResize(sdlEvent.window.data1, sdlEvent.window.data2);
-                                        break;
-                                    case SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
-                                        window.InvokeOnFocusGained();
-                                        break;
-                                    case SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
-                                        window.InvokeOnFocusLost();
-                                        break;
-                                    case SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
-                                        window.InvokeOnMinimize();
-                                        break;
-                                    case SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED:
-                                        window.InvokeOnRestore();
-                                        break;
-                                    case SDL_WindowEventID.SDL_WINDOWEVENT_MAXIMIZED:
-                                        window.InvokeOnMaximize();
-                                        break;
-                                    case SDL_WindowEventID.SDL_WINDOWEVENT_MOVED:
-                                        window.InvokeOnMoved(sdlEvent.window.data1, sdlEvent.window.data2);
-                                        break;
-                                    case SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
-                                        window.InvokeOnMouseEnter();
-                                        break;
-                                    case SDL_WindowEventID.SDL_WINDOWEVENT_LEAVE:
-                                        window.InvokeOnMouseLeave();
-                                        break;
+                                    switch (sdlEvent.window.windowEvent)
+                                    {
+                                        case SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
+                                            window._closeFromEvent = true;
+                                            window.InvokeOnClose();
+                                            break;
+                                        case SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
+                                            window.InvokeOnResize(sdlEvent.window.data1, sdlEvent.window.data2);
+                                            break;
+                                        case SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
+                                            window.InvokeOnFocusGained();
+                                            break;
+                                        case SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
+                                            window.InvokeOnFocusLost();
+                                            break;
+                                        case SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
+                                            window.InvokeOnMinimize();
+                                            break;
+                                        case SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED:
+                                            window.InvokeOnRestore();
+                                            break;
+                                        case SDL_WindowEventID.SDL_WINDOWEVENT_MAXIMIZED:
+                                            window.InvokeOnMaximize();
+                                            break;
+                                        case SDL_WindowEventID.SDL_WINDOWEVENT_MOVED:
+                                            window.InvokeOnMoved(sdlEvent.window.data1, sdlEvent.window.data2);
+                                            break;
+                                        case SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
+                                            window.InvokeOnMouseEnter();
+                                            break;
+                                        case SDL_WindowEventID.SDL_WINDOWEVENT_LEAVE:
+                                            window.InvokeOnMouseLeave();
+                                            break;
+                                    }
                                 }
-                            }
-                            break;
+                                break;
+                        }
+                    }
+                    _profiler.EndProfilingCurrentPoint();
+                    foreach (var pair in _windows)
+                    {
+                        _profiler.StartProfilingPoint($"Window_{pair.Key}");
+                        var window = pair.Value;
+                        var clientArea = window.WindowSize;
+                        window.GraphicsContext?.Update();
+                        window.GraphicsContext?.SetRenderArea(clientArea, 0, 0);
+                        window.Layout.Update(window, clientArea);
+                        window.Draw();
+                        _profiler.EndProfilingCurrentPoint();
                     }
                 }
-                foreach (var pair in _windows)
-                {
-                    var window = pair.Value;
-                    var clientArea = window.WindowSize;
-                    window.GraphicsContext?.Update();
-                    window.GraphicsContext?.SetRenderArea(clientArea, 0, 0);
-                    window.Layout.Update(window, clientArea);
-                    window.Draw();
-                }
+            } catch (CeruleanQuitException)
+            {
+                _logger?.Log("CeruleanAPI thread stopped (called by event on main thread).");
             }
+            _profiler.EndProfilingCurrentPoint();
             _stopped = true;
         }
 
@@ -155,8 +187,9 @@ namespace Cerulean.Core
 
         public void Quit()
         {
-            if (_initialized)
+            if (_initialized && !_quitting)
             {
+                _quitting = true;
                 _logger?.Log("Quitting CeruleanAPI...");
                 ConcurrentDictionary<uint, Window> copy = new(_windows);
                 _logger?.Log("Closing open windows...");
@@ -164,23 +197,33 @@ namespace Cerulean.Core
                 {
                     CloseWindow(pair.Value);
                 }
-                _logger?.Log("Stopping thread...");
                 _running = false;
-                while (!_stopped)
+                if (_threadId != Environment.CurrentManagedThreadId)
                 {
-                    Thread.Sleep(500);
+                    _logger?.Log("Waiting for thread to stop...");
+                    while (!_stopped)
+                    {
+                        Thread.Sleep(500);
+                    }
+                } else {
+                    _logger?.Log("Quit() was called from the CeruleanAPI thread, interuptting thread...");
+                    throw new CeruleanQuitException();
                 }
+                _initialized = false;
             }
         }
 
         public void WaitForAllWindowsClosed(bool quitOnComplete = false)
         {
-            while (Windows.Any())
+            if (_initialized)
             {
-                Thread.Sleep(100);
+                while (Windows.Any())
+                {
+                    Thread.Sleep(100);
+                }
+                if (quitOnComplete)
+                    Quit();
             }
-            if (quitOnComplete)
-                Quit();
         }
 
         public CeruleanAPI UseLogger(ILoggingService loggingService)
