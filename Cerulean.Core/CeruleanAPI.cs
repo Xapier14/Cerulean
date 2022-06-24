@@ -22,7 +22,7 @@ namespace Cerulean.Core
         private readonly ConcurrentDictionary<uint, Window> _windows;
         private readonly ConcurrentQueue<WorkItem> _workItems;
         private readonly EmbeddedLayouts _embeddedLayouts;
-        private readonly Profiler _profiler;
+        private readonly Profiler? _profiler;
 
         private ILoggingService? _logger;
         private IGraphicsFactory? _graphicsFactory;
@@ -32,7 +32,7 @@ namespace Cerulean.Core
         #endregion
 
         public IEnumerable<Window> Windows { get => _windows.Values; }
-        public Profiler Profiler => _profiler;
+        public Profiler? Profiler => _profiler;
 
         private CeruleanAPI()
         {
@@ -40,15 +40,15 @@ namespace Cerulean.Core
             _windows = new();
             _workItems = new();
             _embeddedLayouts = new();
-            _profiler = new();
-            _profiler.OnLog += (s, e) =>
-            {
-                lock (_profiler)
-                {
-                    File.AppendAllText("profiler.txt", $"[{e.CallStack}] {e.Action}\n");
-                }
-                //Log($"[{e.CallStack}] {e.Action}");
-            };
+            // _profiler = new();
+            // _profiler.OnLog += (s, e) =>
+            // {
+            //     lock (_profiler)
+            //     {
+            //         File.AppendAllText("profiler.txt", $"[{e.CallStack}] {e.Action}\n");
+            //     }
+            //     //Log($"[{e.CallStack}] {e.Action}");
+            // };
         }
 
         private void EnsureInitialized()
@@ -70,7 +70,7 @@ namespace Cerulean.Core
 
         private void WorkerThread()
         {
-            _profiler.StartProfilingPoint("WorkerThread");
+            _profiler?.StartProfilingPoint("WorkerThread");
             _logger?.Log("CeruleanAPI thread started...");
             _threadId = Environment.CurrentManagedThreadId;
 
@@ -88,7 +88,7 @@ namespace Cerulean.Core
             {
                 while (_running)
                 {
-                    _profiler.StartProfilingPoint("WorkQueue_Offload");
+                    _profiler?.StartProfilingPoint("WorkQueue_Offload");
                     int offloaded = 0;
                     while (!_workItems.IsEmpty && offloaded < MAX_WORKITEMS)
                     {
@@ -98,8 +98,8 @@ namespace Cerulean.Core
                         }
                         offloaded++;
                     }
-                    _profiler.EndProfilingCurrentPoint();
-                    _profiler.StartProfilingPoint("Handle_SDLEvents");
+                    _profiler?.EndProfilingCurrentPoint();
+                    _profiler?.StartProfilingPoint("Handle_SDLEvents");
                     while (SDL_PollEvent(out SDL_Event sdlEvent) != 0)
                     {
                         switch (sdlEvent.type)
@@ -145,17 +145,17 @@ namespace Cerulean.Core
                                 break;
                         }
                     }
-                    _profiler.EndProfilingCurrentPoint();
+                    _profiler?.EndProfilingCurrentPoint();
                     foreach (var pair in _windows)
                     {
-                        _profiler.StartProfilingPoint($"Window_{pair.Key}");
+                        _profiler?.StartProfilingPoint($"Window_{pair.Key}");
                         var window = pair.Value;
                         var clientArea = window.WindowSize;
                         window.GraphicsContext?.Update();
                         window.GraphicsContext?.SetRenderArea(clientArea, 0, 0);
                         window.Layout.Update(window, clientArea);
                         window.Draw();
-                        _profiler.EndProfilingCurrentPoint();
+                        _profiler?.EndProfilingCurrentPoint();
                     }
                 }
             }
@@ -163,7 +163,7 @@ namespace Cerulean.Core
             {
                 _logger?.Log("CeruleanAPI thread stopped (called by event on main thread).");
             }
-            _profiler.EndProfilingCurrentPoint();
+            _profiler?.EndProfilingCurrentPoint();
             _stopped = true;
         }
 
