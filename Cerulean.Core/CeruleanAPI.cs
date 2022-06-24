@@ -78,7 +78,7 @@ namespace Cerulean.Core
             // Initialize SDL2
             SDL_SetHint("SDL_HINT_VIDEO_HIGHDPI_ENABLED", "1");
             if (SDL_InitSubSystem(SDL_INIT_EVERYTHING) != 0)
-                throw new FatalAPIException("Could not initialize SDL2.");
+                throw new FatalAPIException($"Could not initialize SDL2. Reason: {SDL_GetError()}");
             SDL_VERSION(out SDL_version version);
             _logger?.Log($"Running on SDL {version.major}.{version.minor}.{version.patch}.");
             _initialized = true;
