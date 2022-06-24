@@ -18,6 +18,31 @@ namespace Cerulean.Core
             Style = style;
         }
 
+        private static bool TryGetFile(string dirPath, string name, out string filePath)
+        {
+            filePath = string.Empty;
+            if (Directory.Exists(dirPath))
+            {
+                var dirInfo = new DirectoryInfo(dirPath);
+                var files = dirInfo.GetFiles("*", SearchOption.AllDirectories)
+                    .OrderBy(f => f.Name)
+                    .Where(file =>
+                    {
+                        CeruleanAPI.GetAPI().Log($"Checking {file.Name} for {name}");
+                        return Path.GetFileNameWithoutExtension(file.FullName).ToLower() == name.ToLower() // same file name
+                                && (file.Extension.ToLower() == ".ttf" || file.Extension.ToLower() == ".otf") // is a ttf or otf file
+                                && !file.Attributes.HasFlag(FileAttributes.ReparsePoint); // is not a symlink
+                    });
+                if (files.Any())
+                {
+                    filePath = files.First().FullName;
+                    CeruleanAPI.GetAPI().Log($"Found font {filePath}.");
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private static bool TryFindTTF(string name, out string path)
         {
             path = "";
@@ -25,21 +50,23 @@ namespace Cerulean.Core
             string basePath = Path.Combine(
                 Environment.CurrentDirectory,
                 "Fonts");
-            if (Directory.Exists(basePath))
-            {
-                var dirInfo = new DirectoryInfo(basePath);
-                var files = dirInfo.GetFiles(name + "*", SearchOption.TopDirectoryOnly)
-                    .Where(file =>
-                    {
-                        return file.Extension.ToLower() == ".ttf"
-                            || file.Extension.Length == 0;
-                    });
-                if (files.Any())
-                {
-                    path = files.First().FullName;
-                    return true;
-                }
-            }
+            if (TryGetFile(basePath, name, out path))
+                return true;
+            // if (Directory.Exists(basePath))
+            // {
+            //     var dirInfo = new DirectoryInfo(basePath);
+            //     var files = dirInfo.GetFiles(name + "*", SearchOption.TopDirectoryOnly)
+            //         .Where(file =>
+            //         {
+            //             return file.Extension.ToLower() == ".ttf"
+            //                 || file.Extension.Length == 0;
+            //         });
+            //     if (files.Any())
+            //     {
+            //         path = files.First().FullName;
+            //         return true;
+            //     }
+            // }
 
             // find in system fonts
             string systemPath = "";
@@ -58,22 +85,25 @@ namespace Cerulean.Core
             //CeruleanAPI.GetAPI().Log($"Trying to find {name} in {systemPath}");
             // check if system path exists
             //CeruleanAPI.GetAPI().Log($"{systemPath} exists: {Directory.Exists(systemPath)}");
-            if (Directory.Exists(systemPath))
-            {
-                var dirInfo = new DirectoryInfo(systemPath);
-                var files = dirInfo.GetFiles("*", SearchOption.AllDirectories)
-                    .Where(file =>
-                    {
-                        //if (file.Extension.ToLower() == ".ttf")
-                            //CeruleanAPI.GetAPI().Log($"Checking {file.Name}");
-                        return file.Name.ToLower().Contains(name.ToLower()) && (file.Extension.ToLower() == ".ttf" || file.Extension.ToLower() == ".otf");
-                    });
-                if (files.Any())
-                {
-                    path = files.First().FullName;
-                    return true;
-                }
-            }
+            if (TryGetFile(systemPath, name, out path))
+                return true;
+            // if (Directory.Exists(systemPath))
+            // {
+            //     var dirInfo = new DirectoryInfo(systemPath);
+            //     var files = dirInfo.GetFiles("*", SearchOption.AllDirectories)
+            //         .Where(file =>
+            //         {
+            //             //if (file.Extension.ToLower() == ".ttf")
+            //                 //CeruleanAPI.GetAPI().Log($"Checking {file.Name}");
+            //             return file.Name.ToLower().Contains(name.ToLower()) // contains the name of the font
+            //                     && (file.Extension.ToLower() == ".ttf" || file.Extension.ToLower() == ".otf"); // is a ttf or otf file
+            //         });
+            //     if (files.Any())
+            //     {
+            //         path = files.First().FullName;
+            //         return true;
+            //     }
+            // }
 
             return false;
         }
