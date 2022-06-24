@@ -28,7 +28,7 @@ namespace Cerulean.Core
                     .OrderBy(f => f.Name)
                     .Where(file =>
                     {
-                        CeruleanAPI.GetAPI().Log($"Checking {file.Name} for {name}");
+                        //CeruleanAPI.GetAPI().Log($"Checking {file.Name} for {name}");
                         return Path.GetFileNameWithoutExtension(file.FullName).ToLower() == name.ToLower() // same file name
                                 && (file.Extension.ToLower() == ".ttf" || file.Extension.ToLower() == ".otf") // is a ttf or otf file
                                 && !file.Attributes.HasFlag(FileAttributes.ReparsePoint); // is not a symlink
