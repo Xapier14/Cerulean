@@ -35,7 +35,7 @@ namespace Cerulean.Components
                 {
                     var size = Size ?? fullArea;
                     var textWrap = size.W - X;
-                    if (textWrap > 0)
+                    if (textWrap >= 0)
                         graphics.DrawText(X, Y, Text, FontName, FontStyle, FontSize, foreColor, WrapText ? (uint)(textWrap) : 0);
                 }
             }
