@@ -153,7 +153,7 @@ namespace Cerulean.Core
         }
         #endregion
         #region TEXT
-        public void DrawText(int x, int y, string text, string fontName, int fontPointSize, Color color, uint textWrap, double angle)
+        public void DrawText(int x, int y, string text, string fontName, string fontStyle, int fontPointSize, Color color, uint textWrap, double angle)
         {
             CeruleanAPI.GetAPI().Profiler.StartProfilingPoint("DrawText");
             _ = SDL_GetRenderDrawColor(
@@ -170,7 +170,7 @@ namespace Cerulean.Core
                 255);
 
             // define font and text to check in caches
-            string fontIdentity = FontCache.GetID(fontName, fontPointSize);
+            string fontIdentity = FontCache.GetID(fontName, fontStyle, fontPointSize);
             string textFingerprint = $"{fontIdentity}@{color} \"{text}\"";
             Texture? textTexture;
 
@@ -179,7 +179,7 @@ namespace Cerulean.Core
             {
                 CeruleanAPI.GetAPI().Profiler.StartProfilingPoint("MakeTexture");
                 // fetch/make font
-                var font = _fontCache.GetFont(fontName, fontPointSize);
+                var font = _fontCache.GetFont(fontName, fontStyle, fontPointSize);
                 CeruleanAPI.GetAPI().Profiler.StartProfilingPoint("TTF_Render");
                 IntPtr surface = textWrap < 1 ?
                     TTF_RenderText_Blended(font.Data, text, new()

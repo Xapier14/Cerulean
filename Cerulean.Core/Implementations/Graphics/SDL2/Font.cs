@@ -8,12 +8,14 @@ namespace Cerulean.Core
     {
         public string Name { get; set; }
         public int PointSize { get; set; }
+        public string Style { get; set; }
         public IntPtr Data { get; set; } = IntPtr.Zero;
 
-        private Font(string name, int ptSize)
+        private Font(string name, string style, int ptSize)
         {
             Name = name;
             PointSize = ptSize;
+            Style = style;
         }
 
         private static bool TryFindTTF(string name, out string path)
@@ -53,14 +55,18 @@ namespace Cerulean.Core
             {
                 systemPath = "/Library/Fonts";
             }
+            //CeruleanAPI.GetAPI().Log($"Trying to find {name} in {systemPath}");
+            // check if system path exists
+            //CeruleanAPI.GetAPI().Log($"{systemPath} exists: {Directory.Exists(systemPath)}");
             if (Directory.Exists(systemPath))
             {
                 var dirInfo = new DirectoryInfo(systemPath);
-                var files = dirInfo.GetFiles(name + "*", SearchOption.TopDirectoryOnly)
+                var files = dirInfo.GetFiles("*", SearchOption.AllDirectories)
                     .Where(file =>
                     {
-                        return file.Extension.ToLower() == ".ttf"
-                            || file.Extension.Length == 0;
+                        //if (file.Extension.ToLower() == ".ttf")
+                            //CeruleanAPI.GetAPI().Log($"Checking {file.Name}");
+                        return file.Name.ToLower().Contains(name.ToLower()) && (file.Extension.ToLower() == ".ttf" || file.Extension.ToLower() == ".otf");
                     });
                 if (files.Any())
                 {
@@ -72,7 +78,7 @@ namespace Cerulean.Core
             return false;
         }
 
-        public static Font LoadFont(string name, int pointSize)
+        public static Font LoadFont(string name, string style, int pointSize)
         {
             if (TryFindTTF(name, out string path))
             {
@@ -81,7 +87,14 @@ namespace Cerulean.Core
                 {
                     throw new GeneralAPIException("Error loading TTF font.");
                 }
-                return new Font(name, pointSize)
+                TTF_SetFontStyle(fontPtr, style.ToLower() switch
+                {
+                    "bold" => TTF_STYLE_BOLD,
+                    "italic" => TTF_STYLE_ITALIC,
+                    "bold italic" => TTF_STYLE_BOLD | TTF_STYLE_ITALIC,
+                    _ => TTF_STYLE_NORMAL
+                });
+                return new Font(name, style, pointSize)
                 {
                     Data = fontPtr
                 };
@@ -91,7 +104,7 @@ namespace Cerulean.Core
 
         public override string ToString()
         {
-            return $"{Name.Trim()}@{PointSize}pt";
+            return $"{Name.Trim()}#{Style.Trim()}@{PointSize}pt";
         }
 
         public void Dispose()

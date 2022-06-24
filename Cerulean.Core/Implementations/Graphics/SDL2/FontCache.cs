@@ -13,16 +13,17 @@ namespace Cerulean.Core
             _cache = new();
         }
 
-        public static string GetID(string name, int pointSize)
+        public static string GetID(string name, string style, int pointSize)
         {
-            return $"{name.Trim()}@{pointSize}pt";
+            return $"{name.Trim()}#{style.Trim()}@{pointSize}pt";
         }
 
-        public Font GetFont(string name, int pointSize)
+        public Font GetFont(string name, string style, int pointSize)
         {
-            if (!TryGetFont(name, pointSize, out Font? font))
+            if (!TryGetFont(name, style, pointSize, out Font? font))
             {
-                font = Font.LoadFont(name, pointSize);
+                CeruleanAPI.GetAPI().Log($"Could not find font {name} {style} {pointSize}pt in cache. Loading font...");
+                font = Font.LoadFont(name, style, pointSize);
                 _cache.AddLast(font);
             }
             if (font is null)
@@ -30,14 +31,14 @@ namespace Cerulean.Core
             return font;
         }
 
-        private bool TryGetFont(string name, int pointSize, out Font? font)
+        private bool TryGetFont(string name, string style, int pointSize, out Font? font)
         {
             font = null;
             // select a single element with the same Identity as identifier
             LinkedListNode? node = _cache.Head;
             while (node is LinkedListNode fontNode)
             {
-                if (fontNode.Data.ToString() == GetID(name, pointSize))
+                if (fontNode.Data.ToString() == GetID(name, style, pointSize))
                 {
                     font = fontNode.Data;
                     break;
