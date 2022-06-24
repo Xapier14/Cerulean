@@ -40,6 +40,7 @@ namespace Cerulean.Core
             _windows = new();
             _workItems = new();
             _embeddedLayouts = new();
+            _profiler = null;
             // _profiler = new();
             // _profiler.OnLog += (s, e) =>
             // {

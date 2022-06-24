@@ -166,13 +166,13 @@ namespace Cerulean.Core
 
         internal void Draw()
         {
-            CeruleanAPI.GetAPI().Profiler.StartProfilingPoint("Draw");
+            CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("Draw");
             GraphicsContext?.RenderClear();
             GraphicsContext?.DrawFilledRectangle(0, 0, _windowSize, BackColor);
             if (GraphicsContext is not null)
                 Layout.Draw(GraphicsContext);
             GraphicsContext?.RenderPresent();
-            CeruleanAPI.GetAPI().Profiler.EndProfilingCurrentPoint();
+            CeruleanAPI.GetAPI().Profiler?.EndProfilingCurrentPoint();
         }
 
         internal void InvokeOnResize(int w, int h)

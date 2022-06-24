@@ -155,7 +155,7 @@ namespace Cerulean.Core
         #region TEXT
         public void DrawText(int x, int y, string text, string fontName, string fontStyle, int fontPointSize, Color color, uint textWrap, double angle)
         {
-            CeruleanAPI.GetAPI().Profiler.StartProfilingPoint("DrawText");
+            CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("DrawText");
             _ = SDL_GetRenderDrawColor(
                 RendererPtr,
                 out byte r,
@@ -177,10 +177,10 @@ namespace Cerulean.Core
             // check if specific text + font + color combo is NOT in texture cache
             if (!_textureCache.TryGetTexture(textFingerprint, out textTexture))
             {
-                CeruleanAPI.GetAPI().Profiler.StartProfilingPoint("MakeTexture");
+                CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("MakeTexture");
                 // fetch/make font
                 var font = _fontCache.GetFont(fontName, fontStyle, fontPointSize);
-                CeruleanAPI.GetAPI().Profiler.StartProfilingPoint("TTF_Render");
+                CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("TTF_Render");
                 IntPtr surface = textWrap < 1 ?
                     TTF_RenderText_Blended(font.Data, text, new()
                     {
@@ -196,11 +196,11 @@ namespace Cerulean.Core
                         b = color.B,
                         a = color.A
                     }, textWrap);
-                CeruleanAPI.GetAPI().Profiler.EndProfilingCurrentPoint();
-                CeruleanAPI.GetAPI().Profiler.StartProfilingPoint("EnsureSize");
+                CeruleanAPI.GetAPI().Profiler?.EndProfilingCurrentPoint();
+                CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("EnsureSize");
                 EnsureSurfaceSize(ref surface);
-                CeruleanAPI.GetAPI().Profiler.EndProfilingCurrentPoint();
-                CeruleanAPI.GetAPI().Profiler.StartProfilingPoint("ConverttoTexture");
+                CeruleanAPI.GetAPI().Profiler?.EndProfilingCurrentPoint();
+                CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("ConverttoTexture");
                 IntPtr sdlTexture = SDL_CreateTextureFromSurface(_renderer, surface);
                 if (sdlTexture == IntPtr.Zero)
                     throw new GeneralAPIException(SDL_GetError());
@@ -216,12 +216,12 @@ namespace Cerulean.Core
                     Score = 5
                 };
                 _textureCache.AddTexture(textTexture.Value);
-                CeruleanAPI.GetAPI().Profiler.EndProfilingCurrentPoint();
+                CeruleanAPI.GetAPI().Profiler?.EndProfilingCurrentPoint();
 
                 SDL_FreeSurface(surface);
-                CeruleanAPI.GetAPI().Profiler.EndProfilingCurrentPoint();
+                CeruleanAPI.GetAPI().Profiler?.EndProfilingCurrentPoint();
             }
-            CeruleanAPI.GetAPI().Profiler.StartProfilingPoint("DrawTexture");
+            CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("DrawTexture");
             // draw texture
             if (textTexture is not null)
             {
@@ -240,7 +240,7 @@ namespace Cerulean.Core
                     CeruleanAPI.GetAPI().Log("Destination rect for text is null.", LogSeverity.Warning);
                 }
             }
-            CeruleanAPI.GetAPI().Profiler.EndProfilingCurrentPoint();
+            CeruleanAPI.GetAPI().Profiler?.EndProfilingCurrentPoint();
 
             _ = SDL_SetRenderDrawColor(
                 RendererPtr,
@@ -248,7 +248,7 @@ namespace Cerulean.Core
                 g,
                 b,
                 a);
-            CeruleanAPI.GetAPI().Profiler.EndProfilingCurrentPoint();
+            CeruleanAPI.GetAPI().Profiler?.EndProfilingCurrentPoint();
         }
         #endregion
     }
