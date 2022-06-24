@@ -54,6 +54,11 @@ namespace Cerulean.Core
             => i1 < i2 ? i1 : i2;
         private void EnsureSurfaceSize(ref IntPtr surfacePtr)
         {
+            if (surfacePtr == IntPtr.Zero)
+            {
+                CeruleanAPI.GetAPI().Log("Surface is null.", LogSeverity.Warning);
+                return;
+            }
             SDL_Surface surface = Marshal.PtrToStructure<SDL_Surface>(surfacePtr);
             _ = SDL_GetRendererInfo(_renderer, out SDL_RendererInfo rendererInfo);
 
@@ -196,6 +201,11 @@ namespace Cerulean.Core
                         b = color.B,
                         a = color.A
                     }, textWrap);
+                if (surface == IntPtr.Zero)
+                {
+                    CeruleanAPI.GetAPI().Log($"Could not render text: {TTF_GetError()}", LogSeverity.Error);
+                    return;
+                }
                 CeruleanAPI.GetAPI().Profiler?.EndProfilingCurrentPoint();
                 CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("EnsureSize");
                 EnsureSurfaceSize(ref surface);
