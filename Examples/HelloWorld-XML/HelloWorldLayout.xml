@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<CeruleanXML xmlns:a='Attribute'>
+    <Import>Cerulean.Components</Import>
+    <Layout Name='HelloWorldLayout'>
+        <Grid
+            Name='Grid'
+            RowCount='2'
+            ColumnCount='2'
+            BackColor='color: #000'>
+            <Label
+                Name='Label'
+                Text='string: Hello World!'
+                ForeColor='color: #FFF'
+                GridColumn='1'
+                GridRow='1'
+                FontName='string: Arial'
+                FontSize='24'
+                X='0'
+                Y='0' />
+        </Grid>
+    </Layout>
+</CeruleanXML>

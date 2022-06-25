@@ -14,7 +14,8 @@ dynamic mainLayout = new Layout();
 mainLayout.AddChild("Grid", new Grid()
 {
     RowCount = 2,
-    ColumnCount = 2
+    ColumnCount = 2,
+    BackColor = new Color(0, 0, 0)
 });
 mainLayout.Grid.AddChild("Label", new Label()
 {
@@ -31,8 +32,6 @@ mainLayout.Grid.AddChild("Label", new Label()
 
 // Create a window that uses the layout.
 var mainWindow = ceruleanApi.CreateWindow(mainLayout);
-// Set its back color.
-mainWindow.BackColor = new Color(0, 0, 0);
 
 // Wait for all windows to close and call Quit() on finish.
 ceruleanApi.WaitForAllWindowsClosed(true);
