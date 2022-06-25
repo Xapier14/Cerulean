@@ -2,27 +2,30 @@
 {
     public interface IGraphics
     {
-        #region INFORMATION
+        #region GENERAL
         public Size GetRenderArea(out int x, out int y);
         public void SetRenderArea(Size renderArea, int x, int y);
         #endregion
 
-        #region TOOLS
+        #region RENDER
         public void RenderClear();
         public void RenderPresent();
         #endregion
 
-        #region PRIMITIVE DRAW
+        #region PRIMITIVES
+        public void DrawRectangle(int x, int y, Size size);
+        public void DrawRectangle(int x, int y, Size size, Color color);
         public void DrawFilledRectangle(int x, int y, Size size);
         public void DrawFilledRectangle(int x, int y, Size size, Color color);
         #endregion
 
-        #region TEXTURE DRAW
-        // DrawImage()
-        // DrawImageBMP(byte[])
+        #region TEXTURE
+        public void DrawImage(int x, int y, Size size, string fileName, PictureMode pictureMode = PictureMode.None, double opacity = 1.0);
+        // DrawImageFromBytes(byte[])
+        // DrawImageFromStream(Srteam)
         #endregion
 
-        #region TEXT DRAW
+        #region TEXT
         public void DrawText(int x, int y, string text, string fontName, string fontStyle, int fontPointSize, Color color, uint textWrap = 0, double angle = 0.0);
         #endregion
 
