@@ -81,6 +81,80 @@ namespace Cerulean.Core
             }
         }
 
+        private Size _minimumWindowSize;
+
+        public Size? MinimumWindowSize
+        {
+            get
+            {
+                return _minimumWindowSize;
+            }
+            set 
+            {
+                if (Closed)
+                    throw new GeneralAPIException("Cannot set minimum size to a closed window.");
+                if (!_initialized)
+                {
+                    if (value.HasValue)
+                        _minimumWindowSize = value.Value;
+                    else
+                        _minimumWindowSize = new(0, 0);
+                }
+                else
+                {
+                    EnsureMainThread("Changing minimum window size must be done on the thread that created the window.");
+                    // change minimum window size via SDL call
+                    if (value.HasValue)
+                    {
+                        SDL_SetWindowMinimumSize(_window, value.Value.W, value.Value.H);
+                        _minimumWindowSize = value.Value;
+                    }
+                    else
+                    {
+                        SDL_SetWindowMinimumSize(_window, 0, 0);
+                        _minimumWindowSize = new(0,0);
+                    }
+                }
+            }
+        }
+
+        private Size _maximumWindowSize;
+
+        public Size? MaximumWindowSize
+        {
+            get
+            {
+                return _maximumWindowSize;
+            }
+            set
+            {
+                if (Closed)
+                    throw new GeneralAPIException("Cannot set maximum size to a closed window.");
+                if (!_initialized)
+                {
+                    if (value.HasValue)
+                        _maximumWindowSize = value.Value;
+                    else
+                        _maximumWindowSize = new(-1, -1);
+                }
+                else
+                {
+                    EnsureMainThread("Changing maximum window size must be done on the thread that created the window.");
+                    // change maximum window size via SDL call
+                    if (value.HasValue)
+                    {
+                        SDL_SetWindowMaximumSize(_window, value.Value.W, value.Value.H);
+                        _maximumWindowSize = value.Value;
+                    }
+                    else
+                    {
+                        SDL_SetWindowMaximumSize(_window, -1, -1);
+                        _maximumWindowSize = new(-1, -1);
+                    }
+                }
+            }
+        }
+
         private (int, int) _windowPosition;
 
         public (int, int) WindowPosition
@@ -113,6 +187,8 @@ namespace Cerulean.Core
             _threadId = threadId;
             WindowTitle = windowTitle;
             WindowSize = windowSize;
+            MinimumWindowSize = null;
+            MaximumWindowSize = null;
             Layout = windowLayout;
             ParentWindow = parentWindow;
             _graphicsFactory = graphicsFactory;
@@ -160,6 +236,11 @@ namespace Cerulean.Core
                 throw exception;
             }
             SDL_GetWindowPosition(_window, out _windowPosition.Item1, out _windowPosition.Item2);
+            CeruleanAPI.GetAPI().Log("Window created.");
+            CeruleanAPI.GetAPI().Log($"Minimum size {_minimumWindowSize}.");
+            CeruleanAPI.GetAPI().Log($"Maximum size {_maximumWindowSize}.");
+            SDL_SetWindowMinimumSize(_window, _minimumWindowSize.W, _minimumWindowSize.H);
+            SDL_SetWindowMaximumSize(_window, _maximumWindowSize.W, _maximumWindowSize.H);
             GraphicsContext = _graphicsFactory.CreateGraphics(this);
             Layout.Init();
         }
