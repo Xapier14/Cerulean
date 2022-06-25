@@ -176,7 +176,7 @@ namespace Cerulean.Core
 
             // define font and text to check in caches
             string fontIdentity = FontCache.GetID(fontName, fontStyle, fontPointSize);
-            string textFingerprint = $"{fontIdentity}@{color} \"{text}\"";
+            string textFingerprint = $"{fontIdentity}@{color} \"{text}\" {textWrap}px {angle}deg";
             Texture? textTexture;
 
             // check if specific text + font + color combo is NOT in texture cache
