@@ -46,7 +46,7 @@ Mainly testing on Windows and Ubuntu. Feel free to test on other platforms.<br>
      - [ ] Folder Select Dialog
  - [ ] Graphical Components
      - [x] Rectangle
-     - [ ] Image
+     - [x] Image
      - [ ] Progress Bar
 	 - [x] Label
  - [ ] Input Components
