@@ -160,11 +160,37 @@
                     if (_cellSizes is not null)
                         childY += _cellSizes[row, 0].H;
 
-                if (child.ClientArea is Size clientArea)
+                if (child.ClientArea is Size clientArea && ClientArea is Size gridArea)
+                {
+                    if (childX < 0)
+                    {
+                        clientArea.W = gridArea.W;
+                        childX = 0;
+                    }
+                    if (childY < 0)
+                    {
+                        clientArea.H = gridArea.H;
+                        childY = 0;
+                    }
                     graphics.SetRenderArea(clientArea, childX, childY);
+                }
                 child.Draw(graphics);
             }
             graphics.SetRenderArea(area, areaX, areaY);
+        }
+
+        public void SetRowHeight(int index, uint height)
+        {
+            if (index < 0 || index >= RowCount)
+                throw new ArgumentOutOfRangeException(nameof(index));
+            _rows[index] = (int)height;
+        }
+
+        public void SetColumnWidth (int index, uint width)
+        {
+            if (index < 0 || index >= ColumnCount)
+                throw new ArgumentOutOfRangeException(nameof(index));
+            _columns[index] = (int)width;
         }
     }
 }
