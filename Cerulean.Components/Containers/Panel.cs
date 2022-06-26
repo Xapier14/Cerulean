@@ -15,14 +15,18 @@ namespace Cerulean.Components
 
         public override void Draw(IGraphics graphics)
         {
-            if (Size is null)
+            if (ClientArea is Size area)
             {
-
-            } else 
-            {
-
+                if (BackColor is Color color)
+                {
+                    graphics.DrawFilledRectangle(Size is null ? 0 : X, Size is null ? 0 : Y, area, color);
+                }
+                if (BorderColor is Color borderColor)
+                {
+                    graphics.DrawRectangle(Size is null ? 0 : X, Size is null ? 0 : Y, area, borderColor);
+                }
+                base.Draw(graphics);
             }
-            base.Draw(graphics);
         }
     }
 }
