@@ -1,0 +1,107 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<CeruleanAPI xmlns:a='Attrubute'>
+	<Import>Cerulean.Components</Import>
+	<Layout Name='MainLayout'>
+		<Grid
+			Name='MainGrid'
+			RowCount='2'
+			ColumnCount='3'>
+			<Image
+				Name='Image1'
+				FileName='string: Cerulean.png'
+				PictureMode='PictureMode.None'
+				GridRow='0'
+				GridColumn='0' />
+			<Label
+				Name='Label1'
+				Text='string: None'
+				FontName='string: Arial'
+				FontSize='28'
+				ForeColor='color: #F00'
+				X='8'
+				Y='8'
+				GridRow='0'
+				GridColumn='0' />
+			<Image
+				Name='Image2'
+				FileName='string: Cerulean.png'
+				PictureMode='PictureMode.Stretch'
+				GridRow='0'
+				GridColumn='1' />
+			<Label
+				Name='Label2'
+				Text='string: Stretch'
+				FontName='string: Arial'
+				FontSize='28'
+				ForeColor='color: #F00'
+				X='8'
+				Y='8'
+				GridRow='0'
+				GridColumn='1' />
+			<Image
+				Name='Image3'
+				FileName='string: Cerulean.png'
+				PictureMode='PictureMode.Center'
+				GridRow='0'
+				GridColumn='2' />
+			<Label
+				Name='Label3'
+				Text='string: Center'
+				FontName='string: Arial'
+				FontSize='28'
+				ForeColor='color: #F00'
+				X='8'
+				Y='8'
+				GridRow='0'
+				GridColumn='2' />
+			<Image
+				Name='Image4'
+				FileName='string: Cerulean.png'
+				PictureMode='PictureMode.Tile'
+				GridRow='1'
+				GridColumn='0' />
+			<Label
+				Name='Label4'
+				Text='string: Tile'
+				FontName='string: Arial'
+				FontSize='28'
+				ForeColor='color: #F00'
+				X='8'
+				Y='8'
+				GridRow='1'
+				GridColumn='0' />
+			<Image
+				Name='Image5'
+				FileName='string: Cerulean.png'
+				PictureMode='PictureMode.Fit'
+				GridRow='1'
+				GridColumn='1' />
+			<Label
+				Name='Label5'
+				Text='string: Fit'
+				FontName='string: Arial'
+				FontSize='28'
+				ForeColor='color: #F00'
+				X='8'
+				Y='8'
+				GridRow='1'
+				GridColumn='1' />
+			<Image
+				Name='Image6'
+				FileName='string: Cerulean.png'
+				PictureMode='PictureMode.Cover'
+				GridRow='1'
+				GridColumn='2' />
+			<Label
+				Name='Label6'
+				Text='string: Cover'
+				FontName='string: Arial'
+				FontSize='28'
+				ForeColor='color: #F00'
+				X='8'
+				Y='8'
+				GridRow='1'
+				GridColumn='2' />
+		</Grid>
+	</Layout>
+</CeruleanAPI>

@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Cerulean.Core\Cerulean.Core.csproj" />
+    <ProjectReference Include="..\..\Cerulean.Components\Cerulean.Components.csproj" />
+    <ProjectReference Include="..\..\Cerulean.Common\Cerulean.Common.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include=".cerulean\*.cs" />
+  </ItemGroup>
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <RootNamespace>ImageComponent_XML</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>
