@@ -67,6 +67,29 @@
                     autoColumn += x == 0 ? 1 : 0;
                 });
 
+            int[] scaledColumns = new int[_columns.Length];
+            Array.Copy(_columns, scaledColumns, _columns.Length);
+            int[] scaledRows = new int[_rows.Length];
+            Array.Copy(_rows, scaledRows, _rows.Length);
+
+            // double check row and column sizes
+            if (fixedColumn > clientArea.W)
+            {
+                // scale down fixed columns
+                for (int i = 0; i < scaledColumns.Length; ++i)
+                {
+                    scaledColumns[i] = (int)(((double)_columns[i] / fixedColumn) * clientArea.W);
+                }
+            }
+            if (fixedRow > clientArea.H)
+            {
+                // scale down fixed rows
+                for (int i = 0; i < scaledRows.Length; ++i)
+                {
+                    scaledRows[i] = (int)(((double)_rows[i] / fixedRow) * clientArea.H);
+                }
+            }
+
             // calculate lows & highs for width and height of auto cells
             int bigHeight = (int)Math.Ceiling((clientArea.H - fixedRow) / (double)autoRow);
             int inverseSmallHeight = 0;
@@ -78,7 +101,7 @@
             int autoRowsComputed = 0;
             for (int row = 0; row < RowCount; row++)
             {
-                int height = _rows[row];
+                int height = scaledRows[row];
                 if (height == 0)
                 {
                     height = autoRowsComputed < autoRow - 1 ?
@@ -89,7 +112,7 @@
                 }
                 for (int col = 0; col < ColumnCount; col++)
                 {
-                    int width = _columns[col];
+                    int width = scaledColumns[col];
                     if (width == 0)
                     {
                         width = autoColumnsComputed < autoColumn - 1 ?
