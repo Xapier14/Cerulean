@@ -1,6 +1,4 @@
-﻿using Cerulean.Common;
-
-namespace Cerulean.Core
+﻿namespace Cerulean.Common
 {
     public sealed class Grid : Component
     {
