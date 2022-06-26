@@ -177,24 +177,20 @@
 
                 for (int column = 0; column < child.GridColumn && column < ColumnCount; ++column)
                     if (_cellSizes is not null)
-                        childX += _cellSizes[0, column].W;
+                    {
+                        int add = _cellSizes[0, column].W;
+                        childX += add > 0 ? add : 0;
+                    }
 
                 for (int row = 0; row < child.GridRow && row < RowCount; ++row)
                     if (_cellSizes is not null)
-                        childY += _cellSizes[row, 0].H;
+                    {
+                        int add = _cellSizes[row, 0].H;
+                        childY += add > 0 ? add : 0;
+                    }
 
                 if (child.ClientArea is Size clientArea && ClientArea is Size gridArea)
                 {
-                    if (childX < 0)
-                    {
-                        clientArea.W = gridArea.W;
-                        childX = 0;
-                    }
-                    if (childY < 0)
-                    {
-                        clientArea.H = gridArea.H;
-                        childY = 0;
-                    }
                     graphics.SetRenderArea(clientArea, childX, childY);
                 }
                 child.Draw(graphics);
