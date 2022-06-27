@@ -56,6 +56,31 @@ namespace Cerulean.CLI
         public static int FromHex(string str)
             => int.Parse(str, NumberStyles.HexNumber);
 
+        public static string? GetRecommendedDataType(string propertyName, out string? enumFamiy)
+        {
+            string? type = propertyName switch
+            {
+                "ForeColor" => "color",
+                "BackColor" => "color",
+                "BorderColor" => "color",
+                "FontName" => "string",
+                "FontSize" => "int",
+                "FontStyle" => "string",
+                "Text" => "string",
+                "FileName" => "string",
+                "X" => "int",
+                "Y" => "int",
+                "PictureMode" => "enum",
+                _ => null
+            };
+            enumFamiy = propertyName switch
+            {
+                "PictureMode" => "PictureMode",
+                _ => null
+            };
+            return type;
+        }
+
         public static string ParseHexColor(string hexColor)
         {
             string color = "Colors.None";
@@ -104,17 +129,17 @@ namespace Cerulean.CLI
             return color;
         }
 
-        public static string ParseHintedString(string hintedString, string root)
+        public static string ParseHintedString(string hintedString, string root, string? enumFamiy = null, string? overrideType = null)
         {
             // hinted value pattern ([name]="[type]: [value]")
             var regex = Regex.Match(hintedString, @"^(\w+):\s?(.+)");
             string value = hintedString;
 
             // attribute value-part has datatype hint
-            if (regex.Success)
+            if (regex.Success || overrideType is not null)
             {
-                string type = regex.Groups[1].ToString().ToLower();
-                string raw = regex.Groups[2].ToString();
+                string type = overrideType ?? regex.Groups[1].ToString().ToLower();
+                string raw = overrideType is null ? regex.Groups[2].ToString() : hintedString;
                 try
                 {
                     value = type switch
@@ -134,6 +159,7 @@ namespace Cerulean.CLI
                         "component" => ParseNestedComponentName(raw, root),
                         "color" => ParseHexColor(raw),
                         "literal" => value,
+                        "enum" => $"{enumFamiy}.{raw}",
                         _ => "null"
                     };
                     if (value == "null")
@@ -386,7 +412,8 @@ namespace Cerulean.CLI
                }).ToArray();
                 foreach (var prop in props)
                 {
-                    stringBuilder.AppendIndented(indent + 1, $"{prop.Name} = {ParseHintedString(prop.Value, root)},\n");
+                    var recommendedType = GetRecommendedDataType(prop.Name.ToString(), out string? enumFamily);
+                    stringBuilder.AppendIndented(indent + 1, $"{prop.Name} = {ParseHintedString(prop.Value, root, enumFamily, recommendedType)},\n");
                 }
                 stringBuilder.AppendIndented(indent, "});\n");
                 foreach (var attribute in attributes)
