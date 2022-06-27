@@ -8,96 +8,96 @@
 			ColumnCount='3'>
 			<Image
 				Name='Image1'
-				FileName='string: Cerulean.png'
-				PictureMode='PictureMode.None'
+				FileName='Cerulean.png'
+				PictureMode='None'
 				GridRow='0'
 				GridColumn='0' />
 			<Label
 				Name='Label1'
-				Text='string: None'
-				FontName='string: Arial'
+				Text='None'
+				FontName='Arial'
 				FontSize='28'
-				ForeColor='color: #F00'
+				ForeColor='#F00'
 				X='8'
 				Y='8'
 				GridRow='0'
 				GridColumn='0' />
 			<Image
 				Name='Image2'
-				FileName='string: Cerulean.png'
-				PictureMode='PictureMode.Stretch'
+				FileName='Cerulean.png'
+				PictureMode='Stretch'
 				GridRow='0'
 				GridColumn='1' />
 			<Label
 				Name='Label2'
-				Text='string: Stretch'
-				FontName='string: Arial'
+				Text='Stretch'
+				FontName='Arial'
 				FontSize='28'
-				ForeColor='color: #F00'
+				ForeColor='#F00'
 				X='8'
 				Y='8'
 				GridRow='0'
 				GridColumn='1' />
 			<Image
 				Name='Image3'
-				FileName='string: Cerulean.png'
-				PictureMode='PictureMode.Center'
+				FileName='Cerulean.png'
+				PictureMode='Center'
 				GridRow='0'
 				GridColumn='2' />
 			<Label
 				Name='Label3'
-				Text='string: Center'
-				FontName='string: Arial'
+				Text='Center'
+				FontName='Arial'
 				FontSize='28'
-				ForeColor='color: #F00'
+				ForeColor='#F00'
 				X='8'
 				Y='8'
 				GridRow='0'
 				GridColumn='2' />
 			<Image
 				Name='Image4'
-				FileName='string: Cerulean.png'
-				PictureMode='PictureMode.Tile'
+				FileName='Cerulean.png'
+				PictureMode='Tile'
 				GridRow='1'
 				GridColumn='0' />
 			<Label
 				Name='Label4'
-				Text='string: Tile'
-				FontName='string: Arial'
+				Text='Tile'
+				FontName='Arial'
 				FontSize='28'
-				ForeColor='color: #F00'
+				ForeColor='#F00'
 				X='8'
 				Y='8'
 				GridRow='1'
 				GridColumn='0' />
 			<Image
 				Name='Image5'
-				FileName='string: Cerulean.png'
-				PictureMode='PictureMode.Fit'
+				FileName='Cerulean.png'
+				PictureMode='Fit'
 				GridRow='1'
 				GridColumn='1' />
 			<Label
 				Name='Label5'
-				Text='string: Fit'
-				FontName='string: Arial'
+				Text='Fit'
+				FontName='Arial'
 				FontSize='28'
-				ForeColor='color: #F00'
+				ForeColor='#F00'
 				X='8'
 				Y='8'
 				GridRow='1'
 				GridColumn='1' />
 			<Image
 				Name='Image6'
-				FileName='string: Cerulean.png'
-				PictureMode='PictureMode.Cover'
+				FileName='Cerulean.png'
+				PictureMode='Cover'
 				GridRow='1'
 				GridColumn='2' />
 			<Label
 				Name='Label6'
-				Text='string: Cover'
-				FontName='string: Arial'
+				Text='Cover'
+				FontName='Arial'
 				FontSize='28'
-				ForeColor='color: #F00'
+				ForeColor='#F00'
 				X='8'
 				Y='8'
 				GridRow='1'
