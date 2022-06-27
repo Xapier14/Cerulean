@@ -6,14 +6,14 @@
             Name='Grid'
             RowCount='2'
             ColumnCount='2'
-            BackColor='color: #000'>
+            BackColor='#000'>
             <Label
                 Name='Label'
-                Text='string: Hello World!'
-                ForeColor='color: #FFF'
+                Text='Hello World!'
+                ForeColor='#FFF'
                 GridColumn='1'
                 GridRow='1'
-                FontName='string: Arial'
+                FontName='Arial'
                 FontSize='24'
                 X='0'
                 Y='0' />
