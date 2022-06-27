@@ -172,8 +172,8 @@
             var area = graphics.GetRenderArea(out int areaX, out int areaY);
             foreach (var child in Children)
             {
-                int childX = areaX + child.X;
-                int childY = areaY + child.Y;
+                int childX = areaX;
+                int childY = areaY;
 
                 for (int column = 0; column < child.GridColumn && column < ColumnCount; ++column)
                     if (_cellSizes is not null)
@@ -191,9 +191,10 @@
 
                 if (child.ClientArea is Size clientArea && ClientArea is Size gridArea)
                 {
+                    graphics.DrawRectangle(childX, childY, clientArea, new Color(255, 0, 0));
                     graphics.SetRenderArea(clientArea, childX, childY);
+                    child.Draw(graphics);
                 }
-                child.Draw(graphics);
             }
             graphics.SetRenderArea(area, areaX, areaY);
         }
