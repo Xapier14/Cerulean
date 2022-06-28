@@ -191,7 +191,6 @@
 
                 if (child.ClientArea is Size clientArea && ClientArea is Size gridArea)
                 {
-                    graphics.DrawRectangle(childX, childY, clientArea, new Color(255, 0, 0));
                     graphics.SetRenderArea(clientArea, childX, childY);
                     child.Draw(graphics);
                 }
