@@ -21,11 +21,11 @@ namespace Cerulean.Components
                 {
                     graphics.DrawFilledRectangle(X, Y, area, color);
                 }
+                base.Draw(graphics);
                 if (BorderColor is Color borderColor)
                 {
                     graphics.DrawRectangle(X, Y, area, borderColor);
                 }
-                base.Draw(graphics);
             }
         }
     }

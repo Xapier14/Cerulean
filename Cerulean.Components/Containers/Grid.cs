@@ -1,10 +1,13 @@
-﻿namespace Cerulean.Common
+﻿using System.Reflection;
+
+namespace Cerulean.Common
 {
     public sealed class Grid : Component
     {
         private int[] _columns = { 0 };
         private int[] _rows = { 0 };
         private Size[,]? _cellSizes;
+        private readonly MethodInfo? _modifyClientArea = typeof(Component).GetMethod("ModifyClientArea", BindingFlags.Instance | BindingFlags.NonPublic);
         public int ColumnCount
         {
             get => _columns.Length;
@@ -192,6 +195,7 @@
                 if (child.ClientArea is Size clientArea && ClientArea is Size gridArea)
                 {
                     graphics.SetRenderArea(clientArea, childX, childY);
+                    _modifyClientArea?.Invoke(child, new object?[] { -child.X, -child.Y });
                     child.Draw(graphics);
                 }
             }

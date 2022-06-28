@@ -16,11 +16,30 @@ namespace Cerulean.Common
         public virtual int GridColumnSpan { get; set; } = 1;
         public virtual int X { get; set; } = 0;
         public virtual int Y { get; set; } = 0;
-        public Size? ClientArea { get; protected set; } = null;
+        private Size? _clientArea = null;
+        public Size? ClientArea
+        {
+            get
+            {
+                return _clientArea;
+            }
+            protected set
+            {
+                _clientArea = value;
+            }
+        }
 
         protected void AddOrUpdateAttribute(string attribute, object value)
         {
             Attributes[attribute] = value;
+        }
+
+        protected void ModifyClientArea(int byW, int byH)
+        {
+            if (_clientArea is Size size)
+            {
+                _clientArea = new(size.W + byW, size.H + byH);
+            }
         }
 
         public int IChildCount
@@ -127,10 +146,13 @@ namespace Cerulean.Common
 
             // set render area to component clientArea
             if (ClientArea is Size clientArea)
+            {
+                Size area = new(clientArea.W, clientArea.H);
                 graphics.SetRenderArea(
-                    clientArea,
+                    area,
                     areaX + X,
                     areaY + Y);
+            }
 
             // draw child elements
             if (CanBeParent)
