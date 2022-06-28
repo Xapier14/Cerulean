@@ -34,6 +34,8 @@ namespace Cerulean.Components
                 if (ForeColor is Color foreColor && Text != string.Empty)
                 {
                     var size = Size ?? fullArea;
+                    size.W -= X;
+                    size.H -= Y;
                     var textWrap = size.W - X;
                     if (textWrap >= 0)
                         graphics.DrawText(X, Y, Text, FontName, FontStyle, FontSize, foreColor, WrapText ? (uint)(textWrap) : 0);

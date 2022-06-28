@@ -19,11 +19,11 @@ namespace Cerulean.Components
             {
                 if (BackColor is Color color)
                 {
-                    graphics.DrawFilledRectangle(Size is null ? 0 : X, Size is null ? 0 : Y, area, color);
+                    graphics.DrawFilledRectangle(X, Y, area, color);
                 }
                 if (BorderColor is Color borderColor)
                 {
-                    graphics.DrawRectangle(Size is null ? 0 : X, Size is null ? 0 : Y, area, borderColor);
+                    graphics.DrawRectangle(X, Y, area, borderColor);
                 }
                 base.Draw(graphics);
             }
