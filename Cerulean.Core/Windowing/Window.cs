@@ -15,32 +15,29 @@ namespace Cerulean.Core
     {
         #region Private+Internals
         private readonly IGraphicsFactory _graphicsFactory;
-        private int _threadId;
-        private IntPtr _window;
-        internal IntPtr WindowPtr { get => _window; }
-        internal bool _closeFromEvent = false;
-        private bool _initialized = false;
+        private readonly int _threadId;
+        internal IntPtr WindowPtr { get; private set; }
+
+        internal bool OnCloseFromEvent = false;
         private string _windowTitle = "";
         #endregion
 
         public static readonly Size DefaultWindowSize = new(600, 400);
         public delegate void WindowEventHandler(Window sender, WindowEventArgs e);
-        public WindowEventHandler? OnResize, OnMininize, OnRestore, OnMaximize, OnMoved, OnClose, OnMouseLeave, OnMouseEnter, OnFocusGained, OnFocusLost;
-        public bool IsInitialized { get => _initialized; }
+        public WindowEventHandler? OnResize, OnMinimize, OnRestore, OnMaximize, OnMoved, OnClose, OnMouseLeave, OnMouseEnter, OnFocusGained, OnFocusLost;
+        public bool IsInitialized { get; private set; } = false;
+
         public bool Closed { get; private set; }
         public IGraphics? GraphicsContext { get; private set; } = null;
 
         public string WindowTitle
         {
-            get
-            {
-                return _windowTitle;
-            }
+            get => _windowTitle;
             set
             {
                 if (Closed)
                     throw new GeneralAPIException("Cannot set title to a closed window.");
-                if (!_initialized)
+                if (!IsInitialized)
                 {
                     _windowTitle = value;
                 }
@@ -48,7 +45,7 @@ namespace Cerulean.Core
                 {
                     EnsureMainThread("Changing window title must be done on the thread that created the window.");
                     // change window title via SDL call
-                    SDL_SetWindowTitle(_window, value);
+                    SDL_SetWindowTitle(WindowPtr, value);
                     _windowTitle = value;
                 }
             }
@@ -58,15 +55,12 @@ namespace Cerulean.Core
 
         public Size WindowSize
         {
-            get
-            {
-                return _windowSize;
-            }
+            get => _windowSize;
             set
             {
                 if (Closed)
                     throw new GeneralAPIException("Cannot set size to a closed window.");
-                if (!_initialized)
+                if (!IsInitialized)
                 {
                     _windowSize = value;
                 }
@@ -74,7 +68,7 @@ namespace Cerulean.Core
                 {
                     EnsureMainThread("Changing window size must be done on the thread that created the window.");
                     // change window size via SDL call
-                    SDL_SetWindowSize(_window, value.W, value.H);
+                    SDL_SetWindowSize(WindowPtr, value.W, value.H);
                     GraphicsContext?.SetRenderArea(value, 0, 0);
                     _windowSize = value;
                 }
@@ -85,20 +79,14 @@ namespace Cerulean.Core
 
         public Size? MinimumWindowSize
         {
-            get
-            {
-                return _minimumWindowSize;
-            }
+            get => _minimumWindowSize;
             set 
             {
                 if (Closed)
                     throw new GeneralAPIException("Cannot set minimum size to a closed window.");
-                if (!_initialized)
+                if (!IsInitialized)
                 {
-                    if (value.HasValue)
-                        _minimumWindowSize = value.Value;
-                    else
-                        _minimumWindowSize = new(0, 0);
+                    _minimumWindowSize = value ?? new Size(0, 0);
                 }
                 else
                 {
@@ -106,13 +94,13 @@ namespace Cerulean.Core
                     // change minimum window size via SDL call
                     if (value.HasValue)
                     {
-                        SDL_SetWindowMinimumSize(_window, value.Value.W, value.Value.H);
+                        SDL_SetWindowMinimumSize(WindowPtr, value.Value.W, value.Value.H);
                         _minimumWindowSize = value.Value;
                     }
                     else
                     {
-                        SDL_SetWindowMinimumSize(_window, 0, 0);
-                        _minimumWindowSize = new(0,0);
+                        SDL_SetWindowMinimumSize(WindowPtr, 0, 0);
+                        _minimumWindowSize = new Size(0,0);
                     }
                 }
             }
@@ -122,20 +110,14 @@ namespace Cerulean.Core
 
         public Size? MaximumWindowSize
         {
-            get
-            {
-                return _maximumWindowSize;
-            }
+            get => _maximumWindowSize;
             set
             {
                 if (Closed)
                     throw new GeneralAPIException("Cannot set maximum size to a closed window.");
-                if (!_initialized)
+                if (!IsInitialized)
                 {
-                    if (value.HasValue)
-                        _maximumWindowSize = value.Value;
-                    else
-                        _maximumWindowSize = new(-1, -1);
+                    _maximumWindowSize = value ?? new Size(-1, -1);
                 }
                 else
                 {
@@ -143,12 +125,12 @@ namespace Cerulean.Core
                     // change maximum window size via SDL call
                     if (value.HasValue)
                     {
-                        SDL_SetWindowMaximumSize(_window, value.Value.W, value.Value.H);
+                        SDL_SetWindowMaximumSize(WindowPtr, value.Value.W, value.Value.H);
                         _maximumWindowSize = value.Value;
                     }
                     else
                     {
-                        SDL_SetWindowMaximumSize(_window, -1, -1);
+                        SDL_SetWindowMaximumSize(WindowPtr, -1, -1);
                         _maximumWindowSize = new(-1, -1);
                     }
                 }
@@ -159,15 +141,12 @@ namespace Cerulean.Core
 
         public (int, int) WindowPosition
         {
-            get
-            {
-                return (_windowPosition.Item1, _windowPosition.Item2);
-            }
+            get => (_windowPosition.Item1, _windowPosition.Item2);
             set
             {
                 EnsureMainThread("Changing window position must be done on the thread that created the window.");
                 // move window via SDL call
-                SDL_SetWindowPosition(_window, value.Item1, value.Item2);
+                SDL_SetWindowPosition(WindowPtr, value.Item1, value.Item2);
                 _windowPosition.Item1 = value.Item1;
                 _windowPosition.Item2 = value.Item2;
             }
@@ -183,7 +162,7 @@ namespace Cerulean.Core
 
         internal Window(Layout windowLayout, string windowTitle, Size windowSize, int threadId, IGraphicsFactory graphicsFactory, Window? parentWindow = null)
         {
-            _initialized = false;
+            IsInitialized = false;
             _threadId = threadId;
             WindowTitle = windowTitle;
             WindowSize = windowSize;
@@ -199,7 +178,7 @@ namespace Cerulean.Core
         {
             EnsureMainThread();
             GraphicsContext?.Cleanup();
-            SDL_DestroyWindow(_window);
+            SDL_DestroyWindow(WindowPtr);
             Closed = true;
         }
         public void Close()
@@ -210,21 +189,19 @@ namespace Cerulean.Core
 
         private void EnsureMainThread(string? message = null)
         {
-            if (_threadId != Environment.CurrentManagedThreadId)
-            {
-                var exception = message == null ?
-                    new ThreadSafetyException() :
-                    new ThreadSafetyException(message);
-                CeruleanAPI.GetAPI().Log(exception.Message, LogSeverity.Error, exception);
-                throw exception;
-            }
+            if (_threadId == Environment.CurrentManagedThreadId) return;
+            var exception = message == null ?
+                new ThreadSafetyException() :
+                new ThreadSafetyException(message);
+            CeruleanAPI.GetAPI().Log(exception.Message, LogSeverity.Error, exception);
+            throw exception;
         }
 
         internal void Initialize()
         {
             EnsureMainThread("Window initialization must be called from the thread that initialized the CeruleanAPI instance.");
-            _initialized = true;
-            if ((_window = SDL_CreateWindow(WindowTitle,
+            IsInitialized = true;
+            if ((WindowPtr = SDL_CreateWindow(WindowTitle,
                 SDL_WINDOWPOS_CENTERED,
                 SDL_WINDOWPOS_CENTERED,
                 WindowSize.W,
@@ -235,12 +212,12 @@ namespace Cerulean.Core
                 CeruleanAPI.GetAPI().Log(exception.Message, LogSeverity.Fatal, exception);
                 throw exception;
             }
-            SDL_GetWindowPosition(_window, out _windowPosition.Item1, out _windowPosition.Item2);
+            SDL_GetWindowPosition(WindowPtr, out _windowPosition.Item1, out _windowPosition.Item2);
             CeruleanAPI.GetAPI().Log("Window created.");
             CeruleanAPI.GetAPI().Log($"Minimum size {_minimumWindowSize}.");
             CeruleanAPI.GetAPI().Log($"Maximum size {_maximumWindowSize}.");
-            SDL_SetWindowMinimumSize(_window, _minimumWindowSize.W, _minimumWindowSize.H);
-            SDL_SetWindowMaximumSize(_window, _maximumWindowSize.W, _maximumWindowSize.H);
+            SDL_SetWindowMinimumSize(WindowPtr, _minimumWindowSize.W, _minimumWindowSize.H);
+            SDL_SetWindowMaximumSize(WindowPtr, _maximumWindowSize.W, _maximumWindowSize.H);
             GraphicsContext = _graphicsFactory.CreateGraphics(this);
             Layout.Init();
         }
@@ -251,7 +228,11 @@ namespace Cerulean.Core
             GraphicsContext?.RenderClear();
             GraphicsContext?.DrawFilledRectangle(0, 0, _windowSize, BackColor);
             if (GraphicsContext is not null)
-                Layout.Draw(GraphicsContext);
+            {
+                GraphicsContext.SetRenderArea(_windowSize, 0, 0);
+                Layout.Draw(GraphicsContext, 0, 0, _windowSize);
+            }
+
             GraphicsContext?.RenderPresent();
             CeruleanAPI.GetAPI().Profiler?.EndProfilingCurrentPoint();
         }
@@ -259,11 +240,11 @@ namespace Cerulean.Core
         internal void InvokeOnResize(int w, int h)
         {
             GraphicsContext?.SetRenderArea(new(w, h), 0, 0);
-            _windowSize = new(w, h);
-            SDL_GetWindowPosition(_window,
+            _windowSize = new Size(w, h);
+            SDL_GetWindowPosition(WindowPtr,
                 out _windowPosition.Item1,
                 out _windowPosition.Item2);
-            OnResize?.Invoke(this, new()
+            OnResize?.Invoke(this, new WindowEventArgs
             {
                 WindowWidth = w,
                 WindowHeight = h
@@ -272,7 +253,7 @@ namespace Cerulean.Core
 
         internal void InvokeOnClose()
         {
-            bool cancel = false;
+            var cancel = false;
             if (OnClose?.GetInvocationList().Length > 0)
             {
                 WindowEventArgs eventArgs = new();
@@ -283,37 +264,37 @@ namespace Cerulean.Core
             {
                 CeruleanAPI.GetAPI().CloseWindow(this);
             }
-            _closeFromEvent = false;
+            OnCloseFromEvent = false;
         }
 
         internal void InvokeOnMinimize()
         {
             _windowPosition.Item1 = 0;
             _windowPosition.Item2 = 0;
-            OnMininize?.Invoke(this, new());
+            OnMinimize?.Invoke(this, new WindowEventArgs());
         }
 
         internal void InvokeOnRestore()
         {
-            SDL_GetWindowPosition(_window,
+            SDL_GetWindowPosition(WindowPtr,
                 out _windowPosition.Item1,
                 out _windowPosition.Item2);
-            OnRestore?.Invoke(this, new());
+            OnRestore?.Invoke(this, new WindowEventArgs());
         }
 
         internal void InvokeOnMaximize()
         {
-            SDL_GetWindowPosition(_window,
+            SDL_GetWindowPosition(WindowPtr,
                 out _windowPosition.Item1,
                 out _windowPosition.Item2);
-            OnMaximize?.Invoke(this, new());
+            OnMaximize?.Invoke(this, new WindowEventArgs());
         }
 
         internal void InvokeOnMoved(int x, int y)
         {
             _windowPosition.Item1 = x;
             _windowPosition.Item2 = y;
-            OnMoved?.Invoke(this, new()
+            OnMoved?.Invoke(this, new WindowEventArgs
             {
                 WindowX = x,
                 WindowY = y
@@ -322,22 +303,22 @@ namespace Cerulean.Core
 
         internal void InvokeOnFocusGained()
         {
-            OnFocusGained?.Invoke(this, new());
+            OnFocusGained?.Invoke(this, new WindowEventArgs());
         }
 
         internal void InvokeOnMouseLeave()
         {
-            OnMouseLeave?.Invoke(this, new());
+            OnMouseLeave?.Invoke(this, new WindowEventArgs());
         }
 
         internal void InvokeOnMouseEnter()
         {
-            OnMouseEnter?.Invoke(this, new());
+            OnMouseEnter?.Invoke(this, new WindowEventArgs());
         }
 
         internal void InvokeOnFocusLost()
         {
-            OnFocusLost?.Invoke(this, new());
+            OnFocusLost?.Invoke(this, new WindowEventArgs());
         }
     }
 }
