@@ -13,7 +13,7 @@ namespace Cerulean.Components
     {
         private long _time;
         private bool _running;
-        public bool IsRunning { get { return _running; } }
+        public bool IsRunning => _running;
         public int Interval { get; set; }
         public delegate void TimerEventHandler(Timer sender,
                                                object? window,
@@ -50,15 +50,13 @@ namespace Cerulean.Components
                 return;
 
             var deltaTicks = DateTime.Now.Ticks - _time;
-            if (deltaTicks >= TimeSpan.FromMilliseconds(Interval).Ticks)
+            if (deltaTicks < TimeSpan.FromMilliseconds(Interval).Ticks) return;
+            _time = DateTime.Now.Ticks;
+            OnElapse?.Invoke(this, window, new TimerEventArgs
             {
-                _time = DateTime.Now.Ticks;
-                OnElapse?.Invoke(this, window, new()
-                {
-                    Interval = Interval,
-                    InBetween = TimeSpan.FromTicks(deltaTicks)
-                });
-            }
+                Interval = Interval,
+                InBetween = TimeSpan.FromTicks(deltaTicks)
+            });
         }
     }
 }
