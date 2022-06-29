@@ -111,7 +111,7 @@ namespace Cerulean.Core
                                     switch (sdlEvent.window.windowEvent)
                                     {
                                         case SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
-                                            window._closeFromEvent = true;
+                                            window.OnCloseFromEvent = true;
                                             window.InvokeOnClose();
                                             break;
                                         case SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
@@ -288,9 +288,9 @@ namespace Cerulean.Core
             {
                 if (!window.Closed)
                 {
-                    if (!window._closeFromEvent)
+                    if (!window.OnCloseFromEvent)
                     {
-                        window._closeFromEvent = true;
+                        window.OnCloseFromEvent = true;
                         window.InvokeOnClose();
                     }
                     else
