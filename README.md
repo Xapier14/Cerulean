@@ -60,7 +60,7 @@ Mainly testing on Windows and Ubuntu. Feel free to test on other platforms.<br>
      - [ ] Open File Dialog
      - [ ] Save File Dialog
      - [ ] Folder Select Dialog
- - [ ] Graphical Components
+ - [x] Graphical Components
      - [x] Rectangle
      - [x] Image
      - [x] Progress Bar
