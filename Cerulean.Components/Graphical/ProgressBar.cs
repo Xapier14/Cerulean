@@ -24,53 +24,53 @@ namespace Cerulean.Components
             base.Update(window, clientArea);
         }
 
-        public override void Draw(IGraphics graphics)
+        public override void Draw(IGraphics graphics, int viewportX, int viewportY, Size viewportSize)
         {
-            Size? area = Size ?? ClientArea;
-            if (area is Size backArea && backArea.W > 4 && backArea.H > 4)
-            {
-                // draw border rect
-                if (BorderColor.HasValue)
-                    graphics.DrawFilledRectangle(X, Y, backArea, BorderColor.Value);
+            var area = Size ?? ClientArea;
+            if (area is not { W: > 4, H: > 4 }) return;
+            // draw border rect
+            if (BorderColor.HasValue)
+                graphics.DrawFilledRectangle(X, Y, area.Value, BorderColor.Value);
 
-                // get percentage
-                double value = Math.Max((double)Value / Maximum, 0.0);
-                int barX = X + 2;
-                int barY = Y + 2;
-                Size barArea = new(backArea.W - 4, backArea.H - 4);
-                Size barBackArea = new(backArea.W - 4, backArea.H - 4);
+            // get percentage
+            var value = Math.Max((double)Value / Maximum, 0.0);
+            var barX = X + 2;
+            var barY = Y + 2;
+            Size barArea = new(area.Value.W - 4, area.Value.H - 4);
+            Size barBackArea = new(area.Value.W - 4, area.Value.H - 4);
                 
-                // compute bar area
-                switch (Orientation)
-                {
-                    case Orientation.Horizontal:
-                        barArea.W = ((int)Math.Floor(value * barArea.W));
-                        break;
-                    case Orientation.Vertical:
-                        int valueHeight = ((int)Math.Floor(value * barArea.H));
-                        barY += backArea.H - barArea.H - 4;
-                        barArea.H = valueHeight;
-                        break;
-                    case Orientation.HorizontalFlipped:
-                        int width = ((int)Math.Floor(value * barArea.W));
-                        barX += barArea.W - width;
-                        barArea.W = width;
-                        break;
-                    case Orientation.VerticalFlipped:
-                        int height = ((int)Math.Floor(value * barArea.H));
-                        barY += barArea.H - height;
-                        barArea.H = height;
-                        break;
-                }
-
-                // draw bar back rect
-                if (BackColor.HasValue)
-                    graphics.DrawFilledRectangle(X + 2, Y + 2, barBackArea, BackColor.Value);
-
-                // draw bar value rect
-                if (ForeColor.HasValue)
-                    graphics.DrawFilledRectangle(barX, barY, barArea, ForeColor.Value);
+            // compute bar area
+            switch (Orientation)
+            {
+                case Orientation.Horizontal:
+                    barArea.W = ((int)Math.Floor(value * barArea.W));
+                    break;
+                case Orientation.Vertical:
+                    var valueHeight = ((int)Math.Floor(value * barArea.H));
+                    barY += area.Value.H - barArea.H - 4;
+                    barArea.H = valueHeight;
+                    break;
+                case Orientation.HorizontalFlipped:
+                    var width = ((int)Math.Floor(value * barArea.W));
+                    barX += barArea.W - width;
+                    barArea.W = width;
+                    break;
+                case Orientation.VerticalFlipped:
+                    var height = ((int)Math.Floor(value * barArea.H));
+                    barY += barArea.H - height;
+                    barArea.H = height;
+                    break;
+                default:
+                    throw new GeneralAPIException("Orientation is invalid.");
             }
+
+            // draw bar back rect
+            if (BackColor.HasValue)
+                graphics.DrawFilledRectangle(X + 2, Y + 2, barBackArea, BackColor.Value);
+
+            // draw bar value rect
+            if (ForeColor.HasValue)
+                graphics.DrawFilledRectangle(barX, barY, barArea, ForeColor.Value);
         }
     }
 }

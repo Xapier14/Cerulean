@@ -77,6 +77,7 @@ namespace Cerulean.Core
 
             // Initialize SDL2
             SDL_SetHint("SDL_HINT_VIDEO_HIGHDPI_ENABLED", "1");
+            SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
             if (SDL_InitSubSystem(SDL_INIT_EVERYTHING) != 0)
                 throw new FatalAPIException($"Could not initialize SDL2. Reason: {SDL_GetError()}");
             SDL_VERSION(out SDL_version version);
@@ -111,7 +112,7 @@ namespace Cerulean.Core
                                     switch (sdlEvent.window.windowEvent)
                                     {
                                         case SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
-                                            window._closeFromEvent = true;
+                                            window.OnCloseFromEvent = true;
                                             window.InvokeOnClose();
                                             break;
                                         case SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
@@ -288,9 +289,9 @@ namespace Cerulean.Core
             {
                 if (!window.Closed)
                 {
-                    if (!window._closeFromEvent)
+                    if (!window.OnCloseFromEvent)
                     {
-                        window._closeFromEvent = true;
+                        window.OnCloseFromEvent = true;
                         window.InvokeOnClose();
                     }
                     else

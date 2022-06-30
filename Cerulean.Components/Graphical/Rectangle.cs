@@ -14,6 +14,7 @@ namespace Cerulean.Components
         {
             FillOpacity = 1.0;
             BorderOpacity = 1.0;
+            CanBeParent = false;
         }
 
         public override void Update(object? window, Size clientArea)
@@ -21,21 +22,23 @@ namespace Cerulean.Components
             ClientArea = clientArea;
         }
 
-        public override void Draw(IGraphics graphics)
+        public override void Draw(IGraphics graphics, int viewportX, int viewportY, Size viewportSize)
         {
-            base.Draw(graphics);
-            if (ClientArea is Size fullArea)
+            if (!ClientArea.HasValue) return;
+            // Draw fill
+            if (FillColor.HasValue)
             {
-                // Draw fill
-                if (FillColor is Color fillColor)
-                {
-                    if (Size is Size size)
-                        graphics.DrawFilledRectangle(X, Y, size, fillColor);
-                    else
-                        graphics.DrawFilledRectangle(0, 0, fullArea, fillColor);
-                }
+                if (Size.HasValue)
+                    graphics.DrawFilledRectangle(X, Y, Size.Value, FillColor.Value);
+                else
+                    graphics.DrawFilledRectangle(0, 0, ClientArea.Value, FillColor.Value);
             }
-
+            // Draw border
+            if (!BorderColor.HasValue) return;
+            if (Size.HasValue)
+                graphics.DrawRectangle(X, Y, Size.Value, BorderColor.Value);
+            else
+                graphics.DrawRectangle(0, 0, ClientArea.Value, BorderColor.Value);
         }
     }
 }

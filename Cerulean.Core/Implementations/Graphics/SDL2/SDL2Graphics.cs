@@ -10,14 +10,14 @@ namespace Cerulean.Core
     internal class SDL2Graphics : IGraphics
     {
         private readonly Window _window;
-        private readonly IntPtr _renderer;
         private readonly TextureCache _textureCache;
         private readonly FontCache _fontCache;
 
         // global TTF Init
         private static bool _initializedSubmodules = false;
         internal IntPtr WindowPtr => _window.WindowPtr;
-        internal IntPtr RendererPtr => _renderer;
+        internal IntPtr RendererPtr { get; }
+
         public SDL2Graphics(Window window)
         {
             if (!_initializedSubmodules)
@@ -32,10 +32,10 @@ namespace Cerulean.Core
             {
                 throw new FatalAPIException("Could not create SDL2 renderer.");
             }
-            SDL_SetRenderDrawBlendMode(renderer, SDL_BlendMode.SDL_BLENDMODE_BLEND);
-            _renderer = renderer;
-            _textureCache = new(64);
-            _fontCache = new();
+            _ = SDL_SetRenderDrawBlendMode(renderer, SDL_BlendMode.SDL_BLENDMODE_BLEND);
+            RendererPtr = renderer;
+            _textureCache = new TextureCache(64);
+            _fontCache = new FontCache();
         }
 
         public void Update()
@@ -62,7 +62,7 @@ namespace Cerulean.Core
                 return;
             }
             SDL_Surface surface = Marshal.PtrToStructure<SDL_Surface>(surfacePtr);
-            _ = SDL_GetRendererInfo(_renderer, out SDL_RendererInfo rendererInfo);
+            _ = SDL_GetRendererInfo(RendererPtr, out SDL_RendererInfo rendererInfo);
 
             if (surface.w > rendererInfo.max_texture_width ||
                 surface.h > rendererInfo.max_texture_height)
@@ -94,10 +94,10 @@ namespace Cerulean.Core
         #region GENERAL
         public Size GetRenderArea(out int x, out int y)
         {
-            _ = SDL_RenderGetViewport(RendererPtr, out SDL_Rect rect);
+            _ = SDL_RenderGetViewport(RendererPtr, out var rect);
             x = rect.x;
             y = rect.y;
-            return new(rect.w, rect.h);
+            return new Size(rect.w, rect.h);
         }
         public void SetRenderArea(Size renderArea, int x, int y)
         {
@@ -109,13 +109,13 @@ namespace Cerulean.Core
                 y = y
             };
             if (SDL_RenderSetViewport(RendererPtr, ref rect) != 0)
-                throw new GeneralAPIException("Could not set viewport data.");
+                throw new GeneralAPIException($"Could not set viewport data. {SDL_GetError()}");
         }
         #endregion
         #region RENDER
         public void RenderClear()
         {
-            SDL_RenderClear(_renderer);
+            SDL_RenderClear(RendererPtr);
         }
 
         public void RenderPresent()
@@ -139,10 +139,10 @@ namespace Cerulean.Core
         {
             _ = SDL_GetRenderDrawColor(
                 RendererPtr,
-                out byte r,
-                out byte g,
-                out byte b,
-                out byte a);
+                out var r,
+                out var g,
+                out var b,
+                out var a);
             _ = SDL_SetRenderDrawColor(
                 RendererPtr,
                 color.R,
@@ -173,10 +173,10 @@ namespace Cerulean.Core
         {
             _ = SDL_GetRenderDrawColor(
                 RendererPtr,
-                out byte r,
-                out byte g,
-                out byte b,
-                out byte a);
+                out var r,
+                out var g,
+                out var b,
+                out var a);
             _ = SDL_SetRenderDrawColor(
                 RendererPtr,
                 color.R,
@@ -206,7 +206,7 @@ namespace Cerulean.Core
                     CeruleanAPI.GetAPI().Log($"Could not load image file via SDL_image. Reason: {error}");
                     throw new GeneralAPIException(error);
                 }
-                IntPtr sdlTexture = SDL_CreateTextureFromSurface(_renderer, sdlSurface);
+                IntPtr sdlTexture = SDL_CreateTextureFromSurface(RendererPtr, sdlSurface);
                 if (sdlTexture == IntPtr.Zero)
                 {
                     string error = SDL_GetError();
@@ -295,7 +295,7 @@ namespace Cerulean.Core
                     h = h
                 };
                 
-                SDL_RenderCopy(_renderer, sdlTexture, IntPtr.Zero, ref target);
+                SDL_RenderCopy(RendererPtr, sdlTexture, IntPtr.Zero, ref target);
             } else 
             {
                 throw new GeneralAPIException("Could not load texture.");
@@ -308,10 +308,10 @@ namespace Cerulean.Core
             CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("DrawText");
             _ = SDL_GetRenderDrawColor(
                 RendererPtr,
-                out byte r,
-                out byte g,
-                out byte b,
-                out byte a);
+                out var r,
+                out var g,
+                out var b,
+                out var a);
             _ = SDL_SetRenderDrawColor(
                 RendererPtr,
                 255,
@@ -320,25 +320,25 @@ namespace Cerulean.Core
                 255);
 
             // define font and text to check in caches
-            string fontIdentity = FontCache.GetID(fontName, fontStyle, fontPointSize);string textFingerprint = $"{fontIdentity}@{color} \"{text}\" {textWrap}px {angle}deg";
-            Texture? textTexture;
+            var fontIdentity = FontCache.GetID(fontName, fontStyle, fontPointSize);
+            var textFingerprint = $"{fontIdentity}@{color} \"{text}\" {textWrap}px {angle}deg";
 
             // check if specific text + font + color combo is NOT in texture cache
-            if (!_textureCache.TryGetTexture(textFingerprint, out textTexture))
+            if (!_textureCache.TryGetTexture(textFingerprint, out var textTexture))
             {
                 CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("MakeTexture");
                 // fetch/make font
                 var font = _fontCache.GetFont(fontName, fontStyle, fontPointSize);
                 CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("TTF_Render");
-                IntPtr surface = textWrap < 1 ?
-                    TTF_RenderText_Blended(font.Data, text, new()
+                var surface = textWrap < 1 ?
+                    TTF_RenderText_Blended(font.Data, text, new SDL_Color
                     {
                         r = color.R,
                         g = color.G,
                         b = color.B,
                         a = color.A
                     }) :
-                    TTF_RenderText_Blended_Wrapped(font.Data, text, new()
+                    TTF_RenderText_Blended_Wrapped(font.Data, text, new SDL_Color
                     {
                         r = color.R,
                         g = color.G,
@@ -354,14 +354,14 @@ namespace Cerulean.Core
                 CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("EnsureSize");
                 EnsureSurfaceSize(ref surface);
                 CeruleanAPI.GetAPI().Profiler?.EndProfilingCurrentPoint();
-                CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("ConverttoTexture");
-                IntPtr sdlTexture = SDL_CreateTextureFromSurface(_renderer, surface);
+                CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("ConvertToTexture");
+                IntPtr sdlTexture = SDL_CreateTextureFromSurface(RendererPtr, surface);
                 if (sdlTexture == IntPtr.Zero)
                     throw new GeneralAPIException(SDL_GetError());
-                SDL_GetClipRect(surface, out SDL_Rect destRect);
+                SDL_GetClipRect(surface, out var destRect);
                 destRect.x = x;
                 destRect.y = y;
-                textTexture = new()
+                textTexture = new Texture
                 {
                     Identity = textFingerprint,
                     Type = TextureType.Text,
@@ -381,12 +381,12 @@ namespace Cerulean.Core
             {
                 if (textTexture.Value.UserData is SDL_Rect rect)
                 {
-                    Texture rawTexture = textTexture.Value;
+                    var rawTexture = textTexture.Value;
                     rawTexture.AccScore(10000);
                     rawTexture.SetScore(Min((long)rawTexture.Score, 100000000000));
                     SDL_Point center = new();
-                    IntPtr texture = textTexture.Value.SDLTexture;
-                    if (SDL_RenderCopyEx(_renderer, texture, IntPtr.Zero, ref rect, angle, ref center, SDL_RendererFlip.SDL_FLIP_NONE) != 0)
+                    var texture = textTexture.Value.SDLTexture;
+                    if (SDL_RenderCopyEx(RendererPtr, texture, IntPtr.Zero, ref rect, angle, ref center, SDL_RendererFlip.SDL_FLIP_NONE) != 0)
                         CeruleanAPI.GetAPI().Log("Error in RenderCopyEx() text!", LogSeverity.Error);
                 }
                 else

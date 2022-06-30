@@ -9,14 +9,8 @@ namespace Cerulean.Components
     {
         private int _x;
         private int _y;
-        public override int X
-        {
-            get { return _x; }
-        }
-        public override int Y
-        {
-            get { return _y; }
-        }
+        public override int X => _x;
+        public override int Y => _y;
 
         public Pointer()
         {
