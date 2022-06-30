@@ -54,15 +54,17 @@ namespace Cerulean.Core
         #region AUXILLIARY
         private static dynamic Min(dynamic i1, dynamic i2)
             => i1 < i2 ? i1 : i2;
-        private void EnsureSurfaceSize(ref IntPtr surfacePtr)
+        private bool EnsureSurfaceSize(ref IntPtr surfacePtr)
         {
             if (surfacePtr == IntPtr.Zero)
             {
                 CeruleanAPI.GetAPI().Log("Surface is null.", LogSeverity.Warning);
-                return;
+                return true;
             }
             SDL_Surface surface = Marshal.PtrToStructure<SDL_Surface>(surfacePtr);
             _ = SDL_GetRendererInfo(RendererPtr, out SDL_RendererInfo rendererInfo);
+            if (surface.w <= 0 || surface.h <= 0)
+                return true;
 
             if (surface.w > rendererInfo.max_texture_width ||
                 surface.h > rendererInfo.max_texture_height)
@@ -89,6 +91,7 @@ namespace Cerulean.Core
                 SDL_FreeSurface(surfacePtr);
                 surfacePtr = newPtr;
             }
+            return false;
         }
         #endregion
         #region GENERAL
@@ -352,7 +355,12 @@ namespace Cerulean.Core
                 }
                 CeruleanAPI.GetAPI().Profiler?.EndProfilingCurrentPoint();
                 CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("EnsureSize");
-                EnsureSurfaceSize(ref surface);
+                if (EnsureSurfaceSize(ref surface))
+                {
+                    // size error
+                    SDL_FreeSurface(surface);
+                    return;
+                }
                 CeruleanAPI.GetAPI().Profiler?.EndProfilingCurrentPoint();
                 CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("ConvertToTexture");
                 IntPtr sdlTexture = SDL_CreateTextureFromSurface(RendererPtr, surface);
