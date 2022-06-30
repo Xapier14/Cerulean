@@ -14,33 +14,34 @@ namespace Cerulean.Components
         public string FontStyle { get; set; } = string.Empty;
         public bool WrapText { get; set; } = true;
 
+        public Label()
+        {
+            CanBeParent = false;
+        }
+
         public override void Update(object? window, Size clientArea)
         {
             ClientArea = clientArea;
         }
 
-        public override void Draw(IGraphics graphics)
+        public override void Draw(IGraphics graphics, int viewportX, int viewportY, Size viewportSize)
         {
-            base.Draw(graphics);
-            if (ClientArea is Size fullArea)
+            if (!ClientArea.HasValue) return;
+            if (BackColor.HasValue)
             {
-                if (BackColor is Color backColor)
-                {
-                    if (Size is Size size)
-                        graphics.DrawFilledRectangle(X, Y, size, backColor);
-                    else
-                        graphics.DrawFilledRectangle(0, 0, fullArea, backColor);
-                }
-                if (ForeColor is Color foreColor && Text != string.Empty)
-                {
-                    var size = Size ?? fullArea;
-                    size.W -= X;
-                    size.H -= Y;
-                    var textWrap = size.W - X;
-                    if (textWrap >= 0)
-                        graphics.DrawText(X, Y, Text, FontName, FontStyle, FontSize, foreColor, WrapText ? (uint)(textWrap) : 0);
-                }
+                if (Size.HasValue)
+                    graphics.DrawFilledRectangle(X, Y, Size.Value, BackColor.Value);
+                else
+                    graphics.DrawFilledRectangle(0, 0, ClientArea.Value, BackColor.Value);
             }
+
+            if (!ForeColor.HasValue || Text == string.Empty) return;
+            var size = Size ?? ClientArea.Value;
+            size.W -= X;
+            size.H -= Y;
+            var textWrap = size.W - X;
+            if (textWrap >= 0)
+                graphics.DrawText(X, Y, Text, FontName, FontStyle, FontSize, ForeColor.Value, WrapText ? (uint)(textWrap) : 0);
         }
     }
 }

@@ -20,16 +20,21 @@ namespace Cerulean.Components
         public Color? BackColor { get; set; }
         public Color? BorderColor { get; set; }
         public PictureMode PictureMode { get; set; } = PictureMode.None;
-        private double _opacity { get; set; } = 1.0;
+        private double _opacity = 1.0;
         public double Opacity
         {
             get => _opacity;
             set
             {
-                if (value < 0.0 || value > 1.0)
+                if (value is < 0.0 or > 1.0)
                     throw new ArgumentOutOfRangeException(nameof(value), "Opacity must be between 0.0 and 1.0.");
                 _opacity = value;
             }
+        }
+
+        public Image()
+        {
+            CanBeParent = false;
         }
 
         public override void Update(object? window, Size clientArea)
@@ -37,33 +42,29 @@ namespace Cerulean.Components
             ClientArea = clientArea;
         }
 
-        public override void Draw(IGraphics graphics)
+        public override void Draw(IGraphics graphics, int viewportX, int viewportY, Size viewportSize)
         {
-            base.Draw(graphics);
-            if (ClientArea is Size fullArea)
+            if (!ClientArea.HasValue) return;
+            if (BackColor.HasValue)
             {
-                if (BackColor is Color backColor)
-                {
-                    if (Size is Size size)
-                        graphics.DrawFilledRectangle(X, Y, size, backColor);
-                    else
-                        graphics.DrawFilledRectangle(0, 0, fullArea, backColor);
-                }
-                if (FileName != string.Empty)
-                {
-                    if (Size is Size size)
-                        graphics.DrawImage(X, Y, size, FileName, PictureMode);
-                    else
-                        graphics.DrawImage(0, 0, fullArea, FileName, PictureMode);
-                }
-                if (BorderColor is Color borderColor)
-                {
-                    if (Size is Size size)
-                        graphics.DrawRectangle(X, Y, size, borderColor);
-                    else
-                        graphics.DrawRectangle(0, 0, fullArea, borderColor);
-                }
+                if (Size.HasValue)
+                    graphics.DrawFilledRectangle(X, Y, Size.Value, BackColor.Value);
+                else
+                    graphics.DrawFilledRectangle(0, 0, ClientArea.Value, BackColor.Value);
             }
+            if (FileName != string.Empty)
+            {
+                if (Size.HasValue)
+                    graphics.DrawImage(X, Y, Size.Value, FileName, PictureMode);
+                else
+                    graphics.DrawImage(0, 0, ClientArea.Value, FileName, PictureMode);
+            }
+
+            if (!BorderColor.HasValue) return;
+            if (Size.HasValue)
+                graphics.DrawRectangle(X, Y, Size.Value, BorderColor.Value);
+            else
+                graphics.DrawRectangle(0, 0, ClientArea.Value, BorderColor.Value);
         }
     }
 }
