@@ -15,6 +15,8 @@ namespace Cerulean.Core
 
         // global TTF Init
         private static bool _initializedSubmodules = false;
+        private int _globalX = 0;
+        private int _globalY = 0;
         internal IntPtr WindowPtr => _window.WindowPtr;
         internal IntPtr RendererPtr { get; }
 
@@ -94,9 +96,12 @@ namespace Cerulean.Core
         #region GENERAL
         public Size GetRenderArea(out int x, out int y)
         {
-            _ = SDL_RenderGetViewport(RendererPtr, out var rect);
+            //_ = SDL_RenderGetViewport(RendererPtr, out var rect);
+            SDL_RenderGetClipRect(RendererPtr, out var rect);
             x = rect.x;
             y = rect.y;
+            _globalX = x;
+            _globalY = y;
             return new Size(rect.w, rect.h);
         }
         public void SetRenderArea(Size renderArea, int x, int y)
@@ -108,8 +113,12 @@ namespace Cerulean.Core
                 x = x,
                 y = y
             };
-            if (SDL_RenderSetViewport(RendererPtr, ref rect) != 0)
+            _globalX = x;
+            _globalY = y;
+            if (SDL_RenderSetClipRect(RendererPtr, ref rect) != 0)
                 throw new GeneralAPIException($"Could not set viewport data. {SDL_GetError()}");
+            //if (SDL_RenderSetViewport(RendererPtr, ref rect) != 0)
+            //    throw new GeneralAPIException($"Could not set viewport data. {SDL_GetError()}");
         }
         #endregion
         #region RENDER
@@ -128,8 +137,8 @@ namespace Cerulean.Core
         {
             SDL_Rect rect = new()
             {
-                x = x,
-                y = y,
+                x = x + _globalX,
+                y = y + _globalY,
                 w = size.W,
                 h = size.H
             };
@@ -161,8 +170,8 @@ namespace Cerulean.Core
         {
             SDL_Rect rect = new()
             {
-                x = x,
-                y = y,
+                x = x + _globalX,
+                y = y + _globalY,
                 w = size.W,
                 h = size.H
             };
@@ -359,8 +368,8 @@ namespace Cerulean.Core
                 if (sdlTexture == IntPtr.Zero)
                     throw new GeneralAPIException(SDL_GetError());
                 SDL_GetClipRect(surface, out var destRect);
-                destRect.x = x;
-                destRect.y = y;
+                destRect.x = x + _globalX;
+                destRect.y = y + _globalY;
                 textTexture = new Texture
                 {
                     Identity = textFingerprint,
