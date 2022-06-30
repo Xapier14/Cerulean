@@ -124,6 +124,7 @@ namespace Cerulean.Common
         public virtual void Draw(IGraphics graphics, int viewportX, int viewportY, Size viewportSize)
         {
             if (!ClientArea.HasValue) return;
+            if (X - ClientArea.Value.W > viewportSize.W || Y - ClientArea.Value.H > viewportSize.H) return;
 
             // for all child components that has a non-null client area
             var children = Children.Where(x => x.ClientArea.HasValue);
