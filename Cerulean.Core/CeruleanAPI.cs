@@ -77,6 +77,7 @@ namespace Cerulean.Core
 
             // Initialize SDL2
             SDL_SetHint("SDL_HINT_VIDEO_HIGHDPI_ENABLED", "1");
+            SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
             if (SDL_InitSubSystem(SDL_INIT_EVERYTHING) != 0)
                 throw new FatalAPIException($"Could not initialize SDL2. Reason: {SDL_GetError()}");
             SDL_VERSION(out SDL_version version);

@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.ComponentModel;
+using System.Reflection;
 
 namespace Cerulean.Common
 {
@@ -7,7 +8,7 @@ namespace Cerulean.Common
         private int[] _columns = { 0 };
         private int[] _rows = { 0 };
         private Size[,]? _cellSizes;
-        private readonly MethodInfo? _modifyClientArea = typeof(Component).GetMethod("ModifyClientArea", BindingFlags.Instance | BindingFlags.NonPublic);
+        //private readonly MethodInfo? _modifyClientArea = typeof(Component).GetMethod("ModifyClientArea", BindingFlags.Instance | BindingFlags.NonPublic);
         public int ColumnCount
         {
             get => _columns.Length;
@@ -161,43 +162,52 @@ namespace Cerulean.Common
                 child.Update(window, new(width, height));
             }
         }
-
-        public override void Draw(IGraphics graphics)
+        
+        public override void Draw(IGraphics graphics, int parentX, int parentY, Size parentArea)
         {
-            if (ClientArea is Size fullArea)
+            if (!ClientArea.HasValue) return;
+            if (_cellSizes is null) return;
+            // Draw fill
+            if (BackColor.HasValue)
             {
-                // Draw fill
-                if (BackColor is Color backColor)
-                {
-                    graphics.DrawFilledRectangle(0, 0, fullArea, backColor);
-                }
+                graphics.DrawFilledRectangle(0, 0, ClientArea.Value, BackColor.Value);
             }
-            var area = graphics.GetRenderArea(out int areaX, out int areaY);
+
+            var area = graphics.GetRenderArea(out var areaX, out var areaY);
             foreach (var child in Children)
             {
-                int childX = areaX;
-                int childY = areaY;
+                var childX = areaX;
+                var childY = areaY;
 
-                for (int column = 0; column < child.GridColumn && column < ColumnCount; ++column)
+                // get child component position
+                for (var column = 0; column < child.GridColumn && column < ColumnCount; ++column)
                     if (_cellSizes is not null)
                     {
-                        int add = _cellSizes[0, column].W;
+                        var add = _cellSizes[0, column].W;
                         childX += add > 0 ? add : 0;
                     }
 
-                for (int row = 0; row < child.GridRow && row < RowCount; ++row)
+                for (var row = 0; row < child.GridRow && row < RowCount; ++row)
                     if (_cellSizes is not null)
                     {
-                        int add = _cellSizes[row, 0].H;
+                        var add = _cellSizes[row, 0].H;
                         childY += add > 0 ? add : 0;
                     }
 
-                if (child.ClientArea is Size clientArea && ClientArea is Size gridArea)
-                {
-                    graphics.SetRenderArea(clientArea, childX, childY);
-                    _modifyClientArea?.Invoke(child, new object?[] { -child.X, -child.Y });
-                    child.Draw(graphics);
-                }
+                // get child component area
+                Size childArea = new();
+                for (var columnIndex = child.GridColumn;
+                     columnIndex < child.GridColumn + child.GridColumnSpan && child.GridColumn < ColumnCount;
+                     ++columnIndex)
+                    childArea.W += _cellSizes![0, columnIndex].W;
+                for (var rowIndex = child.GridRow;
+                     rowIndex < child.GridRow + child.GridRowSpan && child.GridRow < RowCount;
+                     ++rowIndex)
+                    childArea.H += _cellSizes![rowIndex, 0].H;
+
+                if (!child.ClientArea.HasValue) continue;
+                graphics.SetRenderArea(childArea, childX + parentX, childY + parentY);
+                child.Draw(graphics, childX + parentX, childY + parentY, childArea);
             }
             graphics.SetRenderArea(area, areaX, areaY);
         }

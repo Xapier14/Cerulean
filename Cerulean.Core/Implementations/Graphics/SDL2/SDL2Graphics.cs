@@ -109,7 +109,7 @@ namespace Cerulean.Core
                 y = y
             };
             if (SDL_RenderSetViewport(RendererPtr, ref rect) != 0)
-                throw new GeneralAPIException("Could not set viewport data.");
+                throw new GeneralAPIException($"Could not set viewport data. {SDL_GetError()}");
         }
         #endregion
         #region RENDER

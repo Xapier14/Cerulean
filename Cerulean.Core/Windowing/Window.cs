@@ -86,7 +86,7 @@ namespace Cerulean.Core
                     throw new GeneralAPIException("Cannot set minimum size to a closed window.");
                 if (!IsInitialized)
                 {
-                    _minimumWindowSize = value ?? new Size(0, 0);
+                    _minimumWindowSize = value ?? new Size(1, 1);
                 }
                 else
                 {
@@ -99,8 +99,8 @@ namespace Cerulean.Core
                     }
                     else
                     {
-                        SDL_SetWindowMinimumSize(WindowPtr, 0, 0);
-                        _minimumWindowSize = new Size(0,0);
+                        SDL_SetWindowMinimumSize(WindowPtr, 1, 1);
+                        _minimumWindowSize = new Size(1,1);
                     }
                 }
             }
@@ -117,7 +117,7 @@ namespace Cerulean.Core
                     throw new GeneralAPIException("Cannot set maximum size to a closed window.");
                 if (!IsInitialized)
                 {
-                    _maximumWindowSize = value ?? new Size(-1, -1);
+                    _maximumWindowSize = value ?? new Size(ushort.MaxValue, ushort.MaxValue);
                 }
                 else
                 {
@@ -130,8 +130,8 @@ namespace Cerulean.Core
                     }
                     else
                     {
-                        SDL_SetWindowMaximumSize(WindowPtr, -1, -1);
-                        _maximumWindowSize = new(-1, -1);
+                        SDL_SetWindowMaximumSize(WindowPtr, ushort.MaxValue, ushort.MaxValue);
+                        _maximumWindowSize = new(ushort.MaxValue, ushort.MaxValue);
                     }
                 }
             }
@@ -206,7 +206,7 @@ namespace Cerulean.Core
                 SDL_WINDOWPOS_CENTERED,
                 WindowSize.W,
                 WindowSize.H,
-                SDL_WindowFlags.SDL_WINDOW_RESIZABLE | SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI)) == IntPtr.Zero)
+                SDL_WindowFlags.SDL_WINDOW_RESIZABLE | SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI | SDL_WindowFlags.SDL_WINDOW_OPENGL)) == IntPtr.Zero)
             {
                 var exception = new FatalAPIException("Failed to create window.");
                 CeruleanAPI.GetAPI().Log(exception.Message, LogSeverity.Fatal, exception);

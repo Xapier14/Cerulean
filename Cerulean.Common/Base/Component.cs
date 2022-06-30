@@ -140,7 +140,6 @@ namespace Cerulean.Common
                 if (adjustedViewport.H > viewportSize.H - Y)
                     adjustedViewport.H = viewportSize.H - Y;
                 // new adjustedViewport: 20x15
-
                 graphics.SetRenderArea(adjustedViewport, viewportX + X, viewportY + Y);
                 component.Draw(graphics, viewportX + X, viewportY + Y, adjustedViewport);
             }
