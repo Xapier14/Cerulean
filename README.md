@@ -63,8 +63,8 @@ Mainly testing on Windows and Ubuntu. Feel free to test on other platforms.<br>
  - [ ] Graphical Components
      - [x] Rectangle
      - [x] Image
-     - [ ] Progress Bar
-	 - [x] Label
+     - [x] Progress Bar
+     - [x] Label
  - [ ] Input Components
      - [ ] TextBox
      - [ ] MultiTextBox
