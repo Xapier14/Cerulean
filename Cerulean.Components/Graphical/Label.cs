@@ -27,16 +27,17 @@ namespace Cerulean.Components
         public override void Draw(IGraphics graphics, int viewportX, int viewportY, Size viewportSize)
         {
             if (!ClientArea.HasValue) return;
+            var clientArea = WrapText ? viewportSize : ClientArea.Value;
             if (BackColor.HasValue)
             {
                 if (Size.HasValue)
                     graphics.DrawFilledRectangle(X, Y, Size.Value, BackColor.Value);
                 else
-                    graphics.DrawFilledRectangle(0, 0, ClientArea.Value, BackColor.Value);
+                    graphics.DrawFilledRectangle(0, 0, clientArea, BackColor.Value);
             }
 
             if (!ForeColor.HasValue || Text == string.Empty) return;
-            var size = Size ?? ClientArea.Value;
+            var size = Size ?? clientArea;
             size.W -= X;
             size.H -= Y;
             var textWrap = size.W - X;
