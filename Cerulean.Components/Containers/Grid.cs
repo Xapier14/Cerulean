@@ -163,7 +163,7 @@ namespace Cerulean.Common
             }
         }
         
-        public override void Draw(IGraphics graphics, int parentX, int parentY, Size parentArea)
+        public override void Draw(IGraphics graphics, int viewportX, int viewportY, Size viewportArea)
         {
             if (!ClientArea.HasValue) return;
             if (_cellSizes is null) return;
@@ -172,12 +172,11 @@ namespace Cerulean.Common
             {
                 graphics.DrawFilledRectangle(0, 0, ClientArea.Value, BackColor.Value);
             }
-
-            var area = graphics.GetRenderArea(out var areaX, out var areaY);
+            
             foreach (var child in Children)
             {
-                var childX = areaX;
-                var childY = areaY;
+                var childX = 0;
+                var childY = 0;
 
                 // get child component position
                 for (var column = 0; column < child.GridColumn && column < ColumnCount; ++column)
@@ -206,10 +205,10 @@ namespace Cerulean.Common
                     childArea.H += _cellSizes![rowIndex, 0].H;
 
                 if (!child.ClientArea.HasValue) continue;
-                graphics.SetRenderArea(childArea, childX + parentX, childY + parentY);
-                child.Draw(graphics, childX + parentX, childY + parentY, childArea);
+                graphics.SetRenderArea(childArea, childX + viewportX, childY + viewportY);
+                child.Draw(graphics, childX + viewportX, childY + viewportY, childArea);
             }
-            graphics.SetRenderArea(area, areaX, areaY);
+            graphics.SetRenderArea(viewportArea, viewportX, viewportY);
         }
 
         public void SetRowHeight(int index, uint height)
