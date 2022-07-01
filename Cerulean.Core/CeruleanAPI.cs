@@ -256,25 +256,23 @@ namespace Cerulean.Core
             EnsureInitialized();
             if (_graphicsFactory is null)
             {
-                var exception = new FatalAPIException("No graphics factory specified.");
-                _logger?.Log(exception.Message, LogSeverity.Fatal, exception);
-                throw exception;
+                var error1 = new FatalAPIException("No graphics factory specified.");
+                _logger?.Log(error1.Message, LogSeverity.Fatal, error1);
+                throw error1;
             }
-            object? result = DoOnThread(new Func<Window>(() =>
+            var result = DoOnThread((args) =>
             {
                 Window window = new(windowLayout, windowTitle, windowSize ?? Window.DefaultWindowSize, _threadId, _graphicsFactory);
-                if (initialize)
+                if ((bool)args[0] == true)
                     InitializeWindow(window);
                 return window;
-            }));
+            }, initialize);
 
-            if (result is not Window)
-            {
-                var exception = new GeneralAPIException("Window could not be created.");
-                _logger?.Log(exception.Message, LogSeverity.Error, exception);
-                throw exception;
-            }
-            return (Window)result;
+            if (result is Window resultWindow) return resultWindow;
+            
+            var error2 = new GeneralAPIException("Window could not be created.");
+            _logger?.Log(error2.Message, LogSeverity.Error, error2);
+            throw error2;
         }
 
         public Window CreateWindow(string windowLayoutName, string windowTitle = "CeruleanAPI Window", Size? windowSize = null, bool initialize = true)
@@ -282,38 +280,39 @@ namespace Cerulean.Core
             return CreateWindow(FetchLayout(windowLayoutName), windowTitle, windowSize, initialize);
         }
 
-        public void CloseWindow(Window window)
+        public void CloseWindow(Window apiWindow)
         {
             EnsureInitialized();
-            DoOnThread(() =>
+            DoOnThread((args) =>
             {
-                if (!window.Closed)
+                if (args.Length <= 0 ||
+                    args[0] is not Window { IsInitialized: true } window)
+                    return;
+                if (window.Closed) return;
+                if (!window.OnCloseFromEvent)
                 {
-                    if (!window.OnCloseFromEvent)
-                    {
-                        window.OnCloseFromEvent = true;
-                        window.InvokeOnClose();
-                    }
-                    else
-                    {
-                        uint windowID = SDL_GetWindowID(window.WindowPtr);
-                        window.InternalClose();
-                        _windows.Remove(windowID, out _);
-                    }
+                    window.OnCloseFromEvent = true;
+                    window.InvokeOnClose();
                 }
-            });
+                else
+                {
+                    var windowId = SDL_GetWindowID(window.WindowPtr);
+                    window.InternalClose();
+                    _windows.Remove(windowId, out _);
+                }
+            }, apiWindow);
         }
 
-        public void InitializeWindow(Window window)
+        public void InitializeWindow(Window apiWindow)
         {
-            DoOnThread(() =>
+            DoOnThread((args) =>
             {
-                if (!window.IsInitialized)
-                {
-                    window.Initialize();
-                    _windows.TryAdd(SDL_GetWindowID(window.WindowPtr), window);
-                }
-            });
+                if (args.Length <= 0 ||
+                    args[0] is not Window { IsInitialized: false } window)
+                    return;
+                window.Initialize();
+                _windows.TryAdd(SDL_GetWindowID(window.WindowPtr), window);
+            }, apiWindow);
         }
 
         public Layout FetchLayout(string name)
@@ -322,10 +321,10 @@ namespace Cerulean.Core
             return _embeddedLayouts.FetchLayout(name);
         }
 
-        public object? DoOnThread(Func<object> func)
+        public object? DoOnThread(Func<object[], object> func, params object[] args)
         {
             EnsureInitialized();
-            WorkItem work = new(func);
+            WorkItem work = new(func, args);
 
             // if thread is the CeruleanAPI thread
             if (Environment.CurrentManagedThreadId == _threadId)
@@ -343,10 +342,10 @@ namespace Cerulean.Core
             return work.WaitForCompletion();
         }
 
-        public void DoOnThread(Action action)
+        public void DoOnThread(Action<object[]> action, params object[] arg)
         {
             EnsureInitialized();
-            WorkItem work = new(action);
+            WorkItem work = new(action, arg);
 
             // if thread is the CeruleanAPI thread
             if (Environment.CurrentManagedThreadId == _threadId)
