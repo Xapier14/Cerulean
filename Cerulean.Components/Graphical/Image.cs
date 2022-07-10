@@ -6,6 +6,8 @@ namespace Cerulean.Components
     public class Image : Component, ISized
     {
         public Size? Size { get; set; } = null;
+        public int? HintW { get; set; }
+        public int? HintH { get; set; }
         private string _imagePath = string.Empty;
         public string FileName
         {

@@ -15,8 +15,4 @@
     <ProjectReference Include="..\Cerulean.Core\Cerulean.Core.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Containers\" />
-  </ItemGroup>
-
 </Project>

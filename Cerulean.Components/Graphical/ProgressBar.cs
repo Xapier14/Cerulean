@@ -5,6 +5,8 @@ namespace Cerulean.Components
     public sealed class ProgressBar : Component, ISized
     {
         public Size? Size { get; set; }
+        public int? HintW { get; set; }
+        public int? HintH { get; set; }
 
         public Color? ForeColor { get; set; }
         public Color? BackColor { get; set; }

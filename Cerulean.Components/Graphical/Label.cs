@@ -6,6 +6,8 @@ namespace Cerulean.Components
     public class Label : Component, ISized
     {
         public Size? Size { get; set; } = null;
+        public int? HintW { get; set; }
+        public int? HintH { get; set; }
         public Color? ForeColor { get; set; }
         public Color? BackColor { get; set; }
         public string Text { get; set; } = "";
@@ -26,6 +28,7 @@ namespace Cerulean.Components
 
         public override void Draw(IGraphics graphics, int viewportX, int viewportY, Size viewportSize)
         {
+            Console.WriteLine("viewport: ({0}, {1}) {2}", viewportX, viewportY, viewportSize);
             if (!ClientArea.HasValue) return;
             var clientArea = WrapText ? viewportSize : ClientArea.Value;
             if (BackColor.HasValue)

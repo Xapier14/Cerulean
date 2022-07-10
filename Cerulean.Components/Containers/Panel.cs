@@ -6,6 +6,8 @@ namespace Cerulean.Components
     public sealed class Panel : Component, ISized
     {
         public Size? Size { get; set; }
+        public int? HintW { get; set; }
+        public int? HintH { get; set; }
         public Color? BackColor { get; set; }
         public Color? BorderColor { get; set; }
 
@@ -21,6 +23,8 @@ namespace Cerulean.Components
             //Debug.Assert(graphics.GetRenderArea(out var x, out var y) == viewportSize && x == viewportX && y == viewportY, "Render area is invalid");
             //if (!Children.Any())
                 //Console.WriteLine("Viewport: ({0}, {1}) {2}; Panel: ({3}, {4}) {5}", viewportX, viewportY, viewportSize, X, Y, ClientArea.Value);
+            if (Parent is Panel)
+                Console.WriteLine("Parent Panel: ({0},{1}) {2}", viewportX, viewportY, viewportSize);
             if (BackColor.HasValue)
                 graphics.DrawFilledRectangle(X, Y, ClientArea.Value, BackColor.Value);
             base.Draw(graphics, viewportX, viewportY, viewportSize);

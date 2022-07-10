@@ -5,6 +5,8 @@ namespace Cerulean.Components
     public class Rectangle : Component, ISized
     {
         public Size? Size { get; set; } = null;
+        public int? HintW { get; set; }
+        public int? HintH { get; set; }
         public Color? FillColor { get; set; }
         public Color? BorderColor { get; set; }
         public double FillOpacity { get; set; }
