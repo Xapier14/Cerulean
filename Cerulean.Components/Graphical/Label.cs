@@ -28,13 +28,13 @@ namespace Cerulean.Components
 
         public override void Draw(IGraphics graphics, int viewportX, int viewportY, Size viewportSize)
         {
-            Console.WriteLine("viewport: ({0}, {1}) {2}", viewportX, viewportY, viewportSize);
+            //Console.WriteLine("viewport: ({0}, {1}) {2}", viewportX, viewportY, viewportSize);
             if (!ClientArea.HasValue) return;
             var clientArea = WrapText ? viewportSize : ClientArea.Value;
             if (BackColor.HasValue)
             {
                 if (Size.HasValue)
-                    graphics.DrawFilledRectangle(X, Y, Size.Value, BackColor.Value);
+                    graphics.DrawFilledRectangle(0, 0, Size.Value, BackColor.Value);
                 else
                     graphics.DrawFilledRectangle(0, 0, clientArea, BackColor.Value);
             }
@@ -45,7 +45,7 @@ namespace Cerulean.Components
             size.H -= Y;
             var textWrap = size.W - X;
             if (textWrap >= 0)
-                graphics.DrawText(X, Y, Text, FontName, FontStyle, FontSize, ForeColor.Value, WrapText ? (uint)(textWrap) : 0);
+                graphics.DrawText(0, 0, Text, FontName, FontStyle, FontSize, ForeColor.Value, WrapText ? (uint)(textWrap) : 0);
         }
     }
 }

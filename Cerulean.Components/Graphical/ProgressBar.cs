@@ -32,12 +32,12 @@ namespace Cerulean.Components
             if (area is not { W: > 4, H: > 4 }) return;
             // draw border rect
             if (BorderColor.HasValue)
-                graphics.DrawFilledRectangle(X, Y, area.Value, BorderColor.Value);
+                graphics.DrawFilledRectangle(0, 0, area.Value, BorderColor.Value);
 
             // get percentage
             var value = Math.Max((double)Value / Maximum, 0.0);
-            var barX = X + 2;
-            var barY = Y + 2;
+            var barX = 2;
+            var barY = 2;
             Size barArea = new(area.Value.W - 4, area.Value.H - 4);
             Size barBackArea = new(area.Value.W - 4, area.Value.H - 4);
                 
@@ -68,7 +68,7 @@ namespace Cerulean.Components
 
             // draw bar back rect
             if (BackColor.HasValue)
-                graphics.DrawFilledRectangle(X + 2, Y + 2, barBackArea, BackColor.Value);
+                graphics.DrawFilledRectangle(2, 2, barBackArea, BackColor.Value);
 
             // draw bar value rect
             if (ForeColor.HasValue)

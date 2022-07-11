@@ -20,17 +20,23 @@ namespace Cerulean.Components
         public override void Draw(IGraphics graphics, int viewportX, int viewportY, Size viewportSize)
         {
             if (!ClientArea.HasValue) return;
+            var x = 0;
+            var y = 0;
+            if (viewportSize.W <= ClientArea.Value.W)
+                x = viewportSize.W - ClientArea.Value.W;
+            if (viewportSize.H <= ClientArea.Value.H)
+                y = viewportSize.H - ClientArea.Value.H;
             //Debug.Assert(graphics.GetRenderArea(out var x, out var y) == viewportSize && x == viewportX && y == viewportY, "Render area is invalid");
             //if (!Children.Any())
                 //Console.WriteLine("Viewport: ({0}, {1}) {2}; Panel: ({3}, {4}) {5}", viewportX, viewportY, viewportSize, X, Y, ClientArea.Value);
             if (Parent is Panel)
-                Console.WriteLine("Parent Panel: ({0},{1}) {2}", viewportX, viewportY, viewportSize);
+                Console.WriteLine("Parent Panel: ({0},{1}) {2}\nClientArea: {3}", viewportX, viewportY, viewportSize, ClientArea);
             if (BackColor.HasValue)
-                graphics.DrawFilledRectangle(X, Y, ClientArea.Value, BackColor.Value);
+                graphics.DrawFilledRectangle(x, y, ClientArea.Value, BackColor.Value);
             base.Draw(graphics, viewportX, viewportY, viewportSize);
             // Debug.Assert(graphics.GetRenderArea(out x, out y) == viewportSize && x == viewportX && y == viewportY, "Render area is invalid");
             if (BorderColor.HasValue)
-                graphics.DrawRectangle(X, Y, ClientArea.Value, BorderColor.Value);
+                graphics.DrawRectangle(x, y, ClientArea.Value, BorderColor.Value);
         }
     }
 }

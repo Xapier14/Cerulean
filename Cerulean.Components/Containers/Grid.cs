@@ -175,8 +175,8 @@ namespace Cerulean.Common
             
             foreach (var child in Children)
             {
-                var childX = 0;
-                var childY = 0;
+                var childX = child.X;
+                var childY = child.Y;
 
                 // get child component position
                 for (var column = 0; column < child.GridColumn && column < ColumnCount; ++column)
@@ -205,7 +205,8 @@ namespace Cerulean.Common
                     childArea.H += _cellSizes![rowIndex, 0].H;
 
                 if (!child.ClientArea.HasValue) continue;
-                graphics.SetRenderArea(childArea, childX + viewportX, childY + viewportY);
+                graphics.SetRenderArea(childArea, viewportX, viewportY);
+                graphics.SetGlobalPosition(viewportX + childX, viewportY + childY);
                 child.Draw(graphics, childX + viewportX, childY + viewportY, childArea);
             }
             graphics.SetRenderArea(viewportArea, viewportX, viewportY);

@@ -127,9 +127,6 @@ namespace Cerulean.Common
             // skip if component is functional, aka: no draw func
             if (!ClientArea.HasValue) return;
 
-            // remember old renderArea
-            var oldSize = graphics.GetRenderArea(out var oldX, out var oldY, out var oldOffsetX, out var oldOffsetY);
-
             // check if viewport is at least visible
             if (viewportX + viewportSize.W <= 0 && viewportY + viewportSize.H <= 0)
                 return;
@@ -181,33 +178,39 @@ namespace Cerulean.Common
                 var aX = viewportX + Math.Max(0, component.X);
                 var aY = viewportY + Math.Max(0, component.Y);
                 var childSize = new Size(component.ClientArea!.Value);
-                var offsetX = -component.X;
-                var offsetY = -component.Y;
 
                 /* WIDTH CHECKS */
                 // check left
                 if (component.X < 0)
                 {
+                    Console.WriteLine("Left clipping...");
                     childSize.W += component.X;
                 }
                 // check right
                 if (Math.Max(0, component.X) + childSize.W > viewportSize.W)
                 {
+                    Console.WriteLine("Right clipping...");
                     childSize.W -= (Math.Max(0, component.X) + childSize.W) - viewportSize.W;
                 }
                 /* HEIGHT CHECKS */
                 // check top
                 if (component.Y < 0)
                 {
+                    Console.WriteLine("Top clipping...");
                     childSize.H += component.Y;
                 }
                 // check bottom
                 if (Math.Max(0, component.Y) + childSize.H > viewportSize.H)
                 {
+                    Console.WriteLine("Bottom clipping...");
                     childSize.H -= (Math.Max(0, component.Y) + childSize.H) - viewportSize.H;
                 }
 
-                graphics.SetRenderArea(childSize, aX, aY, offsetX, offsetY);
+                if (childSize.W < 0 || childSize.H < 0)
+                    continue;
+
+                graphics.SetRenderArea(childSize, aX, aY);
+                graphics.SetGlobalPosition(aX - component.X, aY - component.Y);
                 component.Draw(graphics, aX, aY, childSize);
 
 
@@ -240,7 +243,7 @@ namespace Cerulean.Common
             }
 
             // restore render area
-            graphics.SetRenderArea(oldSize, oldX, oldY, oldOffsetX, oldOffsetY);
+            graphics.SetRenderArea(viewportSize, viewportX, viewportY);
         }
     }
 }

@@ -3,8 +3,9 @@
     public interface IGraphics
     {
         #region GENERAL
-        public Size GetRenderArea(out int x, out int y, out int offsetX, out int offsetY);
-        public void SetRenderArea(Size renderArea, int x, int y, int? offsetX = null, int? offsetY = null);
+        public Size GetRenderArea(out int x, out int y);
+        public void SetRenderArea(Size renderArea, int x, int y);
+        public void SetGlobalPosition(int x, int y);
         #endregion
 
         #region RENDER
