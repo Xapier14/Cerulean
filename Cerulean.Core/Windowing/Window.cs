@@ -230,6 +230,7 @@ namespace Cerulean.Core
             if (GraphicsContext is not null)
             {
                 GraphicsContext.SetRenderArea(_windowSize, 0, 0);
+                GraphicsContext.SetGlobalPosition(0, 0);
                 Layout.Draw(GraphicsContext, 0, 0, _windowSize);
             }
 
