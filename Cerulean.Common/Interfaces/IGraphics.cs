@@ -5,6 +5,7 @@
         #region GENERAL
         public Size GetRenderArea(out int x, out int y);
         public void SetRenderArea(Size renderArea, int x, int y);
+        public void GetGlobalPosition(out int x, out int y);
         public void SetGlobalPosition(int x, int y);
         #endregion
 

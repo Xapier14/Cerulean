@@ -131,6 +131,8 @@ namespace Cerulean.Common
             if (viewportX + viewportSize.W <= 0 && viewportY + viewportSize.H <= 0)
                 return;
 
+            graphics.GetGlobalPosition(out var oldX, out var oldY);
+
             // for all child components that has a non-null client area
             var children = Children.Where(x => x.ClientArea.HasValue);
             var components = children as Component[] ?? children.ToArray();
@@ -177,32 +179,36 @@ namespace Cerulean.Common
 
                 var aX = viewportX + Math.Max(0, component.X);
                 var aY = viewportY + Math.Max(0, component.Y);
+                var offsetX = 0;
+                var offsetY = 0;
                 var childSize = new Size(component.ClientArea!.Value);
 
                 /* WIDTH CHECKS */
                 // check left
                 if (component.X < 0)
                 {
-                    Console.WriteLine("Left clipping...");
+                    //Console.WriteLine("Left clipping...");
                     childSize.W += component.X;
+                    offsetX = component.X;
                 }
                 // check right
                 if (Math.Max(0, component.X) + childSize.W > viewportSize.W)
                 {
-                    Console.WriteLine("Right clipping...");
+                    //Console.WriteLine("Right clipping...");
                     childSize.W -= (Math.Max(0, component.X) + childSize.W) - viewportSize.W;
                 }
                 /* HEIGHT CHECKS */
                 // check top
                 if (component.Y < 0)
                 {
-                    Console.WriteLine("Top clipping...");
+                    //Console.WriteLine("Top clipping...");
                     childSize.H += component.Y;
+                    offsetY = component.Y;
                 }
                 // check bottom
                 if (Math.Max(0, component.Y) + childSize.H > viewportSize.H)
                 {
-                    Console.WriteLine("Bottom clipping...");
+                    //Console.WriteLine("Bottom clipping...");
                     childSize.H -= (Math.Max(0, component.Y) + childSize.H) - viewportSize.H;
                 }
 
@@ -210,7 +216,8 @@ namespace Cerulean.Common
                     continue;
 
                 graphics.SetRenderArea(childSize, aX, aY);
-                graphics.SetGlobalPosition(aX - component.X, aY - component.Y);
+                graphics.SetGlobalPosition(aX + offsetX, aY + offsetY);
+                Console.WriteLine("Render Area: ({0}, {1}) = {2}; Global Position: ({3}, {4})", aX, aY, childSize, aX + offsetX, aY + offsetY);
                 component.Draw(graphics, aX, aY, childSize);
 
 
@@ -244,6 +251,7 @@ namespace Cerulean.Common
 
             // restore render area
             graphics.SetRenderArea(viewportSize, viewportX, viewportY);
+            graphics.SetGlobalPosition(oldX, oldY);
         }
     }
 }

@@ -120,7 +120,11 @@ namespace Cerulean.Core
             //if (SDL_RenderSetViewport(RendererPtr, ref rect) != 0)
             //    throw new GeneralAPIException($"Could not set viewport data. {SDL_GetError()}");
         }
-
+        public void GetGlobalPosition(out int x, out int y)
+        {
+            x = _globalX;
+            y = _globalY;
+        }
         public void SetGlobalPosition(int x, int y)
         {
             _globalX = x;
