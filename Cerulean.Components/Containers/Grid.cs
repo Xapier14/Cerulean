@@ -1,14 +1,12 @@
-﻿using System.ComponentModel;
-using System.Reflection;
+﻿using Cerulean.Common;
 
-namespace Cerulean.Common
+namespace Cerulean.Components
 {
     public sealed class Grid : Component
     {
         private int[] _columns = { 0 };
         private int[] _rows = { 0 };
         private Size[,]? _cellSizes;
-        //private readonly MethodInfo? _modifyClientArea = typeof(Component).GetMethod("ModifyClientArea", BindingFlags.Instance | BindingFlags.NonPublic);
         public int ColumnCount
         {
             get => _columns.Length;
@@ -44,14 +42,13 @@ namespace Cerulean.Common
             ClientArea = clientArea;
 
             // calculate client area for each cell
-            // set the sdl viewport to that cell and abstract away the needed position and size data to the component
             _cellSizes = new Size[RowCount, ColumnCount];
 
             // get auto-sized cell sizes
-            int fixedRow = 0;
-            int fixedColumn = 0;
-            int autoRow = 0;
-            int autoColumn = 0;
+            var fixedRow = 0;
+            var fixedColumn = 0;
+            var autoRow = 0;
+            var autoColumn = 0;
 
             // for each row in _rows, add to fixedRow if not -1 (auto-sized) & add 1 to autoRow
             _rows
@@ -71,16 +68,16 @@ namespace Cerulean.Common
                     autoColumn += x == 0 ? 1 : 0;
                 });
 
-            int[] scaledColumns = new int[_columns.Length];
+            var scaledColumns = new int[_columns.Length];
             Array.Copy(_columns, scaledColumns, _columns.Length);
-            int[] scaledRows = new int[_rows.Length];
+            var scaledRows = new int[_rows.Length];
             Array.Copy(_rows, scaledRows, _rows.Length);
 
             // double check row and column sizes
             if (fixedColumn > clientArea.W)
             {
                 // scale down fixed columns
-                for (int i = 0; i < scaledColumns.Length; ++i)
+                for (var i = 0; i < scaledColumns.Length; ++i)
                 {
                     scaledColumns[i] = (int)(((double)_columns[i] / fixedColumn) * clientArea.W);
                 }
@@ -88,24 +85,24 @@ namespace Cerulean.Common
             if (fixedRow > clientArea.H)
             {
                 // scale down fixed rows
-                for (int i = 0; i < scaledRows.Length; ++i)
+                for (var i = 0; i < scaledRows.Length; ++i)
                 {
                     scaledRows[i] = (int)(((double)_rows[i] / fixedRow) * clientArea.H);
                 }
             }
 
             // calculate lows & highs for width and height of auto cells
-            int bigHeight = (int)Math.Ceiling((clientArea.H - fixedRow) / (double)autoRow);
-            int inverseSmallHeight = 0;
-            int bigWidth = (int)Math.Ceiling((clientArea.W - fixedColumn) / (double)autoColumn);
-            int inverseSmallWidth = 0;
+            var bigHeight = (int)Math.Ceiling((clientArea.H - fixedRow) / (double)autoRow);
+            var inverseSmallHeight = 0;
+            var bigWidth = (int)Math.Ceiling((clientArea.W - fixedColumn) / (double)autoColumn);
+            var inverseSmallWidth = 0;
 
             // for each cell...
-            int autoColumnsComputed = 0;
-            int autoRowsComputed = 0;
-            for (int row = 0; row < RowCount; row++)
+            var autoColumnsComputed = 0;
+            var autoRowsComputed = 0;
+            for (var row = 0; row < RowCount; row++)
             {
-                int height = scaledRows[row];
+                var height = scaledRows[row];
                 if (height == 0)
                 {
                     height = autoRowsComputed < autoRow - 1 ?
@@ -114,9 +111,9 @@ namespace Cerulean.Common
                     autoRowsComputed++;
                     inverseSmallHeight += height;
                 }
-                for (int col = 0; col < ColumnCount; col++)
+                for (var col = 0; col < ColumnCount; col++)
                 {
-                    int width = scaledColumns[col];
+                    var width = scaledColumns[col];
                     if (width == 0)
                     {
                         width = autoColumnsComputed < autoColumn - 1 ?
@@ -131,88 +128,159 @@ namespace Cerulean.Common
                 autoColumnsComputed = 0;
                 inverseSmallWidth = 0;
             }
-            autoRowsComputed = 0;
-            inverseSmallHeight = 0;
 
             // update child components
             foreach (var child in Children)
             {
                 // compute element clientArea
                 var cell = _cellSizes[child.GridRow, child.GridColumn];
-                int width = 0;
-                int height = 0;
+                var width = 0;
+                var height = 0;
 
                 // add additional space via span
                 // if i < span OR i 0
                 // AND i < row count
-                for (int i = 0;
-                    (i < child.GridRowSpan || child.GridRowSpan == 0) && child.GridRow + i < RowCount;
-                    i++)
+                for (var i = 0;
+                     (i < child.GridRowSpan || child.GridRowSpan == 0) && child.GridRow + i < RowCount;
+                     i++)
                 {
                     height += _cellSizes[child.GridRow + i, child.GridColumn].H;
                 }
                 // if i < span OR i 0
                 // AND i < column count
-                for (int i = 0;
-                    (i < child.GridColumnSpan || child.GridColumnSpan == 0) && child.GridColumn + i < ColumnCount;
-                    i++)
+                for (var i = 0;
+                     (i < child.GridColumnSpan || child.GridColumnSpan == 0) && child.GridColumn + i < ColumnCount;
+                     i++)
                 {
                     width += _cellSizes[child.GridRow, child.GridColumn + i].W;
                 }
-                child.Update(window, new(width, height));
+                child.Update(window, new Size(width, height));
             }
         }
 
-        public override void Draw(IGraphics graphics, int viewportX, int viewportY, Size viewportArea)
+        public override void Draw(IGraphics graphics, int viewportX, int viewportY, Size viewportSize)
         {
             if (!ClientArea.HasValue)
                 return;
             if (_cellSizes is null)
                 return;
+            graphics.GetGlobalPosition(out var oldX, out var oldY);
             // Draw fill
             if (BackColor.HasValue)
             {
                 graphics.DrawFilledRectangle(0, 0, ClientArea.Value, BackColor.Value);
             }
-
-            foreach (var child in Children)
+            foreach (var component in Children)
             {
-                //var childX = child.X;
-                //var childY = child.Y;
+                /*
+                 * Algorithm:
+                 *  *NOTE: its weird, its clunky, but it works.
+                 *         also, slight modification from Component.cs.
+                 *         viewport is not from the parent but from the computed cell size
+                 *
+                 *  WHERE:
+                 *      VP          = viewport
+                 *      C           = child component (X & Y are new viewport position)
+                 *      CA          = child component client area
+                 *      childSize   = child component's new viewport
+                 *      offset      = sent to graphics backend
+                 *
+                 * -> (VP.X + Max(0, C.X), VP.Y + Max(0, C.Y)) = (A.X, A.Y)
+                 * -> childSize = CA.W x CA.H
+                 * -> offset = 0, 0
+                 *
+                 * [WIDTH CHECKS]
+                 * [CHECK LEFT]
+                 * if (C.X < 0):
+                 *      offset.X = C.X
+                 *      C.W += C.X
+                 * [CHECK RIGHT]
+                 * if (Max(0, C.X) + C.W > VP.W):
+                 *      C.W -= (Max(0, C.X) + C.W) - VP.W
+                 *
+                 * [HEIGHT CHECKS]
+                 * [CHECK TOP]
+                 * if (C.Y < 0):
+                 *      offset.Y = C.Y
+                 *      C.H += C.Y
+                 * if (Max(0, C.Y) + C.H > VP.H):
+                 *      C.H -= (Max(0, C.Y) + C.H) - VP.H
+                 *
+                 * [SET VIEWPORT + GLOBAL OFFSET]
+                 * setRenderArea(A.X, A.Y, childSize, offset.X, offset.Y)
+                 * setGlobalPosition(A.X + offset.X, A.Y + offset.Y)
+                 * [DRAW AS CONTAINER]
+                 * child.draw(A.X, A.Y, childSize)
+                 */
 
-                //// get child component position
-                //for (var column = 0; column < child.GridColumn && column < ColumnCount; ++column)
-                //    if (_cellSizes is not null)
-                //    {
-                //        var add = _cellSizes[0, column].W;
-                //        childX += add > 0 ? add : 0;
-                //    }
+                // get viewport data from cell size
+                Size childViewport = new();
+                var childViewportX = 0;
+                var childViewportY = 0;
+                for (var column = 0; column < component.GridColumn && column < ColumnCount; ++column)
+                {
+                    if (_cellSizes is null)
+                        continue;
+                    var add = _cellSizes[0, column].W;
+                    childViewportX += add > 0 ? add : 0;
+                }
+                for (var row = 0; row < component.GridRow && row < RowCount; ++row)
+                {
+                    if (_cellSizes is null)
+                        continue;
+                    var add = _cellSizes[row, 0].H;
+                    childViewportY += add > 0 ? add : 0;
+                }
+                for (var columnIndex = component.GridColumn;
+                     columnIndex < component.GridColumn + component.GridColumnSpan && component.GridColumn < ColumnCount;
+                     ++columnIndex)
+                    childViewport.W += _cellSizes![0, columnIndex].W;
+                for (var rowIndex = component.GridRow;
+                     rowIndex < component.GridRow + component.GridRowSpan && component.GridRow < RowCount;
+                     ++rowIndex)
+                    childViewport.H += _cellSizes![rowIndex, 0].H;
 
-                //for (var row = 0; row < child.GridRow && row < RowCount; ++row)
-                //    if (_cellSizes is not null)
-                //    {
-                //        var add = _cellSizes[row, 0].H;
-                //        childY += add > 0 ? add : 0;
-                //    }
+                var aX = childViewportX + Math.Max(0, component.X);
+                var aY = childViewportY + Math.Max(0, component.Y);
+                var offsetX = 0;
+                var offsetY = 0;
+                var childSize = new Size(component.ClientArea!.Value);
 
-                //// get child component area
-                //Size childArea = new();
-                //for (var columnIndex = child.GridColumn;
-                //     columnIndex < child.GridColumn + child.GridColumnSpan && child.GridColumn < ColumnCount;
-                //     ++columnIndex)
-                //    childArea.W += _cellSizes![0, columnIndex].W;
-                //for (var rowIndex = child.GridRow;
-                //     rowIndex < child.GridRow + child.GridRowSpan && child.GridRow < RowCount;
-                //     ++rowIndex)
-                //    childArea.H += _cellSizes![rowIndex, 0].H;
+                /* WIDTH CHECKS */
+                // check left is clipping
+                if (component.X < 0)
+                {
+                    childSize.W += component.X;
+                    offsetX = component.X;
+                }
+                // check right is clipping
+                if (Math.Max(0, component.X) + childSize.W > childViewport.W)
+                {
+                    childSize.W -= (Math.Max(0, component.X) + childSize.W) - childViewport.W;
+                }
+                /* HEIGHT CHECKS */
+                // check top is clipping
+                if (component.Y < 0)
+                {
+                    childSize.H += component.Y;
+                    offsetY = component.Y;
+                }
+                // check bottom is clipping
+                if (Math.Max(0, component.Y) + childSize.H > childViewport.H)
+                {
+                    childSize.H -= (Math.Max(0, component.Y) + childSize.H) - childViewport.H;
+                }
 
-                //if (!child.ClientArea.HasValue)
-                //    continue;
-                //graphics.SetRenderArea(childArea, viewportX, viewportY);
-                //graphics.SetGlobalPosition(viewportX + childX, viewportY + childY);
-                //child.Draw(graphics, childX + viewportX, childY + viewportY, childArea);
+                // skip draw if component has invalid area.
+                if (childSize.W < 0 || childSize.H < 0)
+                    continue;
+
+                graphics.SetRenderArea(childSize, aX, aY);
+                graphics.SetGlobalPosition(aX + offsetX, aY + offsetY);
+                component.Draw(graphics, aX, aY, childSize);
             }
-            graphics.SetRenderArea(viewportArea, viewportX, viewportY);
+            graphics.SetRenderArea(viewportSize, viewportX, viewportY);
+            graphics.SetGlobalPosition(oldX, oldY);
         }
 
         public void SetRowHeight(int index, uint height)

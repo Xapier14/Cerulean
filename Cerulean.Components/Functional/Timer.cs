@@ -16,8 +16,8 @@ namespace Cerulean.Components
         public bool IsRunning => _running;
         public int Interval { get; set; }
         public delegate void TimerEventHandler(Timer sender,
-                                               object? window,
-                                               TimerEventArgs e);
+            object? window,
+            TimerEventArgs e);
         public TimerEventHandler? OnElapse;
 
         public Timer(int interval = 1000)
