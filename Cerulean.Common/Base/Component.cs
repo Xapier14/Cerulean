@@ -19,17 +19,15 @@ namespace Cerulean.Common
         public virtual int Y { get; set; } = 0;
         public Size? ClientArea { get; protected set; } = null;
 
+        public object this[string attribute]
+        {
+            get => Attributes[attribute];
+            set => Attributes[attribute] = value;
+        }
+
         protected void AddOrUpdateAttribute(string attribute, object value)
         {
             Attributes[attribute] = value;
-        }
-
-        protected void ModifyClientArea(int byW, int byH)
-        {
-            if (ClientArea is not null)
-            {
-                ClientArea = new Size(ClientArea.Value.W + byW, ClientArea.Value.H + byH);
-            }
         }
 
         public override bool TryGetMember(GetMemberBinder binder, out object? result)
@@ -141,7 +139,7 @@ namespace Cerulean.Common
             {
                 /*
                  * Algorithm:
-                 *  *NOTE: huehuehue
+                 *  *NOTE: its weird, its clunky, but it works.
                  *
                  *  WHERE:
                  *      VP          = viewport
@@ -152,7 +150,7 @@ namespace Cerulean.Common
                  *
                  * -> (VP.X + Max(0, C.X), VP.Y + Max(0, C.Y)) = (A.X, A.Y)
                  * -> childSize = CA.W x CA.H
-                 * -> offset = -C.X, -C.Y
+                 * -> offset = 0, 0
                  *
                  * [WIDTH CHECKS]
                  * [CHECK LEFT]
@@ -171,8 +169,9 @@ namespace Cerulean.Common
                  * if (Max(0, C.Y) + C.H > VP.H):
                  *      C.H -= (Max(0, C.Y) + C.H) - VP.H
                  *
-                 * [SET VIEWPORT]
+                 * [SET VIEWPORT + GLOBAL OFFSET]
                  * setRenderArea(A.X, A.Y, childSize, offset.X, offset.Y)
+                 * setGlobalPosition(A.X + offset.X, A.Y + offset.Y)
                  * [DRAW AS CONTAINER]
                  * child.draw(A.X, A.Y, childSize)
                  */
@@ -184,69 +183,38 @@ namespace Cerulean.Common
                 var childSize = new Size(component.ClientArea!.Value);
 
                 /* WIDTH CHECKS */
-                // check left
+                // check left is clipping
                 if (component.X < 0)
                 {
-                    //Console.WriteLine("Left clipping...");
                     childSize.W += component.X;
                     offsetX = component.X;
                 }
-                // check right
+                // check right is clipping
                 if (Math.Max(0, component.X) + childSize.W > viewportSize.W)
                 {
-                    //Console.WriteLine("Right clipping...");
                     childSize.W -= (Math.Max(0, component.X) + childSize.W) - viewportSize.W;
                 }
                 /* HEIGHT CHECKS */
-                // check top
+                // check top is clipping
                 if (component.Y < 0)
                 {
-                    //Console.WriteLine("Top clipping...");
                     childSize.H += component.Y;
                     offsetY = component.Y;
                 }
-                // check bottom
+                // check bottom is clipping
                 if (Math.Max(0, component.Y) + childSize.H > viewportSize.H)
                 {
-                    //Console.WriteLine("Bottom clipping...");
                     childSize.H -= (Math.Max(0, component.Y) + childSize.H) - viewportSize.H;
                 }
 
+                // skip draw if component has invalid area.
                 if (childSize.W < 0 || childSize.H < 0)
                     continue;
 
                 graphics.SetRenderArea(childSize, aX, aY);
                 graphics.SetGlobalPosition(aX + offsetX, aY + offsetY);
-                Console.WriteLine("Render Area: ({0}, {1}) = {2}; Global Position: ({3}, {4})", aX, aY, childSize, aX + offsetX, aY + offsetY);
+                //Console.WriteLine("Render Area: ({0}, {1}) = {2}; Global Position: ({3}, {4})", aX, aY, childSize, aX + offsetX, aY + offsetY);
                 component.Draw(graphics, aX, aY, childSize);
-
-
-                //// use the child component's size as viewport accounting for negative position
-                ////var adjustedViewport = new Size(component.X + viewportSize.W, component.Y + viewportSize.H);
-                //var adjustedViewport = new Size(component.ClientArea!.Value.W, component.ClientArea!.Value.H);
-                //var childX = viewportX + Math.Max(0, component.X);
-                //var childY = viewportY + Math.Max(0, component.Y);
-
-                //// if the component's absolute area is out of bounds.
-                //if (adjustedViewport.W > viewportSize.W - X)
-                //    adjustedViewport.W = viewportSize.W - X;
-                //if (adjustedViewport.H > viewportSize.H - Y)
-                //    adjustedViewport.H = viewportSize.H - Y;
-
-                //if (childX + component.X < 0)
-                //{
-                //    adjustedViewport.W += childX;
-                //    childX = viewportX;
-                //}
-                //if (childY + component.Y < 0)
-                //{
-                //    adjustedViewport.H += childY;
-                //    childY = viewportY;
-                //}
-
-                //// new adjustedViewport: 20x15
-                //graphics.SetRenderArea(adjustedViewport, childX + X, childY + Y);
-                //component.Draw(graphics, childX + X, childY + Y, adjustedViewport);
             }
 
             // restore render area
