@@ -322,7 +322,7 @@ namespace Cerulean.Core
         }
 
         /// <summary>
-        /// Sets the SDL2 graphics factory as graphics factory dependency
+        /// Sets the SDL2 graphics factory as graphics factory dependency.
         /// </summary>
         /// <returns>The current CeruleanAPI controller instance.</returns>
         public CeruleanAPI UseSDL2Graphics()
