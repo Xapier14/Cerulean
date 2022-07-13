@@ -242,16 +242,16 @@ namespace Cerulean.Components
 
                 var aX = childViewportX + Math.Max(0, component.X);
                 var aY = childViewportY + Math.Max(0, component.Y);
-                var offsetX = 0;
-                var offsetY = 0;
+                var offsetX = aX;
+                var offsetY = aY;
                 var childSize = new Size(component.ClientArea!.Value);
 
                 /* WIDTH CHECKS */
                 // check left is clipping
-                if (component.X < 0)
+                if (component.X + oldX < 0)
                 {
                     childSize.W += component.X;
-                    offsetX = component.X;
+                    offsetX = oldX + component.X;
                 }
                 // check right is clipping
                 if (Math.Max(0, component.X) + childSize.W > childViewport.W)
@@ -260,10 +260,10 @@ namespace Cerulean.Components
                 }
                 /* HEIGHT CHECKS */
                 // check top is clipping
-                if (component.Y < 0)
+                if (component.Y + oldY < 0)
                 {
                     childSize.H += component.Y;
-                    offsetY = component.Y;
+                    offsetY = oldY + component.Y;
                 }
                 // check bottom is clipping
                 if (Math.Max(0, component.Y) + childSize.H > childViewport.H)
@@ -276,7 +276,7 @@ namespace Cerulean.Components
                     continue;
 
                 graphics.SetRenderArea(childSize, aX, aY);
-                graphics.SetGlobalPosition(aX + offsetX, aY + offsetY);
+                graphics.SetGlobalPosition(offsetX, offsetY);
                 component.Draw(graphics, aX, aY, childSize);
             }
             graphics.SetRenderArea(viewportSize, viewportX, viewportY);
