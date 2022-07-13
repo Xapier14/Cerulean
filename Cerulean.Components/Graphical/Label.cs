@@ -6,6 +6,8 @@ namespace Cerulean.Components
     public class Label : Component, ISized
     {
         public Size? Size { get; set; } = null;
+        public int? HintW { get; set; }
+        public int? HintH { get; set; }
         public Color? ForeColor { get; set; }
         public Color? BackColor { get; set; }
         public string Text { get; set; } = "";
@@ -21,28 +23,25 @@ namespace Cerulean.Components
 
         public override void Update(object? window, Size clientArea)
         {
-            ClientArea = clientArea;
+            ClientArea = Size ?? clientArea;
         }
 
         public override void Draw(IGraphics graphics, int viewportX, int viewportY, Size viewportSize)
         {
+            //Console.WriteLine("viewport: ({0}, {1}) {2}", viewportX, viewportY, viewportSize);
             if (!ClientArea.HasValue) return;
-            var clientArea = WrapText ? viewportSize : ClientArea.Value;
             if (BackColor.HasValue)
             {
-                if (Size.HasValue)
-                    graphics.DrawFilledRectangle(X, Y, Size.Value, BackColor.Value);
-                else
-                    graphics.DrawFilledRectangle(0, 0, clientArea, BackColor.Value);
+                graphics.DrawFilledRectangle(0, 0, ClientArea.Value, BackColor.Value);
             }
 
             if (!ForeColor.HasValue || Text == string.Empty) return;
-            var size = Size ?? clientArea;
+            var size = ClientArea.Value;
             size.W -= X;
             size.H -= Y;
             var textWrap = size.W - X;
             if (textWrap >= 0)
-                graphics.DrawText(X, Y, Text, FontName, FontStyle, FontSize, ForeColor.Value, WrapText ? (uint)(textWrap) : 0);
+                graphics.DrawText(0, 0, Text, FontName, FontStyle, FontSize, ForeColor.Value, WrapText ? (uint)(textWrap) : 0);
         }
     }
 }

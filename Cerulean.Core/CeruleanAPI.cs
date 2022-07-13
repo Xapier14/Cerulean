@@ -1,6 +1,7 @@
 ﻿using Cerulean.Common;
 using Cerulean.Core.Logging;
 using System.Collections.Concurrent;
+using System.Runtime.InteropServices.ComTypes;
 using static SDL2.SDL;
 
 namespace Cerulean.Core
@@ -11,50 +12,108 @@ namespace Cerulean.Core
         {
         }
     }
+
+    /// <summary>
+    /// The CeruleanAPI Controller
+    /// </summary>
     public sealed class CeruleanAPI
     {
-        #region Private
+        #region Private Fields
         private static readonly CeruleanAPI _instance = new();
 
-        private const int MAX_WORKITEMS = 5;
+        private const int MAX_WORK_ITEMS = 5;
 
         private readonly Thread _thread;
         private readonly ConcurrentDictionary<uint, Window> _windows;
         private readonly ConcurrentQueue<WorkItem> _workItems;
         private readonly EmbeddedLayouts _embeddedLayouts;
-        private readonly Profiler? _profiler;
 
         private ILoggingService? _logger;
         private IGraphicsFactory? _graphicsFactory;
-        private bool _initialized = false;
-        private bool _running = false, _stopped = false, _quitting = false;
+        private bool _initialized;
+        private bool _running;
+        private bool _stopped;
+        private bool _quitting;
         private int _threadId;
         #endregion
 
-        public IEnumerable<Window> Windows { get => _windows.Values; }
-        public Profiler? Profiler => _profiler;
+        /// <summary>
+        /// Set of all open windows.
+        /// </summary>
+        public IEnumerable<Window> Windows => _windows.Values;
 
+        /// <summary>
+        /// The global profiler used for logging execution time.
+        /// </summary>
+        public Profiler? Profiler { get; }
+
+        #region Event Handling Methods
+        /// <summary>
+        /// SDL Window Event Handler
+        /// </summary>
+        /// <param name="sdlEvent">The SDL_Event from polling events.</param>
+        private void HandleWindowEvent(SDL_Event sdlEvent)
+        {
+            if (!_windows.TryGetValue(sdlEvent.window.windowID, out var window))
+                return;
+            switch (sdlEvent.window.windowEvent)
+            {
+                case SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
+                    window.OnCloseFromEvent = true;
+                    window.InvokeOnClose();
+                    break;
+                case SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
+                    window.InvokeOnResize(sdlEvent.window.data1, sdlEvent.window.data2);
+                    break;
+                case SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
+                    window.InvokeOnFocusGained();
+                    break;
+                case SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
+                    window.InvokeOnFocusLost();
+                    break;
+                case SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
+                    window.InvokeOnMinimize();
+                    break;
+                case SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED:
+                    window.InvokeOnRestore();
+                    break;
+                case SDL_WindowEventID.SDL_WINDOWEVENT_MAXIMIZED:
+                    window.InvokeOnMaximize();
+                    break;
+                case SDL_WindowEventID.SDL_WINDOWEVENT_MOVED:
+                    window.InvokeOnMoved(sdlEvent.window.data1, sdlEvent.window.data2);
+                    break;
+                case SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
+                    window.InvokeOnMouseEnter();
+                    break;
+                case SDL_WindowEventID.SDL_WINDOWEVENT_LEAVE:
+                    window.InvokeOnMouseLeave();
+                    break;
+            }
+        }
+        #endregion
+
+        #region Private Auxilliary Methods
+        /// <summary>
+        /// Default constructor.
+        /// </summary>
         private CeruleanAPI()
         {
-            _thread = new(new ThreadStart(WorkerThread));
-            _windows = new();
-            _workItems = new();
-            _embeddedLayouts = new();
-            _profiler = null;
-            // _profiler = new();
-            // _profiler.OnLog += (s, e) =>
-            // {
-            //     lock (_profiler)
-            //     {
-            //         File.AppendAllText("profiler.txt", $"[{e.CallStack}] {e.Action}\n");
-            //     }
-            //     //Log($"[{e.CallStack}] {e.Action}");
-            // };
+            _thread = new Thread(new ThreadStart(WorkerThread));
+            _windows = new ConcurrentDictionary<uint, Window>();
+            _workItems = new ConcurrentQueue<WorkItem>();
+            _embeddedLayouts = new EmbeddedLayouts();
+            Profiler = null;
         }
 
+        /// <summary>
+        /// Checks if the instance is initialized.
+        /// <exception cref="InvalidOperationException">Thrown when the instance is not yet initialized.</exception>
+        /// </summary>
         private void EnsureInitialized()
         {
-            int timer = 0, max = 10;
+            var timer = 0;
+            const int max = 10;
             while (!_initialized)
             {
                 Thread.Sleep(1000);
@@ -69,18 +128,23 @@ namespace Cerulean.Core
             }
         }
 
+        /// <summary>
+        /// The main CeruleanAPI thread.
+        /// </summary>
+        /// <exception cref="FatalAPIException">Thrown when SDL2 could not be initialized.</exception>
         private void WorkerThread()
         {
-            _profiler?.StartProfilingPoint("WorkerThread");
+            // start profiling
+            Profiler?.StartProfilingPoint("WorkerThread");
             _logger?.Log("CeruleanAPI thread started...");
             _threadId = Environment.CurrentManagedThreadId;
 
-            // Initialize SDL2
+            // initialize SDL2 and set needed hints
             SDL_SetHint("SDL_HINT_VIDEO_HIGHDPI_ENABLED", "1");
             SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
             if (SDL_InitSubSystem(SDL_INIT_EVERYTHING) != 0)
                 throw new FatalAPIException($"Could not initialize SDL2. Reason: {SDL_GetError()}");
-            SDL_VERSION(out SDL_version version);
+            SDL_VERSION(out var version);
             _logger?.Log($"Running on SDL {version.major}.{version.minor}.{version.patch}.");
             _initialized = true;
             _logger?.Log("Initialized SDL2.");
@@ -90,9 +154,10 @@ namespace Cerulean.Core
             {
                 while (_running)
                 {
-                    _profiler?.StartProfilingPoint("WorkQueue_Offload");
-                    int offloaded = 0;
-                    while (!_workItems.IsEmpty && offloaded < MAX_WORKITEMS)
+                    // start offloading and running work items
+                    Profiler?.StartProfilingPoint("WorkQueue_Offload");
+                    var offloaded = 0;
+                    while (!_workItems.IsEmpty && offloaded < MAX_WORK_ITEMS)
                     {
                         if (_workItems.TryDequeue(out var workItem))
                         {
@@ -100,158 +165,181 @@ namespace Cerulean.Core
                         }
                         offloaded++;
                     }
-                    _profiler?.EndProfilingCurrentPoint();
-                    _profiler?.StartProfilingPoint("Handle_SDLEvents");
-                    while (SDL_PollEvent(out SDL_Event sdlEvent) != 0)
+                    Profiler?.EndProfilingCurrentPoint();
+
+                    // start processing sdl events
+                    Profiler?.StartProfilingPoint("Handle_SDLEvents");
+                    while (SDL_PollEvent(out var sdlEvent) != 0)
                     {
                         switch (sdlEvent.type)
                         {
                             case SDL_EventType.SDL_WINDOWEVENT:
-                                if (_windows.TryGetValue(sdlEvent.window.windowID, out Window? window))
-                                {
-                                    switch (sdlEvent.window.windowEvent)
-                                    {
-                                        case SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
-                                            window.OnCloseFromEvent = true;
-                                            window.InvokeOnClose();
-                                            break;
-                                        case SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
-                                            window.InvokeOnResize(sdlEvent.window.data1, sdlEvent.window.data2);
-                                            break;
-                                        case SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
-                                            window.InvokeOnFocusGained();
-                                            break;
-                                        case SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
-                                            window.InvokeOnFocusLost();
-                                            break;
-                                        case SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
-                                            window.InvokeOnMinimize();
-                                            break;
-                                        case SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED:
-                                            window.InvokeOnRestore();
-                                            break;
-                                        case SDL_WindowEventID.SDL_WINDOWEVENT_MAXIMIZED:
-                                            window.InvokeOnMaximize();
-                                            break;
-                                        case SDL_WindowEventID.SDL_WINDOWEVENT_MOVED:
-                                            window.InvokeOnMoved(sdlEvent.window.data1, sdlEvent.window.data2);
-                                            break;
-                                        case SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
-                                            window.InvokeOnMouseEnter();
-                                            break;
-                                        case SDL_WindowEventID.SDL_WINDOWEVENT_LEAVE:
-                                            window.InvokeOnMouseLeave();
-                                            break;
-                                    }
-                                }
+                                HandleWindowEvent(sdlEvent);
                                 break;
                         }
                     }
-                    _profiler?.EndProfilingCurrentPoint();
-                    foreach (var pair in _windows)
+                    Profiler?.EndProfilingCurrentPoint();
+
+                    // update and draw windows
+                    foreach (var (windowId, window) in _windows)
                     {
-                        _profiler?.StartProfilingPoint($"Window_{pair.Key}");
-                        var window = pair.Value;
+                        Profiler?.StartProfilingPoint($"Window_{windowId}");
                         var clientArea = window.WindowSize;
+
+                        // update window graphics context and reset viewport + global position offset
                         window.GraphicsContext?.Update();
                         window.GraphicsContext?.SetRenderArea(clientArea, 0, 0);
+                        window.GraphicsContext?.SetGlobalPosition(0, 0);
+
+                        // update and draw window
                         window.Layout.Update(window, clientArea);
                         window.Draw();
-                        _profiler?.EndProfilingCurrentPoint();
+                        Profiler?.EndProfilingCurrentPoint();
                     }
                 }
             }
+            // this exception is thrown by Quit() which functions as a stop signal for the event pump/loop.
             catch (CeruleanQuitException)
             {
                 _logger?.Log("CeruleanAPI thread stopped (called by event on main thread).");
             }
-            _profiler?.EndProfilingCurrentPoint();
+            Profiler?.EndProfilingCurrentPoint();
             _stopped = true;
         }
+        #endregion
 
+        /// <summary>
+        /// Gets the current instance of the controller singleton.
+        /// </summary>
+        /// <returns>The singleton instance of CeruleanAPI.</returns>
         public static CeruleanAPI GetAPI()
         {
             return _instance;
         }
 
+        /// <summary>
+        /// Initializes the instance once.
+        /// Does nothing when called from an initialized instance.
+        /// </summary>
+        /// <returns>The current initialized controller instance.</returns>
         public CeruleanAPI Initialize()
         {
-            if (!_initialized)
-            {
-                _logger?.Log("Initializing CeruleanAPI...");
-                _running = true;
-                _stopped = false;
-                _logger?.Log("Loading embedded layouts...");
-                _embeddedLayouts.RetrieveLayouts();
-                _thread.Start();
-            }
+            if (_initialized)
+                return this;
+            _logger?.Log("Initializing CeruleanAPI...");
+            _running = true;
+            _stopped = false;
+            _logger?.Log("Loading embedded layouts...");
+            _embeddedLayouts.RetrieveLayouts();
+            _thread.Start();
             return this;
         }
 
+        /// <summary>
+        /// Quits the CeruleanAPI controller instance.
+        /// Handles the shutdown of SDL subsystems and window disposal.
+        /// </summary>
         public void Quit()
         {
-            if (_initialized && !_quitting)
+            if (!_initialized || _quitting)
+                return;
+
+            // start quitting
+            _quitting = true;
+            _logger?.Log("Quitting CeruleanAPI...");
+
+            // invoke CloseWindow on all open windows
+            ConcurrentDictionary<uint, Window> copy = new(_windows);
+            _logger?.Log("Closing open windows...");
+            foreach (var pair in copy)
             {
-                _quitting = true;
-                _logger?.Log("Quitting CeruleanAPI...");
-                ConcurrentDictionary<uint, Window> copy = new(_windows);
-                _logger?.Log("Closing open windows...");
-                foreach (var pair in copy)
-                {
-                    CloseWindow(pair.Value);
-                }
-                _running = false;
-                if (_threadId != Environment.CurrentManagedThreadId)
-                {
-                    _logger?.Log("Waiting for thread to stop...");
-                    while (!_stopped)
-                    {
-                        Thread.Sleep(500);
-                    }
-                }
-                else
-                {
-                    _logger?.Log("Quit() was called from the CeruleanAPI thread, interuptting thread...");
-                    throw new CeruleanQuitException();
-                }
-                _initialized = false;
+                CloseWindow(pair.Value);
             }
+
+            // signal thread stop via _running and CeruleanQuitException if Quit() was called from the CeruleanAPI thread.
+            // if not, wait for the thread to stop via _running & _stopped flag.
+            _running = false;
+            if (_threadId != Environment.CurrentManagedThreadId)
+            {
+                _logger?.Log("Waiting for thread to stop...");
+                while (!_stopped)
+                {
+                    Thread.Sleep(500);
+                }
+            }
+            else
+            {
+                _logger?.Log("Quit() was called from the CeruleanAPI thread, interuptting thread...");
+                throw new CeruleanQuitException();
+            }
+            _initialized = false;
         }
 
+        /// <summary>
+        /// Waits for all windows to be closed.
+        /// </summary>
+        /// <param name="quitOnComplete">Invoke Quit() on completion?</param>
         public void WaitForAllWindowsClosed(bool quitOnComplete = false)
         {
-            if (_initialized)
+            if (!_initialized)
+                return;
+            while (Windows.Any())
             {
-                while (Windows.Any())
-                {
-                    Thread.Sleep(100);
-                }
-                if (quitOnComplete)
-                    Quit();
+                Thread.Sleep(100);
             }
+            if (quitOnComplete)
+                Quit();
         }
 
+        /// <summary>
+        /// Sets the single logging service to be used globally.
+        /// </summary>
+        /// <param name="loggingService">The logging service dependency.</param>
+        /// <returns>The current CeruleanAPI controller instance.</returns>
         public CeruleanAPI UseLogger(ILoggingService loggingService)
         {
             _logger = loggingService;
             _embeddedLayouts.SetLogger(loggingService);
-            //_logger.Init();
             return this;
         }
 
+        /// <summary>
+        /// Sets the console logger as the logging service dependency.
+        /// </summary>
+        /// <returns>The current CeruleanAPI controller instance.</returns>
         public CeruleanAPI UseConsoleLogger()
             => UseLogger(new ConsoleLoggingService());
 
+        /// <summary>
+        /// Sets the graphics factory used when creating windows. 
+        /// </summary>
+        /// <param name="graphicsFactory">The graphics factory dependency.</param>
+        /// <returns>The current CeruleanAPI controller instance.</returns>
         public CeruleanAPI UseGraphicsFactory(IGraphicsFactory graphicsFactory)
         {
             _graphicsFactory = graphicsFactory;
             return this;
         }
 
+        /// <summary>
+        /// Sets the SDL2 graphics factory as graphics factory dependency.
+        /// </summary>
+        /// <returns>The current CeruleanAPI controller instance.</returns>
         public CeruleanAPI UseSDL2Graphics()
             => UseGraphicsFactory(new SDL2GraphicsFactory());
 
-        public Window CreateWindow(Layout windowLayout, string windowTitle = "CeruleanAPI Window", Size? windowSize = null, bool initialize = true)
+        /// <summary>
+        /// Creates a window from a given layout.
+        /// </summary>
+        /// <param name="windowLayout">The layout to use.</param>
+        /// <param name="windowTitle">The initial window title.</param>
+        /// <param name="windowSize">The initial window size.</param>
+        /// <param name="initialize">Whether to initialize window on creation.</param>
+        /// <returns>A Cerulean window instance.</returns>
+        public Window CreateWindow(Layout windowLayout,
+                                   string windowTitle = "CeruleanAPI Window",
+                                   Size? windowSize = null,
+                                   bool initialize = true)
         {
             EnsureInitialized();
             if (_graphicsFactory is null)
@@ -263,7 +351,7 @@ namespace Cerulean.Core
             var result = DoOnThread((args) =>
             {
                 Window window = new(windowLayout, windowTitle, windowSize ?? Window.DefaultWindowSize, _threadId, _graphicsFactory);
-                if ((bool)args[0] == true)
+                if ((bool)args[0])
                     InitializeWindow(window);
                 return window;
             }, initialize);
@@ -275,20 +363,38 @@ namespace Cerulean.Core
             throw error2;
         }
 
-        public Window CreateWindow(string windowLayoutName, string windowTitle = "CeruleanAPI Window", Size? windowSize = null, bool initialize = true)
+        /// <summary>
+        /// Creates a window from the name of an embedded layout.
+        /// </summary>
+        /// <param name="windowLayoutName">The name of the embedded layout to use.</param>
+        /// <param name="windowTitle">The initial window title.</param>
+        /// <param name="windowSize">The initial window size.</param>
+        /// <param name="initialize">Whether to initialize window on creation.</param>
+        /// <returns>A Cerulean window instance.</returns>
+        public Window CreateWindow(string windowLayoutName,
+                                   string windowTitle = "CeruleanAPI Window",
+                                   Size? windowSize = null,
+                                   bool initialize = true)
         {
             return CreateWindow(FetchLayout(windowLayoutName), windowTitle, windowSize, initialize);
         }
 
+        /// <summary>
+        /// Closes an open window.
+        /// </summary>
+        /// <param name="apiWindow">The window to close.</param>
         public void CloseWindow(Window apiWindow)
         {
             EnsureInitialized();
             DoOnThread((args) =>
             {
+                // early return if window is not initialized or is already closed.
                 if (args.Length <= 0 ||
                     args[0] is not Window { IsInitialized: true } window)
                     return;
                 if (window.Closed) return;
+
+                // simulate OnClose event
                 if (!window.OnCloseFromEvent)
                 {
                     window.OnCloseFromEvent = true;
@@ -303,6 +409,10 @@ namespace Cerulean.Core
             }, apiWindow);
         }
 
+        /// <summary>
+        /// Initialize a created window.
+        /// </summary>
+        /// <param name="apiWindow">The window to initialize.</param>
         public void InitializeWindow(Window apiWindow)
         {
             DoOnThread((args) =>
@@ -315,12 +425,23 @@ namespace Cerulean.Core
             }, apiWindow);
         }
 
+        /// <summary>
+        /// Fetches an embedded layout by name.
+        /// </summary>
+        /// <param name="name">The name of the embedded layout.</param>
+        /// <returns>The embedded layout.</returns>
         public Layout FetchLayout(string name)
         {
             EnsureInitialized();
             return _embeddedLayouts.FetchLayout(name);
         }
 
+        /// <summary>
+        /// Enqueue a function to be handled by the Cerulean thread.
+        /// </summary>
+        /// <param name="func">The function to enqueue.</param>
+        /// <param name="args">Arguments to pass to the function.</param>
+        /// <returns>The result of the function.</returns>
         public object? DoOnThread(Func<object[], object> func, params object[] args)
         {
             EnsureInitialized();
@@ -334,7 +455,7 @@ namespace Cerulean.Core
             else
             {
                 // thread is NOT the CeruleanAPI thread
-                while (_workItems.Count >= MAX_WORKITEMS)
+                while (_workItems.Count >= MAX_WORK_ITEMS)
                     Task.Delay(200).Wait();
                 _workItems.Enqueue(work);
             }
@@ -342,6 +463,11 @@ namespace Cerulean.Core
             return work.WaitForCompletion();
         }
 
+        /// <summary>
+        /// Enqueue an action to be handled by the Cerulean thread.
+        /// </summary>
+        /// <param name="action">The action to enqueue.</param>
+        /// <param name="arg">Arguments to pass to the action.</param>
         public void DoOnThread(Action<object[]> action, params object[] arg)
         {
             EnsureInitialized();
@@ -355,18 +481,30 @@ namespace Cerulean.Core
             else
             {
                 // thread is NOT the CeruleanAPI thread
-                while (_workItems.Count >= MAX_WORKITEMS)
+                while (_workItems.Count >= MAX_WORK_ITEMS)
                     Task.Delay(200).Wait();
                 _workItems.Enqueue(work);
             }
 
             work.WaitForCompletion();
         }
+
+        /// <summary>
+        /// Logs a message via the logging service.
+        /// </summary>
+        /// <param name="message">The message to log.</param>
+        /// <param name="severity">The severity of the event.</param>
         public void Log(string message, LogSeverity severity = LogSeverity.General)
         {
             _logger?.Log(message, severity);
         }
 
+        /// <summary>
+        /// Logs a message via the logging service.
+        /// </summary>
+        /// <param name="message">The message to log.</param>
+        /// <param name="severity">The severity of the event.</param>
+        /// <param name="exception">Additional exception data.</param>
         public void Log(string message, LogSeverity severity, Exception exception)
         {
             _logger?.Log(message, severity, exception);

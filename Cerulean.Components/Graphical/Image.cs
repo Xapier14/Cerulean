@@ -6,6 +6,8 @@ namespace Cerulean.Components
     public class Image : Component, ISized
     {
         public Size? Size { get; set; } = null;
+        public int? HintW { get; set; }
+        public int? HintH { get; set; }
         private string _imagePath = string.Empty;
         public string FileName
         {
@@ -48,21 +50,21 @@ namespace Cerulean.Components
             if (BackColor.HasValue)
             {
                 if (Size.HasValue)
-                    graphics.DrawFilledRectangle(X, Y, Size.Value, BackColor.Value);
+                    graphics.DrawFilledRectangle(0, 0, Size.Value, BackColor.Value);
                 else
                     graphics.DrawFilledRectangle(0, 0, ClientArea.Value, BackColor.Value);
             }
             if (FileName != string.Empty)
             {
                 if (Size.HasValue)
-                    graphics.DrawImage(X, Y, Size.Value, FileName, PictureMode);
+                    graphics.DrawImage(0, 0, Size.Value, FileName, PictureMode);
                 else
                     graphics.DrawImage(0, 0, ClientArea.Value, FileName, PictureMode);
             }
 
             if (!BorderColor.HasValue) return;
             if (Size.HasValue)
-                graphics.DrawRectangle(X, Y, Size.Value, BorderColor.Value);
+                graphics.DrawRectangle(0, 0, Size.Value, BorderColor.Value);
             else
                 graphics.DrawRectangle(0, 0, ClientArea.Value, BorderColor.Value);
         }

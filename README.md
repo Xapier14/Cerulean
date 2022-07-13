@@ -75,6 +75,7 @@ Mainly testing on Windows and Ubuntu. Feel free to test on other platforms.<br>
  - [ ] Container Components
      - [x] Grid
      - [x] Panel
+     - [ ] Stack Panel
      - [ ] Group Tab
 ### Cerulean CLI
  - [ ] Style Builder

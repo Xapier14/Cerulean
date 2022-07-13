@@ -19,11 +19,11 @@ namespace Cerulean.Components
 
         public override void Update(object? window, Size clientArea)
         {
-            (int globalX, int globalY) = Mouse.GetGlobalMousePosition();
-            ClientArea = clientArea;
+            var ( globalX, globalY) = Mouse.GetGlobalMousePosition();
+            ClientArea = null;
             if (window is Window ceruleanWindow)
             {
-                (int windowX, int windowY) = ceruleanWindow.WindowPosition;
+                var ( windowX, windowY) = ceruleanWindow.WindowPosition;
                 _x = globalX - windowX;
                 _y = globalY - windowY;
             }

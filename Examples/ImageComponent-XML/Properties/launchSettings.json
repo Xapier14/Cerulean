@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ImageComponent-XML": {
+      "commandName": "Project",
+      "workingDirectory": "E:\\Repositories\\Project Repositories\\Cerulean\\Examples\\ImageComponent-XML"
+    }
+  }
+}

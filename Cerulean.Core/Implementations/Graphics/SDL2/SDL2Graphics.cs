@@ -14,9 +14,9 @@ namespace Cerulean.Core
         private readonly FontCache _fontCache;
 
         // global TTF Init
-        private static bool _initializedSubmodules = false;
-        private int _globalX = 0;
-        private int _globalY = 0;
+        private static bool _initializedSubmodules;
+        private int _globalX;
+        private int _globalY;
         internal IntPtr WindowPtr => _window.WindowPtr;
         internal IntPtr RendererPtr { get; }
 
@@ -103,8 +103,6 @@ namespace Cerulean.Core
             SDL_RenderGetClipRect(RendererPtr, out var rect);
             x = rect.x;
             y = rect.y;
-            _globalX = x;
-            _globalY = y;
             return new Size(rect.w, rect.h);
         }
         public void SetRenderArea(Size renderArea, int x, int y)
@@ -116,12 +114,21 @@ namespace Cerulean.Core
                 x = x,
                 y = y
             };
-            _globalX = x;
-            _globalY = y;
+            //Console.WriteLine("RenderArea set to: ({0}, {1}) {2}; offset: {3}, {4}", x, y, renderArea, _offsetX, _offsetY);
             if (SDL_RenderSetClipRect(RendererPtr, ref rect) != 0)
                 throw new GeneralAPIException($"Could not set viewport data. {SDL_GetError()}");
             //if (SDL_RenderSetViewport(RendererPtr, ref rect) != 0)
             //    throw new GeneralAPIException($"Could not set viewport data. {SDL_GetError()}");
+        }
+        public void GetGlobalPosition(out int x, out int y)
+        {
+            x = _globalX;
+            y = _globalY;
+        }
+        public void SetGlobalPosition(int x, int y)
+        {
+            _globalX = x;
+            _globalY = y;
         }
         #endregion
         #region RENDER
@@ -244,7 +251,7 @@ namespace Cerulean.Core
                 var sdlTexture = texture.Value.SDLTexture;
                 texture.Value.AccScore(10000);
                 texture.Value.SetScore(Min((long)texture.Value.Score, 100000000000));
-                int imageX = x, imageY = y;
+                int imageX = x + _globalX, imageY = y + _globalY;
                 int w = imageSize.W, h = imageSize.H;
                 if (pictureMode != PictureMode.Tile)
                 {
@@ -257,8 +264,8 @@ namespace Cerulean.Core
                         case PictureMode.Center:
                             int w2 = (size.W - w) / 2;
                             int h2 = (size.H - h) / 2;
-                            imageX = x + w2;
-                            imageY = y + h2;
+                            imageX = x + _globalX + w2;
+                            imageY = y + _globalY + h2;
                             break;
                         case PictureMode.Cover:
                             int diffW = size.W - imageSize.W;
@@ -274,21 +281,23 @@ namespace Cerulean.Core
                                 h = size.H;
                                 w = (int)(imageSize.W * scale);
                             }
-                            imageX = x + (size.W - w) / 2;
-                            imageY = y + (size.H - h) / 2;
+                            imageX = x + _globalX + (size.W - w) / 2;
+                            imageY = y + _globalY +  (size.H - h) / 2;
                             break;
                         case PictureMode.Fit:
                             double factor = Math.Min((double)size.W / imageSize.W, (double)size.H / imageSize.H);
                             w = (int)(imageSize.W * factor);
                             h = (int)(imageSize.H * factor);
-                            imageX = x + (size.W - w) / 2;
-                            imageY = y + (size.H - h) / 2;
+                            imageX = x + _globalX + (size.W - w) / 2;
+                            imageY = y + _globalY + (size.H - h) / 2;
                             break;
                     }
                 } else
                 {
                     int xRep = (int)Math.Ceiling((double)size.W / imageSize.W);
                     int yRep = (int)Math.Ceiling((double)size.H / imageSize.H);
+                    imageX = x;
+                    imageY = y;
 
                     for (int i = 0; i < xRep; i++)
                     {

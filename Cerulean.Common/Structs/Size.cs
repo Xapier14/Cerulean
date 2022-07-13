@@ -11,6 +11,12 @@
             H = height;
         }
 
+        public Size(Size size)
+        {
+            W = size.W;
+            H = size.H;
+        }
+
         public static Size operator +(Size obj1, Size obj2)
         {
             return new Size()
@@ -71,7 +77,7 @@
 
         public override string ToString()
         {
-            return $"({W}, {H})";
+            return $"({W}x{H})";
         }
     }
 }

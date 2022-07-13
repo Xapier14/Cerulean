@@ -21,26 +21,21 @@ namespace Cerulean.Core
         private static bool TryGetFile(string dirPath, string name, out string filePath)
         {
             filePath = string.Empty;
-            if (Directory.Exists(dirPath))
-            {
-                var dirInfo = new DirectoryInfo(dirPath);
-                var files = dirInfo.GetFiles("*", SearchOption.AllDirectories)
-                    .OrderBy(f => f.Name)
-                    .Where(file =>
-                    {
-                        //CeruleanAPI.GetAPI().Log($"Checking {file.Name} for {name}");
-                        return Path.GetFileNameWithoutExtension(file.FullName).ToLower() == name.ToLower() // same file name
-                                && (file.Extension.ToLower() == ".ttf" || file.Extension.ToLower() == ".otf") // is a ttf or otf file
-                                && !file.Attributes.HasFlag(FileAttributes.ReparsePoint); // is not a symlink
-                    });
-                if (files.Any())
+            if (!Directory.Exists(dirPath)) return false;
+            var dirInfo = new DirectoryInfo(dirPath);
+            var files = dirInfo.GetFiles("*", SearchOption.AllDirectories)
+                .OrderBy(f => f.Name)
+                .Where(file =>
                 {
-                    filePath = files.First().FullName;
-                    CeruleanAPI.GetAPI().Log($"Found font {filePath}.");
-                    return true;
-                }
-            }
-            return false;
+                    //CeruleanAPI.GetAPI().Log($"Checking {file.Name} for {name}");
+                    return Path.GetFileNameWithoutExtension(file.FullName).ToLower().Replace(new[] {'-', ' '}, '\0') == name.ToLower().Replace(new[] { '-', ' ' }, '\0') // same file name
+                           && (file.Extension.ToLower() == ".ttf" || file.Extension.ToLower() == ".otf") // is a ttf or otf file
+                           && !file.Attributes.HasFlag(FileAttributes.ReparsePoint); // is not a symlink
+                });
+            if (!files.Any()) return false;
+            filePath = files.First().FullName;
+            CeruleanAPI.GetAPI().Log($"Found font {filePath}.");
+            return true;
         }
 
         private static bool TryFindTTF(string name, out string path)

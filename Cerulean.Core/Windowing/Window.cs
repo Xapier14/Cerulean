@@ -18,18 +18,74 @@ namespace Cerulean.Core
         private readonly int _threadId;
         internal IntPtr WindowPtr { get; private set; }
 
-        internal bool OnCloseFromEvent = false;
+        internal bool OnCloseFromEvent;
         private string _windowTitle = "";
         #endregion
 
+        /// <summary>
+        /// The default window size for windows created without size specified.
+        /// </summary>
         public static readonly Size DefaultWindowSize = new(600, 400);
         public delegate void WindowEventHandler(Window sender, WindowEventArgs e);
-        public WindowEventHandler? OnResize, OnMinimize, OnRestore, OnMaximize, OnMoved, OnClose, OnMouseLeave, OnMouseEnter, OnFocusGained, OnFocusLost;
-        public bool IsInitialized { get; private set; } = false;
-
+        /// <summary>
+        /// Called when the window has finished resizing.
+        /// </summary>
+        public WindowEventHandler? OnResize;
+        /// <summary>
+        /// Called when the window is minimized.
+        /// </summary>
+        public WindowEventHandler? OnMinimize;
+        /// <summary>
+        /// Called when the window is restored.
+        /// </summary>
+        public WindowEventHandler? OnRestore;
+        /// <summary>
+        /// Called when the window is maximized.
+        /// </summary>
+        public WindowEventHandler? OnMaximize;
+        /// <summary>
+        /// Called when the window has finished moving.
+        /// </summary>
+        public WindowEventHandler? OnMoved;
+        /// <summary>
+        /// Called when the window has received a window close event.
+        /// i.e: clicking the 'x' button, or pressing alt-f4.
+        /// </summary>
+        public WindowEventHandler? OnClose;
+        /// <summary>
+        /// Called when the mouse pointer leaves the window area.
+        /// </summary>
+        public WindowEventHandler? OnMouseLeave;
+        /// <summary>
+        /// Called when the mouse pointer enters the window area.
+        /// </summary>
+        public WindowEventHandler? OnMouseEnter;
+        /// <summary>
+        /// Called when the window is focused.
+        /// </summary>
+        public WindowEventHandler? OnFocusGained;
+        /// <summary>
+        /// Called when the window loses focus.
+        /// </summary>
+        public WindowEventHandler? OnFocusLost;
+        /// <summary>
+        /// Returns true if the window has been initialized.
+        /// </summary>
+        public bool IsInitialized { get; private set; }
+        /// <summary>
+        /// Returns true if the window has been closed.
+        /// </summary>
         public bool Closed { get; private set; }
-        public IGraphics? GraphicsContext { get; private set; } = null;
-
+        /// <summary>
+        /// The graphics context or backend that the window is using.
+        /// </summary>
+        public IGraphics? GraphicsContext { get; private set; }
+        /// <summary>
+        /// The title of the window.
+        /// <remarks>
+        /// Must be called on the thread that created the window.
+        /// </remarks>
+        /// </summary>
         public string WindowTitle
         {
             get => _windowTitle;
@@ -50,9 +106,13 @@ namespace Cerulean.Core
                 }
             }
         }
-
         private Size _windowSize;
-
+        /// <summary>
+        /// The size of the window.
+        /// <remarks>
+        /// Must be called on the thread that created the window.
+        /// </remarks>
+        /// </summary>
         public Size WindowSize
         {
             get => _windowSize;
@@ -74,9 +134,13 @@ namespace Cerulean.Core
                 }
             }
         }
-
         private Size _minimumWindowSize;
-
+        /// <summary>
+        /// The minimum size of the window.
+        /// <remarks>
+        /// Must be called on the thread that created the window.
+        /// </remarks>
+        /// </summary>
         public Size? MinimumWindowSize
         {
             get => _minimumWindowSize;
@@ -105,9 +169,13 @@ namespace Cerulean.Core
                 }
             }
         }
-
         private Size _maximumWindowSize;
-
+        /// <summary>
+        /// The maximum size of the window.
+        /// <remarks>
+        /// Must be called on the thread that created the window.
+        /// </remarks>
+        /// </summary>
         public Size? MaximumWindowSize
         {
             get => _maximumWindowSize;
@@ -131,14 +199,18 @@ namespace Cerulean.Core
                     else
                     {
                         SDL_SetWindowMaximumSize(WindowPtr, ushort.MaxValue, ushort.MaxValue);
-                        _maximumWindowSize = new(ushort.MaxValue, ushort.MaxValue);
+                        _maximumWindowSize = new Size(ushort.MaxValue, ushort.MaxValue);
                     }
                 }
             }
         }
-
         private (int, int) _windowPosition;
-
+        /// <summary>
+        /// The position of the window.
+        /// <remarks>
+        /// Must be called on the thread that created the window.
+        /// </remarks>
+        /// </summary>
         public (int, int) WindowPosition
         {
             get => (_windowPosition.Item1, _windowPosition.Item2);
@@ -151,13 +223,32 @@ namespace Cerulean.Core
                 _windowPosition.Item2 = value.Item2;
             }
         }
-
+        /// <summary>
+        /// The window enabled property.
+        /// <remarks>
+        /// Setting this to false will disable event processing.
+        /// </remarks>
+        /// </summary>
         public bool Enabled { get; set; } = true;
+        /// <summary>
+        /// Tells whether close events are processed.
+        /// <remarks>
+        /// Setting this to false will disable the functionality of the window close button and alt-f4.
+        /// As a result, the OnClose event will not be called.
+        /// </remarks>
+        /// </summary>
         public bool HandleClose { get; set; } = true;
+        /// <summary>
+        /// The parent window of this window.
+        /// </summary>
         public Window? ParentWindow { get; init; }
-
-        public dynamic Layout { get; private set; }
-
+        /// <summary>
+        /// The layout being used by this window.
+        /// </summary>
+        public dynamic Layout { get; }
+        /// <summary>
+        /// The background fill color for this window.
+        /// </summary>
         public Color BackColor { get; set; }
 
         internal Window(Layout windowLayout, string windowTitle, Size windowSize, int threadId, IGraphicsFactory graphicsFactory, Window? parentWindow = null)
@@ -181,6 +272,9 @@ namespace Cerulean.Core
             SDL_DestroyWindow(WindowPtr);
             Closed = true;
         }
+        /// <summary>
+        /// Sends a window close event.
+        /// </summary>
         public void Close()
         {
             if (!Closed)
@@ -206,7 +300,9 @@ namespace Cerulean.Core
                 SDL_WINDOWPOS_CENTERED,
                 WindowSize.W,
                 WindowSize.H,
-                SDL_WindowFlags.SDL_WINDOW_RESIZABLE | SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI | SDL_WindowFlags.SDL_WINDOW_OPENGL)) == IntPtr.Zero)
+                SDL_WindowFlags.SDL_WINDOW_RESIZABLE
+                | SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI
+                | SDL_WindowFlags.SDL_WINDOW_OPENGL)) == IntPtr.Zero)
             {
                 var exception = new FatalAPIException("Failed to create window.");
                 CeruleanAPI.GetAPI().Log(exception.Message, LogSeverity.Fatal, exception);
@@ -230,6 +326,7 @@ namespace Cerulean.Core
             if (GraphicsContext is not null)
             {
                 GraphicsContext.SetRenderArea(_windowSize, 0, 0);
+                GraphicsContext.SetGlobalPosition(0, 0);
                 Layout.Draw(GraphicsContext, 0, 0, _windowSize);
             }
 
