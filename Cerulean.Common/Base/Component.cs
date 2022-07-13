@@ -117,7 +117,7 @@ namespace Cerulean.Common
 
             if (!CanBeParent) return;
             foreach (var child in Children)
-                child.Update(window, clientArea);
+                child.Update(window, new Size(clientArea.W - child.X, clientArea.H - child.Y));
         }
 
         public virtual void Draw(IGraphics graphics, int viewportX, int viewportY, Size viewportSize)

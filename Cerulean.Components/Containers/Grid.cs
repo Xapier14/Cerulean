@@ -144,7 +144,7 @@ namespace Cerulean.Components
                      (i < child.GridRowSpan || child.GridRowSpan == 0) && child.GridRow + i < RowCount;
                      i++)
                 {
-                    height += _cellSizes[child.GridRow + i, child.GridColumn].H;
+                    height += Math.Max(0, _cellSizes[child.GridRow + i, child.GridColumn].H);
                 }
                 // if i < span OR i 0
                 // AND i < column count
@@ -152,7 +152,7 @@ namespace Cerulean.Components
                      (i < child.GridColumnSpan || child.GridColumnSpan == 0) && child.GridColumn + i < ColumnCount;
                      i++)
                 {
-                    width += _cellSizes[child.GridRow, child.GridColumn + i].W;
+                    width += Math.Max(0, _cellSizes[child.GridRow, child.GridColumn + i].W);
                 }
                 child.Update(window, new Size(width, height));
             }
@@ -234,11 +234,11 @@ namespace Cerulean.Components
                 for (var columnIndex = component.GridColumn;
                      columnIndex < component.GridColumn + component.GridColumnSpan && component.GridColumn < ColumnCount;
                      ++columnIndex)
-                    childViewport.W += _cellSizes![0, columnIndex].W;
+                    childViewport.W += Math.Max(0, _cellSizes![0, columnIndex].W);
                 for (var rowIndex = component.GridRow;
                      rowIndex < component.GridRow + component.GridRowSpan && component.GridRow < RowCount;
                      ++rowIndex)
-                    childViewport.H += _cellSizes![rowIndex, 0].H;
+                    childViewport.H += Math.Max(0, _cellSizes![rowIndex, 0].H);
 
                 var aX = childViewportX + Math.Max(0, component.X);
                 var aY = childViewportY + Math.Max(0, component.Y);
@@ -254,9 +254,9 @@ namespace Cerulean.Components
                     offsetX = oldX + component.X;
                 }
                 // check right is clipping
-                if (Math.Max(0, component.X) + childSize.W > childViewport.W)
+                if (Math.Max(0, component.X) + childSize.W > Math.Max(childViewport.W, viewportSize.W))
                 {
-                    childSize.W -= (Math.Max(0, component.X) + childSize.W) - childViewport.W;
+                    childSize.W -= (Math.Max(0, component.X) + childSize.W) - Math.Max(childViewport.W, viewportSize.W);
                 }
                 /* HEIGHT CHECKS */
                 // check top is clipping
@@ -266,9 +266,9 @@ namespace Cerulean.Components
                     offsetY = oldY + component.Y;
                 }
                 // check bottom is clipping
-                if (Math.Max(0, component.Y) + childSize.H > childViewport.H)
+                if (Math.Max(0, component.Y) + childSize.H > Math.Max(childViewport.H, viewportSize.H))
                 {
-                    childSize.H -= (Math.Max(0, component.Y) + childSize.H) - childViewport.H;
+                    childSize.H -= (Math.Max(0, component.Y) + childSize.H) - Math.Max(childViewport.H, viewportSize.H);
                 }
 
                 // skip draw if component has invalid area.

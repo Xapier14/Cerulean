@@ -18,7 +18,7 @@ namespace Cerulean.Components
         public override void Update(object? window, Size clientArea)
         {
             ClientArea = Size ?? clientArea;
-            base.Update(window, clientArea);
+            base.Update(window, ClientArea.Value);
         }
 
         public override void Draw(IGraphics graphics, int viewportX, int viewportY, Size viewportSize)
