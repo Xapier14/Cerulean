@@ -215,8 +215,8 @@ namespace Cerulean.Components
 
                 // get viewport data from cell size
                 Size childViewport = new();
-                var childViewportX = 0;
-                var childViewportY = 0;
+                var childViewportX = viewportX;
+                var childViewportY = viewportY;
                 for (var column = 0; column < component.GridColumn && column < ColumnCount; ++column)
                 {
                     if (_cellSizes is null)
