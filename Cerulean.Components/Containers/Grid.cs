@@ -2,7 +2,7 @@
 
 namespace Cerulean.Components
 {
-    public sealed class Grid : Component
+    public class Grid : Component
     {
         private int[] _columns = { 0 };
         private int[] _rows = { 0 };
@@ -254,9 +254,9 @@ namespace Cerulean.Components
                     offsetX = oldX + component.X;
                 }
                 // check right is clipping
-                if (Math.Max(0, component.X) + childSize.W > Math.Max(childViewport.W, viewportSize.W))
+                if (Math.Max(0, component.X) + childSize.W > Math.Min(childViewport.W, viewportSize.W))
                 {
-                    childSize.W -= (Math.Max(0, component.X) + childSize.W) - Math.Max(childViewport.W, viewportSize.W);
+                    childSize.W -= (Math.Max(0, component.X) + childSize.W) - Math.Min(childViewport.W, viewportSize.W);
                 }
                 /* HEIGHT CHECKS */
                 // check top is clipping
@@ -266,9 +266,9 @@ namespace Cerulean.Components
                     offsetY = oldY + component.Y;
                 }
                 // check bottom is clipping
-                if (Math.Max(0, component.Y) + childSize.H > Math.Max(childViewport.H, viewportSize.H))
+                if (Math.Max(0, component.Y) + childSize.H > Math.Min(childViewport.H, viewportSize.H))
                 {
-                    childSize.H -= (Math.Max(0, component.Y) + childSize.H) - Math.Max(childViewport.H, viewportSize.H);
+                    childSize.H -= (Math.Max(0, component.Y) + childSize.H) - Math.Min(childViewport.H, viewportSize.H);
                 }
 
                 // skip draw if component has invalid area.

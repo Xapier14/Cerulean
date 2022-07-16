@@ -251,6 +251,8 @@ namespace Cerulean.Core
         /// </summary>
         public Color BackColor { get; set; }
 
+        public IntPtr GLContext { get; private set; }
+
         internal Window(Layout windowLayout, string windowTitle, Size windowSize, int threadId, IGraphicsFactory graphicsFactory, Window? parentWindow = null)
         {
             IsInitialized = false;
@@ -308,6 +310,8 @@ namespace Cerulean.Core
                 CeruleanAPI.GetAPI().Log(exception.Message, LogSeverity.Fatal, exception);
                 throw exception;
             }
+
+            GLContext = SDL_GL_CreateContext(WindowPtr);
             SDL_GetWindowPosition(WindowPtr, out _windowPosition.Item1, out _windowPosition.Item2);
             CeruleanAPI.GetAPI().Log("Window created.");
             CeruleanAPI.GetAPI().Log($"Minimum size {_minimumWindowSize}.");

@@ -5,50 +5,53 @@ namespace Cerulean.Common.Collections
     /// <summary>
     /// A doubly linked list.
     /// </summary>
-    /// <typeparam name="T">Generic datatype</typeparam>
+    /// <typeparam name="T">Generic node data type</typeparam>
     public class LinkedList<T> : IEnumerable<T>
     {
-        private LinkedListNode<T>? _head, _tail;
-        public LinkedListNode<T>? Head => _head;
-        public LinkedListNode<T>? Tail => _tail;
-        public int Count
-        {
-            get
-            {
-                int count = 0;
-                foreach (var node in this)
-                {
-                    count++;
-                }
-                return count;
-            }
-        }
-        public LinkedList()
-        {
+        /// <summary>
+        /// The head or the first node in the list.
+        /// </summary>
+        public LinkedListNode<T>? Head { get; private set; }
 
-        }
+        /// <summary>
+        /// The tail or the last node in the list.
+        /// </summary>
+        public LinkedListNode<T>? Tail { get; private set; }
 
+        /// <summary>
+        /// Returns the amount of nodes in the list.
+        /// </summary>
+        public int Count => this.Count();
+
+        /// <summary>
+        /// Adds data as a new node to the end of the list.
+        /// </summary>
+        /// <param name="data"></param>
         public void AddLast(T data)
         {
-            if (_head == null)
+            if (Head == null)
             {
-                _head = new(data);
-                _tail = _head;
+                Head = new LinkedListNode<T>(data);
+                Tail = Head;
             }
-            else if (_head == _tail)
+            else if (Head == Tail)
             {
-                _head.Next = new(data);
-                _tail = _head.Next;
-                _tail.Previous = _head;
+                Head.Next = new LinkedListNode<T>(data);
+                Tail = Head.Next;
+                Tail.Previous = Head;
             }
-            else if (_tail is not null)
+            else if (Tail is not null)
             {
-                _tail.Next = new(data);
-                _tail.Next.Previous = _tail;
-                _tail = _tail.Next;
+                Tail.Next = new LinkedListNode<T>(data);
+                Tail.Next.Previous = Tail;
+                Tail = Tail.Next;
             }
         }
 
+        /// <summary>
+        /// Deletes a specific node from the list.
+        /// </summary>
+        /// <param name="node">The node to delete.</param>
         public void DeleteNode(LinkedListNode<T> node)
         {
             var prev = node.Previous;
@@ -57,44 +60,53 @@ namespace Cerulean.Common.Collections
                 prev.Next = next;
             if (next is not null)
                 next.Previous = prev;
-            if (_tail == node)
-                _tail = prev;
-            if (_head == node)
-                _head = next;
+            if (Tail == node)
+                Tail = prev;
+            if (Head == node)
+                Head = next;
         }
 
+        /// <summary>
+        /// Deletes a node from the list using an index.
+        /// </summary>
+        /// <param name="index">The index of the node to delete.</param>
         public void DeleteNode(int index)
         {
-            if (_head is null)
+            if (Head is null)
                 return;
-            LinkedListNode<T> node = _head;
-            for (int i = 1; i <= index; ++i)
+            var node = Head;
+            for (var i = 1; i <= index; ++i)
                 if (node.Next is not null)
                     node = node.Next;
             DeleteNode(node);
         }
 
+        /// <summary>
+        /// Swaps the positions of two nodes.
+        /// </summary>
+        /// <param name="node1">The first node to swap.</param>
+        /// <param name="node2">The second node to swap with.</param>
         public void SwitchNodes(LinkedListNode<T> node1, LinkedListNode<T> node2)
         {
-            if (_head is null || _tail is null || node1 == node2)
+            if (Head is null || Tail is null || node1 == node2)
                 return;
 
-            if (node1 == _head)
+            if (node1 == Head)
             {
-                _head = node2;
+                Head = node2;
             }
-            else if (node2 == _head)
+            else if (node2 == Head)
             {
-                _head = node1;
+                Head = node1;
             }
 
-            if (node1 == _tail)
+            if (node1 == Tail)
             {
-                _tail = node2;
+                Tail = node2;
             }
-            else if (node2 == _tail)
+            else if (node2 == Tail)
             {
-                _tail = node1;
+                Tail = node1;
             }
 
             var temp = node1.Next;
@@ -116,30 +128,33 @@ namespace Cerulean.Common.Collections
                 node2.Previous.Next = node2;
         }
 
+        /// <summary>
+        /// Removes all nodes from the list.
+        /// </summary>
         public void Clear()
         {
-            _head = null;
-            _tail = null;
+            Head = null;
+            Tail = null;
         }
 
         public IEnumerator<T> GetEnumerator()
         {
-            return new LinkedListEnumerator<T>(_head);
+            return new LinkedListEnumerator<T>(Head);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return new LinkedListEnumerator<T>(_head);
+            return new LinkedListEnumerator<T>(Head);
         }
 
         public ref T? this[int index]
         {
             get
             {
-                if (index < 0 || index >= Count || _head is null)
+                if (index < 0 || index >= Count || Head is null)
                     throw new IndexOutOfRangeException();
-                LinkedListNode<T> node = _head;
-                for (int i = 0; i < index; ++i)
+                var node = Head;
+                for (var i = 0; i < index; ++i)
                     if (node.Next is not null)
                         node = node.Next;
                 ref var data = ref node.GetRefData();
@@ -153,7 +168,7 @@ namespace Cerulean.Common.Collections
     public class LinkedListEnumerator<T> : IEnumerator<T>
     {
         private bool _started;
-        private LinkedListNode<T>? _head;
+        private readonly LinkedListNode<T>? _head;
         private LinkedListNode<T> _current;
         public T Current => _current.Data;
 
@@ -179,12 +194,9 @@ namespace Cerulean.Common.Collections
                 _started = true;
                 return true;
             }
-            if (_current.Next is LinkedListNode<T> nextNode)
-            {
-                _current = nextNode;
-                return true;
-            }
-            return false;
+            if (_current.Next is null) return false;
+            _current = _current.Next;
+            return true;
         }
 
         public void Reset()

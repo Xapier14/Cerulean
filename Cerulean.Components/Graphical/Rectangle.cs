@@ -21,26 +21,29 @@ namespace Cerulean.Components
 
         public override void Update(object? window, Size clientArea)
         {
-            ClientArea = clientArea;
+            if (window is not null)
+                CallHook(this, EventHook.BeforeUpdate, window, clientArea);
+            ClientArea = Size ?? clientArea;
+            if (window is not null)
+                CallHook(this, EventHook.AfterUpdate, window, clientArea);
         }
 
         public override void Draw(IGraphics graphics, int viewportX, int viewportY, Size viewportSize)
         {
             if (!ClientArea.HasValue) return;
+
+            CallHook(this, EventHook.BeforeDraw, graphics, viewportX, viewportY, viewportSize);
             // Draw fill
             if (FillColor.HasValue)
             {
-                if (Size.HasValue)
-                    graphics.DrawFilledRectangle(0, 0, Size.Value, FillColor.Value);
-                else
-                    graphics.DrawFilledRectangle(0, 0, ClientArea.Value, FillColor.Value);
+                graphics.DrawFilledRectangle(0, 0, ClientArea.Value, FillColor.Value);
             }
             // Draw border
-            if (!BorderColor.HasValue) return;
-            if (Size.HasValue)
-                graphics.DrawRectangle(0, 0, Size.Value, BorderColor.Value);
-            else
+            if (BorderColor.HasValue)
+            {
                 graphics.DrawRectangle(0, 0, ClientArea.Value, BorderColor.Value);
+            }
+            CallHook(this, EventHook.AfterDraw, graphics, viewportX, viewportY, viewportSize);
         }
     }
 }
