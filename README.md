@@ -30,7 +30,7 @@ Mainly testing on Windows and Ubuntu. Feel free to test on other platforms.<br>
  - When developing apps for Cerulean UI with Visual Studio, add a pre-build event that calls `%CERULEAN_CLI_PATH%\\crn.exe build-xml`.
     - Where `%CERULEAN_CLI_PATH%` is the directory to the `crn.exe` binary
     - Eventually, a build command will be added onto `crn.exe` that automates XML layout building, resource packing and dotnet build process.
-    - If you are using and editor such as VS Code and want to do this manually, the command syntax is:
+    - If you are using an editor such as VS Code and want to do this manually, the command syntax is:
         ```bash
         crn build-xml <project-folder> <project-folder>/.cerulean
         ```
