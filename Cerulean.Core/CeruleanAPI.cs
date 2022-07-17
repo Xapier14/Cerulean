@@ -18,7 +18,7 @@ namespace Cerulean.Core
     /// </summary>
     public sealed class CeruleanAPI
     {
-        #region Private Fields
+        #region Private & Internal Fields
         private static readonly CeruleanAPI _instance = new();
 
         private const int MAX_WORK_ITEMS = 5;
@@ -26,7 +26,6 @@ namespace Cerulean.Core
         private readonly Thread _thread;
         private readonly ConcurrentDictionary<uint, Window> _windows;
         private readonly ConcurrentQueue<WorkItem> _workItems;
-        private readonly EmbeddedLayouts _embeddedLayouts;
 
         private ILoggingService? _logger;
         private IGraphicsFactory? _graphicsFactory;
@@ -35,6 +34,9 @@ namespace Cerulean.Core
         private bool _stopped;
         private bool _quitting;
         private int _threadId;
+
+        internal EmbeddedLayouts EmbeddedLayouts { get; }
+        internal EmbeddedResources EmbeddedResources { get; }
         #endregion
 
         /// <summary>
@@ -102,7 +104,8 @@ namespace Cerulean.Core
             _thread = new Thread(new ThreadStart(WorkerThread));
             _windows = new ConcurrentDictionary<uint, Window>();
             _workItems = new ConcurrentQueue<WorkItem>();
-            _embeddedLayouts = new EmbeddedLayouts();
+            EmbeddedLayouts = new EmbeddedLayouts();
+            EmbeddedResources = new EmbeddedResources();
             Profiler = null;
         }
 
@@ -230,7 +233,8 @@ namespace Cerulean.Core
             _running = true;
             _stopped = false;
             _logger?.Log("Loading embedded layouts...");
-            _embeddedLayouts.RetrieveLayouts();
+            EmbeddedLayouts.RetrieveLayouts();
+            EmbeddedResources.RetrieveResources();
             _thread.Start();
             return this;
         }
@@ -299,7 +303,7 @@ namespace Cerulean.Core
         public CeruleanAPI UseLogger(ILoggingService loggingService)
         {
             _logger = loggingService;
-            _embeddedLayouts.SetLogger(loggingService);
+            EmbeddedLayouts.SetLogger(loggingService);
             return this;
         }
 
@@ -433,7 +437,40 @@ namespace Cerulean.Core
         public Layout FetchLayout(string name)
         {
             EnsureInitialized();
-            return _embeddedLayouts.FetchLayout(name);
+            return EmbeddedLayouts.FetchLayout(name);
+        }
+
+        /// <summary>
+        /// Fetches an image resource by name.
+        /// </summary>
+        /// <param name="name">The name of the image resource.</param>
+        /// <returns>The image resource.</returns>
+        public Resource FetchImage(string name)
+        {
+            EnsureInitialized();
+            return EmbeddedResources.FetchImage(name);
+        }
+
+        /// <summary>
+        /// Fetches an audio resource by name.
+        /// </summary>
+        /// <param name="name">The name of the audio resource.</param>
+        /// <returns>The audio resource.</returns>
+        public Resource FetchAudio(string name)
+        {
+            EnsureInitialized();
+            return EmbeddedResources.FetchAudio(name);
+        }
+
+        /// <summary>
+        /// Fetches a text resource by name.
+        /// </summary>
+        /// <param name="name">The name of the text resource.</param>
+        /// <returns>The text resource.</returns>
+        public Resource FetchText(string name)
+        {
+            EnsureInitialized();
+            return EmbeddedResources.FetchText(name);
         }
 
         /// <summary>

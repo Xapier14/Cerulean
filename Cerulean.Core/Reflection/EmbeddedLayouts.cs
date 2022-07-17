@@ -10,7 +10,7 @@ namespace Cerulean.Core
         private ILoggingService? _logger;
         internal EmbeddedLayouts(ILoggingService? loggingService = null)
         {
-            _layouts = new();
+            _layouts = new ConcurrentDictionary<string, ConstructorInfo>();
             _logger = loggingService;
         }
 
@@ -42,37 +42,33 @@ namespace Cerulean.Core
 
                 _logger?.Log($"Loaded layout '{layoutType.Name}'.");
             }
-            if (_layouts.IsEmpty)
-            {
-                _logger?.Log("No layouts loaded.");
-            }
-            else
-            {
-                _logger?.Log($"Loaded {_layouts.Count} layout(s).");
-            }
+
+            _logger?.Log(_layouts.IsEmpty
+                ? "No layouts loaded."
+                : $"Loaded {_layouts.Count} layout(s).");
         }
 
         public Layout FetchLayout(string name)
         {
-            if (_layouts.TryGetValue(name, out var layoutConstructor))
-                try
-                {
-                    return (Layout)layoutConstructor.Invoke(Array.Empty<object>());
-                }
-                catch (TargetInvocationException ex)
-                {
-                    _logger?.Log($"Ctor error constructing layout '{name}'.", LogSeverity.Fatal);
-                    if (ex.InnerException is not null)
-                        throw new FatalAPIException(ex.InnerException.Message);
-                    throw new FatalAPIException("Layout construction error.");
-                }
-                catch (Exception ex)
-                {
-                    _logger?.Log($"General error constructing layout '{name}'.", LogSeverity.Fatal);
-                    throw new FatalAPIException(ex.Message);
-                }
-            throw new GeneralAPIException("Layout not found.");
+            if (!_layouts.TryGetValue(name, out var layoutConstructor))
+                throw new GeneralAPIException("Layout not found.");
 
+            try
+            {
+                return (Layout)layoutConstructor.Invoke(Array.Empty<object>());
+            }
+            catch (TargetInvocationException ex)
+            {
+                _logger?.Log($"Ctor error constructing layout '{name}'.", LogSeverity.Fatal);
+                if (ex.InnerException is not null)
+                    throw new FatalAPIException(ex.InnerException.Message);
+                throw new FatalAPIException("Layout construction error.");
+            }
+            catch (Exception ex)
+            {
+                _logger?.Log($"General error constructing layout '{name}'.", LogSeverity.Fatal);
+                throw new FatalAPIException(ex.Message);
+            }
         }
     }
 }
