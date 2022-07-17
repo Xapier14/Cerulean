@@ -8,22 +8,20 @@ namespace Cerulean.Core
         private readonly object _lock = new();
         public LogSeverity LoggingLevel { get; set; } = LogSeverity.Fatal;
 
-        public void Init()
+        void ILoggingService.Init()
         {
-
+            
         }
 
         public void Log(string message, LogSeverity severity = LogSeverity.General)
         {
-            if (severity <= LoggingLevel)
+            if (severity > LoggingLevel) return;
+            lock (_lock)
             {
-                lock (_lock)
-                {
-                    Console.WriteLine("[{0}] [{1}] {2}",
-                        DateTime.Now,
-                        severity,
-                        message);
-                }
+                Console.WriteLine("[{0}] [{1}] {2}",
+                    DateTime.Now,
+                    severity,
+                    message);
             }
         }
 

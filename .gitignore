@@ -1,7 +1,9 @@
 .vs/
 .vscode/
+.idea/
 Cerulean.Stub.*/
 bin/
 obj/
 Cerulean.CLI/Properties/
 Examples/TestBed/
+Docs/

@@ -27,7 +27,11 @@
 
         public override string ToString()
         {
-            return "#???";
+            var r = (R < 16 ? "0" : "") + R.ToString("X");
+            var g = (G < 16 ? "0" : "") + G.ToString("X");
+            var b = (B < 16 ? "0" : "") + B.ToString("X");
+            var a = A < 255 ? (A < 16 ? "0" : "") + A.ToString("X") : "";
+            return $"#{r}{g}{b}{a}";
         }
     }
 }

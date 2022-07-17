@@ -11,6 +11,12 @@
             H = height;
         }
 
+        public Size(Size size)
+        {
+            W = size.W;
+            H = size.H;
+        }
+
         public static Size operator +(Size obj1, Size obj2)
         {
             return new Size()
@@ -47,9 +53,31 @@
             };
         }
 
+        public static bool operator ==(Size obj1, Size obj2)
+        {
+            return obj1.W == obj2.W && obj1.H == obj2.H;
+        }
+
+        public static bool operator !=(Size obj1, Size obj2)
+        {
+            return !(obj1 == obj2);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is Size size)
+                return size == this;
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return W.GetHashCode() ^ H.GetHashCode();
+        }
+
         public override string ToString()
         {
-            return $"({W}, {H})";
+            return $"({W}x{H})";
         }
     }
 }

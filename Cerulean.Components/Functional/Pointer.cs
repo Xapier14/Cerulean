@@ -9,14 +9,8 @@ namespace Cerulean.Components
     {
         private int _x;
         private int _y;
-        public override int X
-        {
-            get { return _x; }
-        }
-        public override int Y
-        {
-            get { return _y; }
-        }
+        public override int X => _x;
+        public override int Y => _y;
 
         public Pointer()
         {
@@ -25,11 +19,11 @@ namespace Cerulean.Components
 
         public override void Update(object? window, Size clientArea)
         {
-            (int globalX, int globalY) = Mouse.GetGlobalMousePosition();
-            ClientArea = clientArea;
+            var ( globalX, globalY) = Mouse.GetGlobalMousePosition();
+            ClientArea = null;
             if (window is Window ceruleanWindow)
             {
-                (int windowX, int windowY) = ceruleanWindow.WindowPosition;
+                var ( windowX, windowY) = ceruleanWindow.WindowPosition;
                 _x = globalX - windowX;
                 _y = globalY - windowY;
             }
