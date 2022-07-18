@@ -10,6 +10,7 @@
     <Authors>Lance Crisang</Authors>
     <Product>Cerulean Core API</Product>
     <Description>The Cerulean Core API.</Description>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">

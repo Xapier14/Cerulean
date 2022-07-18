@@ -20,6 +20,13 @@ namespace Cerulean.Core
 
         internal bool OnCloseFromEvent;
         private string _windowTitle = "";
+
+        // IME
+        internal string IMEText = "";
+        internal string IMEComposition = "";
+        internal int IMECursor = -1;
+        internal int IMESelectionLength = -1;
+
         #endregion
 
         /// <summary>

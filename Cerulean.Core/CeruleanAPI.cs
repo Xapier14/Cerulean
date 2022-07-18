@@ -1,7 +1,7 @@
 ﻿using Cerulean.Common;
 using Cerulean.Core.Logging;
 using System.Collections.Concurrent;
-using System.Runtime.InteropServices.ComTypes;
+using System.Runtime.InteropServices;
 using static SDL2.SDL;
 
 namespace Cerulean.Core
@@ -93,6 +93,47 @@ namespace Cerulean.Core
                     break;
             }
         }
+
+        /// <summary>
+        /// SDL Text Input Event Handler
+        /// </summary>
+        /// <param name="sdlEvent">The SDL_Event from polling events.</param>
+        private void HandleTextInputEvent(SDL_Event sdlEvent)
+        {
+            if (!_windows.TryGetValue(sdlEvent.window.windowID, out var window))
+                return;
+            string? text;
+            unsafe
+            {
+                text = Marshal.PtrToStringUTF8(new IntPtr(sdlEvent.text.text));
+            }
+
+            if (text is not null)
+                window.IMEText += text;
+        }
+
+        /// <summary>
+        /// SDL Text Editing Event Handler
+        /// </summary>
+        /// <param name="sdlEvent">The SDL_Event from polling events.</param>
+        private void HandleTextEditingEvent(SDL_Event sdlEvent)
+        {
+            if (!_windows.TryGetValue(sdlEvent.window.windowID, out var window))
+                return;
+            string? composition;
+            unsafe
+            {
+                composition = Marshal.PtrToStringUTF8(new IntPtr(sdlEvent.edit.text));
+            }
+            var cursor = sdlEvent.edit.start;
+            var selectionLength = sdlEvent.edit.length;
+
+            if (composition is null)
+                return;
+            window.IMEComposition = composition;
+            window.IMECursor = cursor;
+            window.IMESelectionLength = selectionLength;
+        }
         #endregion
 
         #region Private Auxilliary Methods
@@ -178,6 +219,12 @@ namespace Cerulean.Core
                         {
                             case SDL_EventType.SDL_WINDOWEVENT:
                                 HandleWindowEvent(sdlEvent);
+                                break;
+                            case SDL_EventType.SDL_TEXTINPUT:
+                                HandleTextInputEvent(sdlEvent);
+                                break;
+                            case SDL_EventType.SDL_TEXTEDITING:
+                                HandleTextEditingEvent(sdlEvent);
                                 break;
                         }
                     }
