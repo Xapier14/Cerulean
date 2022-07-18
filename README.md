@@ -8,6 +8,53 @@
 Write <strong>cross-platform</strong> GUI apps using simple XML and C#.<br>
 Mainly testing on Windows and Ubuntu. Feel free to test on other platforms.<br>
 
+<h2>Getting Started</h2>
+
+> **Warning**
+> This section is heavily under-construction. Use a release build instead if available.
+
+1. Clone the repository via:
+    ```powershell
+    git clone https://github.com/Xapier14/Cerulean.git --recurse-submodules
+    ```
+2. Build the Cerulean.CLI project.
+    - You can build this as normal or as a single-file app.
+    - Take note that some features might not be available as a single-file app.
+3. Add the `crn` executable to your binaries folder or `%PATH%` environment variable.
+4. Create your new app via:
+    ```powershell
+    crn new <app_name>
+    ```
+> **Note**
+> This will be subject to change in a later release.
+5. Build the XMLs.
+    ```powershell
+    cd <app_name>
+    crn build-xml
+    ```
+    Navigate to the newly created directory and build the XMLs.
+6. Build the project.
+    ```powershell
+    dotnet build
+    ```
+7. [*Only For Windows Users*] Bundle the SDL2 runtime binaries.
+    - Download the SDL2 runtime binary [here](https://libsdl.org/).
+    - Download the SDL2_ttf runtime binaries [here](https://www.libsdl.org/projects/SDL_ttf/release/).
+    - Download the SDL2_image runtime binary [here](https://www.libsdl.org/projects/SDL_image/release/).
+    
+    > See [Important Notes](https://github.com/Xapier14/Cerulean#important-notes) on what architecture to use.
+
+    After downloading, copy the binaries over to the build directory.
+    - Debug: `./bin/Debug/net*.*/`
+    - Release: `./bin/Release/net*.*/`
+
+    You'll need to bundle these too when publishing the app.
+
+8. Run the app via:
+    ```powershell
+    dotnet run
+    ```
+
 <h2>Important Notes</h2>
 
  - ~~Mostly~~ **.NET 6** is required. ~~The CLI tool needs **.NET 7** but can be altered to only require **.NET 6**.~~ 
