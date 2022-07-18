@@ -20,7 +20,7 @@ namespace Cerulean.Core
 
         public Font GetFont(string name, string style, int pointSize)
         {
-            if (!TryGetFont(name, style, pointSize, out Font? font))
+            if (!TryGetFont(name, style, pointSize, out var font))
             {
                 CeruleanAPI.GetAPI().Log($"Could not find font {name} {style} {pointSize}pt in cache. Loading font...");
                 font = Font.LoadFont(name, style, pointSize);
@@ -35,7 +35,7 @@ namespace Cerulean.Core
         {
             font = null;
             // select a single element with the same Identity as identifier
-            LinkedListNode? node = _cache.Head;
+            var node = _cache.Head;
             while (node is LinkedListNode fontNode)
             {
                 if (fontNode.Data.ToString() == GetID(name, style, pointSize))
@@ -45,7 +45,7 @@ namespace Cerulean.Core
                 }
                 node = node.Next;
             }
-            bool found = font != null;
+            var found = font != null;
 
             // move font node closer to front
             if (node is not null && node.Previous is not null)
@@ -58,7 +58,7 @@ namespace Cerulean.Core
 
         public void Clear()
         {
-            foreach (Font font in _cache)
+            foreach (var font in _cache)
                 font.Dispose();
             _cache.Clear();
         }

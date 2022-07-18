@@ -22,7 +22,7 @@ namespace Cerulean.Core
             {
                 if (_cache.Count >= _maxCount && _cache.Tail is not null)
                 {
-                    IntPtr ptr = _cache.Tail.Data.SDLTexture;
+                    var ptr = _cache.Tail.Data.SDLTexture;
                     SDL_DestroyTexture(ptr);
                     _cache.DeleteNode(_cache.Tail);
                 }
@@ -34,7 +34,7 @@ namespace Cerulean.Core
         {
             texture = null;
             // select a single element with the same Identity as identifier
-            LinkedListNode? node = _cache.Head;
+            var node = _cache.Head;
             while (node is LinkedListNode textureNode)
             {
                 if (textureNode.Data.Identity == identifier)
@@ -44,7 +44,7 @@ namespace Cerulean.Core
                 }
                 node = node.Next;
             }
-            bool found = texture != null;
+            var found = texture != null;
 
             // move texture node closer to front
             if (node is not null && node.Previous is not null)
@@ -57,14 +57,14 @@ namespace Cerulean.Core
 
         public void Clear()
         {
-            foreach (Texture texture in _cache)
+            foreach (var texture in _cache)
                 SDL_DestroyTexture(texture.SDLTexture);
             _cache.Clear();
         }
 
         public void DevalueTextures()
         {
-            for (int i = 0; i < _cache.Count; ++i)
+            for (var i = 0; i < _cache.Count; ++i)
             {
                 if (_cache[i].Score <= 0)
                 {

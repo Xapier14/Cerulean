@@ -1,7 +1,7 @@
 ﻿using Cerulean.CLI;
 using Cerulean.CLI.Commands;
 
-Router router = Router.GetRouter();
+var router = Router.GetRouter();
 
 /* Register commands */
 // if using .NET 7
@@ -19,8 +19,8 @@ if (args.Length == 0)
 }
 
 // Parse and execute command
-string commandName = args[0];
-string[] commandArgs = args.Skip(1).ToArray();
+var commandName = args[0];
+var commandArgs = args.Skip(1).ToArray();
 if (!router.ExecuteCommand(commandName, commandArgs))
 {
     Help.DisplayGeneralHelp();

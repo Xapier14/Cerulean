@@ -63,8 +63,8 @@ namespace Cerulean.Core
                 CeruleanAPI.GetAPI().Log("Surface is null.", LogSeverity.Warning);
                 return true;
             }
-            SDL_Surface surface = Marshal.PtrToStructure<SDL_Surface>(surfacePtr);
-            _ = SDL_GetRendererInfo(RendererPtr, out SDL_RendererInfo rendererInfo);
+            var surface = Marshal.PtrToStructure<SDL_Surface>(surfacePtr);
+            _ = SDL_GetRendererInfo(RendererPtr, out var rendererInfo);
             if (surface.w <= 0 || surface.h <= 0)
                 return true;
 
@@ -72,7 +72,7 @@ namespace Cerulean.Core
                 surface.h > rendererInfo.max_texture_height)
             {
                 // resize surface
-                SDL_PixelFormat pixelFormat = Marshal.PtrToStructure<SDL_PixelFormat>(surface.format);
+                var pixelFormat = Marshal.PtrToStructure<SDL_PixelFormat>(surface.format);
                 SDL_Rect rect = new()
                 {
                     x = 0,
@@ -80,7 +80,7 @@ namespace Cerulean.Core
                     w = Min(surface.w, rendererInfo.max_texture_width),
                     h = Min(surface.h, rendererInfo.max_texture_height)
                 };
-                IntPtr newPtr = SDL_CreateRGBSurface(
+                var newPtr = SDL_CreateRGBSurface(
                     0,
                     rect.w,
                     rect.h,
@@ -214,25 +214,25 @@ namespace Cerulean.Core
         #region TEXTURE
         public void DrawImage(int x, int y, Size size, string fileName, PictureMode pictureMode, double opacity)
         {
-            string fingerprint = $"{fileName}_{pictureMode.ToString()}_{opacity}";
+            var fingerprint = $"{fileName}_{pictureMode.ToString()}_{opacity}";
             Texture? texture;
             if (!_textureCache.TryGetTexture(fingerprint, out texture))
             {
-                IntPtr sdlSurface = IMG_Load(fileName);
+                var sdlSurface = IMG_Load(fileName);
                 if (sdlSurface == IntPtr.Zero)
                 {
-                    string error = IMG_GetError();
+                    var error = IMG_GetError();
                     CeruleanAPI.GetAPI().Log($"Could not load image file via SDL_image. Reason: {error}");
                     throw new GeneralAPIException(error);
                 }
-                IntPtr sdlTexture = SDL_CreateTextureFromSurface(RendererPtr, sdlSurface);
+                var sdlTexture = SDL_CreateTextureFromSurface(RendererPtr, sdlSurface);
                 if (sdlTexture == IntPtr.Zero)
                 {
-                    string error = SDL_GetError();
+                    var error = SDL_GetError();
                     CeruleanAPI.GetAPI().Log($"Could not create texture from surface. Reason: {error}");
                     throw new GeneralAPIException(error);
                 }
-                SDL_GetClipRect(sdlSurface, out SDL_Rect rect);
+                SDL_GetClipRect(sdlSurface, out var rect);
                 Size surfaceSize = new(rect.w, rect.h);
                 texture = new Texture()
                 {
@@ -262,22 +262,22 @@ namespace Cerulean.Core
                             h = size.H;
                             break;
                         case PictureMode.Center:
-                            int w2 = (size.W - w) / 2;
-                            int h2 = (size.H - h) / 2;
+                            var w2 = (size.W - w) / 2;
+                            var h2 = (size.H - h) / 2;
                             imageX = x + _globalX + w2;
                             imageY = y + _globalY + h2;
                             break;
                         case PictureMode.Cover:
-                            int diffW = size.W - imageSize.W;
-                            int diffH = size.H - imageSize.H;
+                            var diffW = size.W - imageSize.W;
+                            var diffH = size.H - imageSize.H;
                             if (diffW > diffH)
                             {
-                                double scale = (double)size.W / imageSize.W;
+                                var scale = (double)size.W / imageSize.W;
                                 w = size.W;
                                 h = (int)(imageSize.H * scale);
                             } else 
                             {
-                                double scale = (double)size.H / imageSize.H;
+                                var scale = (double)size.H / imageSize.H;
                                 h = size.H;
                                 w = (int)(imageSize.W * scale);
                             }
@@ -285,7 +285,7 @@ namespace Cerulean.Core
                             imageY = y + _globalY +  (size.H - h) / 2;
                             break;
                         case PictureMode.Fit:
-                            double factor = Math.Min((double)size.W / imageSize.W, (double)size.H / imageSize.H);
+                            var factor = Math.Min((double)size.W / imageSize.W, (double)size.H / imageSize.H);
                             w = (int)(imageSize.W * factor);
                             h = (int)(imageSize.H * factor);
                             imageX = x + _globalX + (size.W - w) / 2;
@@ -294,14 +294,14 @@ namespace Cerulean.Core
                     }
                 } else
                 {
-                    int xRep = (int)Math.Ceiling((double)size.W / imageSize.W);
-                    int yRep = (int)Math.Ceiling((double)size.H / imageSize.H);
+                    var xRep = (int)Math.Ceiling((double)size.W / imageSize.W);
+                    var yRep = (int)Math.Ceiling((double)size.H / imageSize.H);
                     imageX = x;
                     imageY = y;
 
-                    for (int i = 0; i < xRep; i++)
+                    for (var i = 0; i < xRep; i++)
                     {
-                        for (int j = 0; j < yRep; j++)
+                        for (var j = 0; j < yRep; j++)
                         {
                             DrawImage(imageX + i * imageSize.W, imageY + j * imageSize.H, imageSize, fileName, PictureMode.None, opacity);
                         }
@@ -381,7 +381,7 @@ namespace Cerulean.Core
                 }
                 CeruleanAPI.GetAPI().Profiler?.EndProfilingCurrentPoint();
                 CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("ConvertToTexture");
-                IntPtr sdlTexture = SDL_CreateTextureFromSurface(RendererPtr, surface);
+                var sdlTexture = SDL_CreateTextureFromSurface(RendererPtr, surface);
                 if (sdlTexture == IntPtr.Zero)
                     throw new GeneralAPIException(SDL_GetError());
                 SDL_GetClipRect(surface, out var destRect);

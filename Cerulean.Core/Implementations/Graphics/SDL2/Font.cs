@@ -42,7 +42,7 @@ namespace Cerulean.Core
         {
             path = "";
             // find in local app directory
-            string basePath = Path.Combine(
+            var basePath = Path.Combine(
                 Environment.CurrentDirectory,
                 "Fonts");
             if (TryGetFile(basePath, name, out path))
@@ -64,7 +64,7 @@ namespace Cerulean.Core
             // }
 
             // find in system fonts
-            string systemPath = "";
+            var systemPath = "";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 systemPath = @"C:\Windows\Fonts";
@@ -105,7 +105,7 @@ namespace Cerulean.Core
 
         public static Font LoadFont(string name, string style, int pointSize)
         {
-            if (TryFindTTF(name, out string path))
+            if (TryFindTTF(name, out var path))
             {
                 var fontPtr = TTF_OpenFont(path, pointSize);
                 if (fontPtr == IntPtr.Zero)

@@ -10,46 +10,48 @@ namespace Cerulean.CLI.Commands
         {
             const string fileExtension = ".xml";
 
-            string projectPath = "./";
-            string outputPath = "./.cerulean";
+            var projectPath = "./";
+            var outputPath = "./.cerulean";
             if (args.Length > 0)
                 projectPath = args[0];
             if (args.Length > 1)
                 outputPath = args[1];
             if (!Directory.Exists(projectPath))
             {
-                Console.WriteLine($"Project path '{projectPath}' does not exist.");
+                ColoredConsole.WriteLine($"$red^Project path '{projectPath}' does not exist.$r^");
                 Environment.Exit(-1);
             }
             if (!Directory.Exists(outputPath))
                 Directory.CreateDirectory(outputPath);
+            var projectPathInfo = new DirectoryInfo(projectPath);
+            var projectExists = projectPathInfo
+                .EnumerateFiles()
+                .Any(fileInfo => fileInfo.Extension.ToLower() == ".csproj");
+            if (!projectExists)
+            {
+                ColoredConsole.WriteLine($"$red^A C# project does not exist in the current directory.$r^");
+                Environment.Exit(-2);
+            }
 
             DirectoryInfo dirInfo = new(projectPath);
             DirectoryInfo outDirInfo = new(outputPath);
             BuilderContext context = new();
 
             // build XMLs in project directory
-            foreach (FileInfo file in dirInfo.GetAllFiles())
+            foreach (var file in dirInfo.GetAllFiles())
             {
-                if (file.Name.ToLower().EndsWith(fileExtension.ToLower()))
-                {
-                    // reset imports
-                    context.UseDefaultImports();
-                    if (Builder.BuildContextFromXML(context, file.FullName))
-                    {
-                        Console.WriteLine("[GOOD][XML] '{0}'", file.FullName);
-                    }
-                    else
-                    {
-                        Console.WriteLine("[FAIL][XML] '{0}'", file.FullName);
-                    }
-                }
+                if (!file.Name.ToLower().EndsWith(fileExtension.ToLower())) continue;
+                // reset imports
+                context.UseDefaultImports();
+                ColoredConsole.WriteLine(Builder.BuildContextFromXML(context, file.FullName)
+                    ? $"[$green^GOOD$r^][$yellow^XML$r^] '{file.FullName}'"
+                    : $"[$red^FAIL$r^][$yellow^XML$r^] '{file.FullName}'");
             }
 
             // clean output directory
             var files = outDirInfo.GetAllFiles();
             var dirs = outDirInfo.GetDirectories();
-            int cleanErrors = 0;
+            var cleanErrors = 0;
             foreach (var file in files)
             {
                 try
@@ -58,7 +60,7 @@ namespace Cerulean.CLI.Commands
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("[FAIL][CLEAN] Could not delete file '{0}'. {1}", file.FullName, ex.Message);
+                    ColoredConsole.WriteLine($"[$red^FAIL$r^][$cyan^CLEAN$r^] Could not delete file '{file.FullName}'. {ex.Message}");
                     cleanErrors++;
                 }
             }
@@ -70,26 +72,25 @@ namespace Cerulean.CLI.Commands
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("[FAIL][CLEAN] Could not delete directory '{0}'. {1}", dir.FullName, ex.Message);
+                    ColoredConsole.WriteLine($"[$red^FAIL$r^][$cyan^CLEAN$r^] Could not delete directory '{dir.FullName}'. {ex.Message}");
                     cleanErrors++;
                 }
             }
-            Console.WriteLine(cleanErrors > 0 ? "[WARN][CLEAN] Directory cleaned with {0} errors."
-                                              : "[GOOD][CLEAN] Directory cleaned successfully."
-                                              , cleanErrors);
+            ColoredConsole.WriteLine(cleanErrors > 0 ? $"[$yellow^WARN$r^][$cyan^CLEAN$r^] Directory cleaned with {cleanErrors} errors."
+                                                      : "[$green^GOOD$r^][$cyan^CLEAN$r^] Directory cleaned successfully.");
 
             // write all exportable files
-            int index = 0;
+            var index = 0;
             foreach (var pair in context.Layouts)
             {
-                Console.WriteLine("[EXPORT] Exporting layout '{0}'...", pair.Key);
+                ColoredConsole.WriteLine($"[$cyan^EXPORT$r^] Exporting layout '{pair.Key}'...");
                 File.WriteAllText(outDirInfo.FullName + $"/layout{index}.cs", pair.Value);
                 index++;
             }
             index = 0;
             foreach (var pair in context.Styles)
             {
-                Console.WriteLine("[EXPORT] Exporting style '{0}'...", pair.Key);
+                ColoredConsole.WriteLine($"[$cyan^EXPORT$r^] Exporting style '{pair.Key}'...");
                 File.WriteAllText(outDirInfo.FullName + $"/style{index}.cs", pair.Value);
                 index++;
             }
