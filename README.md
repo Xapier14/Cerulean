@@ -80,6 +80,6 @@ Mainly testing on Windows and Ubuntu. Feel free to test on other platforms.<br>
 ### Cerulean CLI
  - [ ] Style Builder
  - [ ] C# Snippet Element
- - [ ] Project Builder/Scaffolder
+ - [x] Project Builder/Scaffolder
 <h2>Warning</h2>
 This is a WIP project, please do not use in commercial projects.<br>
