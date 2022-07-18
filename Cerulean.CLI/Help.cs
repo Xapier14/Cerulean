@@ -16,16 +16,16 @@ namespace Cerulean.CLI
             Console.WriteLine(@" \______\___|_|  \___,_|_|\___|\__,_|_| |_| \_____|_____|___|");
             Console.WriteLine();
             Console.ResetColor();
-            string name = "crn.exe";
+            var name = "crn.exe";
             try
             {
                 var version = FileVersionInfo.GetVersionInfo(Path.Combine(AppContext.BaseDirectory, "crn.exe"));
                 name = version.InternalName ?? "crn.exe";
-                Console.WriteLine(" Cerulean CLI: {0}.{1}.{2}", version.FileMajorPart, version.FileMinorPart, version.FileBuildPart);
+                Console.WriteLine($" Cerulean CLI: {version.FileMajorPart}.{version.FileMajorPart}.{version.FileBuildPart}");
             }
             catch
             {
-                Console.WriteLine(" Cerulean CLI: ?.?.? (malformed executable?)");
+                ColoredConsole.WriteLine(" Cerulean CLI: ?.?.? $red^(malformed executable?)$r^");
             }
             var cli = name.Remove(name.Length - 4, 4);
 
@@ -43,17 +43,19 @@ namespace Cerulean.CLI
             process.Start();
             process.WaitForExit();
             var versionString = process.StandardOutput.ReadToEnd();
-            Match match = Regex.Match(versionString, @"(\d+).(\d+).(\d+)");
+            var match = Regex.Match(versionString, @"(\d+).(\d+).(\d+)");
             var netMajor = int.Parse(match.Groups[1].Value);
             var netMinor = int.Parse(match.Groups[2].Value);
             var netBuild = int.Parse(match.Groups[3].Value);
-            Console.WriteLine(".net SDK: {0}.{1}.{2}", netMajor, netMinor, netBuild);
+            var outdated = netMajor < 6;
+            ColoredConsole.WriteLine($" .NET SDK: {netMajor}.{netMinor}.{netBuild} " +
+                                     (outdated ? "$red^(outdated)$r^" : "$green^(supported)$r^"));
             Console.WriteLine();
 
             Console.WriteLine("Usage:");
-            Console.WriteLine($"\t{cli} <command> [args]");
+            ColoredConsole.WriteLine($"\t$cyan^{cli}$r^ $yellow^<command> [args]$r^");
             Console.WriteLine("Example:");
-            Console.WriteLine($"\t{cli} help xml");
+            ColoredConsole.WriteLine($"\t$cyan^{cli}$r^ $yellow^help build-xml$r^");
         }
     }
 }

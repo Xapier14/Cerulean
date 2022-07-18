@@ -15,7 +15,7 @@ namespace Cerulean.Components
                 if (value < 0)
                     throw new ArgumentOutOfRangeException(nameof(value));
                 _columns = new int[value];
-                for (int i = 0; i < value; i++)
+                for (var i = 0; i < value; i++)
                     _columns[i] = 0;
             }
         }
@@ -27,7 +27,7 @@ namespace Cerulean.Components
                 if (value < 0)
                     throw new ArgumentOutOfRangeException(nameof(value));
                 _rows = new int[value];
-                for (int i = 0; i < value; i++)
+                for (var i = 0; i < value; i++)
                     _rows[i] = 0;
             }
         }

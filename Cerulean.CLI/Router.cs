@@ -45,14 +45,14 @@ namespace Cerulean.CLI
                 }
                 else
                 {
-                    Console.WriteLine($"[Router.RegisterCommands()] Could not load command \"{command?.Name}\".");
+                    ColoredConsole.WriteLine($"[$cyan^Router.RegisterCommands()$r^] Could not load command \"{command?.Name}\".");
                 }
             }
         }
 
         public bool ExecuteCommand(string commandName, params string[] args)
         {
-            if (_commands.TryGetValue(commandName, out Delegate? command))
+            if (_commands.TryGetValue(commandName, out var command))
             {
                 command?.DynamicInvoke(new[] { args });
                 return true;

@@ -7,7 +7,7 @@ namespace Cerulean.Core.Input
     {
         public static (int, int) GetGlobalMousePosition()
         {
-            SDL_GetGlobalMouseState(out int x, out int y);
+            SDL_GetGlobalMouseState(out var x, out var y);
             return (x, y);
         }
     }
