@@ -35,6 +35,13 @@ namespace Cerulean.Core
         private bool _quitting;
         private int _threadId;
 
+        // IME
+        private Window? _activeIMEWindow;
+        private string? _IMEText;
+        private string? _IMECompositionText;
+        private int? _IMECursor;
+        private int? _IMESelectionLength;
+
         internal EmbeddedLayouts EmbeddedLayouts { get; }
         internal EmbeddedResources EmbeddedResources { get; }
         #endregion
@@ -107,9 +114,11 @@ namespace Cerulean.Core
             {
                 text = Marshal.PtrToStringUTF8(new IntPtr(sdlEvent.text.text));
             }
+            _IMEText ??= "";
 
             if (text is not null)
-                window.IMEText += text;
+                _IMEText += text;
+            Log($"Input. Text: {_IMEText}");
         }
 
         /// <summary>
@@ -130,9 +139,10 @@ namespace Cerulean.Core
 
             if (composition is null)
                 return;
-            window.IMEComposition = composition;
-            window.IMECursor = cursor;
-            window.IMESelectionLength = selectionLength;
+            _IMECompositionText = composition;
+            _IMECursor = cursor;
+            _IMESelectionLength = selectionLength;
+            Log($"Editing. Composition: {composition}");
         }
         #endregion
 
@@ -571,6 +581,51 @@ namespace Cerulean.Core
             }
 
             work.WaitForCompletion();
+        }
+
+        /// <summary>
+        /// Starts IME Text Input from a given CeruleanAPI window.
+        /// <remarks>
+        /// Only one window can start a IME Text Input session at a given time.
+        /// </remarks>
+        /// </summary>
+        /// <param name="window">The window that starts the session.</param>
+        /// <param name="x">The X coordinate of where the input box is located at. This is relative to the window.</param>
+        /// <param name="y">The Y coordinate of where the input box is located at. This is relative to the window.</param>
+        /// <param name="area">The size of the input box.</param>
+        public void StartTextInput(Window window, int x, int y, Size area)
+        {
+            if (_activeIMEWindow is not null && _activeIMEWindow == window)
+                return;
+
+            if (SDL_IsTextInputActive() == SDL_bool.SDL_FALSE)
+                return;
+            SDL_StartTextInput();
+            var rect = new SDL_Rect
+            {
+                x = x,
+                y = y,
+                w = area.W,
+                h = area.H
+            };
+            SDL_SetTextInputRect(ref rect);
+        }
+
+        /// <summary>
+        /// Stops IME Text Input.
+        /// <remarks>
+        /// Only the window that holds the active session can stop the current text input.
+        /// </remarks>
+        /// </summary>
+        /// <param name="window">The window that stops the text input.</param>
+        public void StopTextInput(Window window)
+        {
+            if (_activeIMEWindow != window)
+                return;
+
+            if (SDL_IsTextInputActive() == SDL_bool.SDL_TRUE)
+                return;
+            SDL_StopTextInput();
         }
 
         /// <summary>
