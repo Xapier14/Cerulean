@@ -42,9 +42,6 @@ namespace Cerulean.Core
 
         public void Update()
         {
-            // TODO: keep texture cache to a specific size by removing old textures
-            //var ceruleanApi = CeruleanAPI.GetAPI();
-            //ceruleanApi.Log($"Texture Cache: {_textureCache.Count()}; Font Cache: {_fontCache.Count()}");
             _textureCache.DevalueTextures();
         }
 
