@@ -595,11 +595,12 @@ namespace Cerulean.Core
         /// <param name="area">The size of the input box.</param>
         public void StartTextInput(Window window, int x, int y, Size area)
         {
-            if (_activeIMEWindow is not null && _activeIMEWindow == window)
+            if (_activeIMEWindow == window)
                 return;
 
             if (SDL_IsTextInputActive() == SDL_bool.SDL_FALSE)
                 return;
+            _activeIMEWindow = window;
             SDL_StartTextInput();
             var rect = new SDL_Rect
             {
@@ -626,6 +627,7 @@ namespace Cerulean.Core
             if (SDL_IsTextInputActive() == SDL_bool.SDL_TRUE)
                 return;
             SDL_StopTextInput();
+            _activeIMEWindow = null;
         }
 
         /// <summary>
