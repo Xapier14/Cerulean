@@ -164,6 +164,12 @@ namespace Cerulean.Components
                 return;
             if (_cellSizes is null)
                 return;
+
+            // cache viewport data to be used by CheckHoveredComponent()
+            CachedViewportSize = viewportSize;
+            CachedViewportX = viewportX;
+            CachedViewportY = viewportY;
+
             graphics.GetGlobalPosition(out var oldX, out var oldY);
             // Draw fill
             if (BackColor.HasValue)

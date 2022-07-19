@@ -253,8 +253,14 @@ namespace Cerulean.Core
         /// The background fill color for this window.
         /// </summary>
         public Color BackColor { get; set; }
-
+        /// <summary>
+        /// The OpenGL context created by SDL.
+        /// </summary>
         public IntPtr GLContext { get; private set; }
+        /// <summary>
+        /// The top-most hovered component.
+        /// </summary>
+        public Component? HoveredComponent { get; internal set; }
 
         internal Window(Layout windowLayout, string windowTitle, Size windowSize, int threadId, IGraphicsFactory graphicsFactory, Window? parentWindow = null)
         {

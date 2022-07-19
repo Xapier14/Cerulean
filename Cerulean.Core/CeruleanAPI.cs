@@ -2,6 +2,7 @@
 using Cerulean.Core.Logging;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
+using Cerulean.Core.Input;
 using static SDL2.SDL;
 
 namespace Cerulean.Core
@@ -258,6 +259,16 @@ namespace Cerulean.Core
                         // update and draw window
                         window.Layout.Update(window, clientArea);
                         window.Draw();
+
+                        // get hovered components
+                        var mousePosition = Mouse.GetWindowMousePosition(window);
+                        if (mousePosition is not var (x, y))
+                        {
+                            x = -1;
+                            y = -1;
+                        }
+                        window.HoveredComponent = window.Layout.CheckHoveredComponent(x, y);
+
                         Profiler?.EndProfilingCurrentPoint();
                     }
                 }
