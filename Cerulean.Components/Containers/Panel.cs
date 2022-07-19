@@ -2,7 +2,7 @@
 
 namespace Cerulean.Components
 {
-    public class Panel : Component, ISized
+    public sealed class Panel : Component, ISized
     {
         public Size? Size { get; set; }
         public int? HintW { get; set; }

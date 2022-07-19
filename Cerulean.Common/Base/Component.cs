@@ -1,4 +1,5 @@
 ﻿using System.Dynamic;
+using System.Runtime.CompilerServices;
 
 namespace Cerulean.Common
 {
@@ -9,6 +10,8 @@ namespace Cerulean.Common
     {
         private readonly List<(EventHook, Action<Component, object[]>)> _eventHooks = new();
         private readonly Dictionary<string, Component> _components = new();
+        protected Size? CachedViewportSize;
+        protected int? CachedViewportX, CachedViewportY;
         protected bool CanBeChild { get; init; } = true;
         protected bool CanBeParent { get; init; } = true;
         protected bool DisableTopLevelHooks { get; init; } = true;
@@ -21,6 +24,7 @@ namespace Cerulean.Common
         public virtual int GridColumnSpan { get; set; } = 1;
         public virtual int X { get; set; }
         public virtual int Y { get; set; }
+        public virtual bool IsHoverableComponent { get; set; } = false;
         public Size? ClientArea { get; protected set; }
 
         public object this[string attribute]
@@ -227,6 +231,26 @@ namespace Cerulean.Common
                 CallHook(this, EventHook.AfterUpdate, window, clientArea);
         }
 
+        public virtual Component? CheckHoveredComponent(int x, int y)
+        {
+            if (CachedViewportSize is not { } viewport ||
+                CachedViewportX is not { } viewportX ||
+                CachedViewportY is not { } viewportY)
+                return null;
+            Component? hoveredComponent = null;
+            if (x < viewportX || x > viewportX + viewport.W ||
+                y < viewportY || y > viewportY + viewport.H)
+                return hoveredComponent;
+            hoveredComponent = IsHoverableComponent ? this : null;
+
+            foreach (var child in Children)
+            {
+                hoveredComponent = child.CheckHoveredComponent(x, y) ?? hoveredComponent;
+            }
+
+            return hoveredComponent;
+        }
+
         /// <summary>
         /// The component's draw step.
         /// Base behavior is a simple rectangle container.
@@ -239,6 +263,11 @@ namespace Cerulean.Common
         {
             // skip if component is functional, aka: no draw func
             if (!ClientArea.HasValue) return;
+
+            // cache viewport data to be used by CheckHoveredComponent()
+            CachedViewportSize = viewportSize;
+            CachedViewportX = viewportX;
+            CachedViewportY = viewportY;
 
             // check if viewport is at least visible
             if (viewportX + viewportSize.W <= 0 && viewportY + viewportSize.H <= 0)
