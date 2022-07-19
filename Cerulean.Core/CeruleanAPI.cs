@@ -109,6 +109,8 @@ namespace Cerulean.Core
         {
             if (!_windows.TryGetValue(sdlEvent.window.windowID, out var window))
                 return;
+            if (window != _activeIMEWindow)
+                return;
             string? text;
             unsafe
             {
@@ -128,6 +130,8 @@ namespace Cerulean.Core
         private void HandleTextEditingEvent(SDL_Event sdlEvent)
         {
             if (!_windows.TryGetValue(sdlEvent.window.windowID, out var window))
+                return;
+            if (window != _activeIMEWindow)
                 return;
             string? composition;
             unsafe
@@ -593,7 +597,9 @@ namespace Cerulean.Core
         /// <param name="x">The X coordinate of where the input box is located at. This is relative to the window.</param>
         /// <param name="y">The Y coordinate of where the input box is located at. This is relative to the window.</param>
         /// <param name="area">The size of the input box.</param>
-        public void StartTextInput(Window window, int x, int y, Size area)
+        /// <param name="text">The value of the input box.</param>
+        /// <param name="cursor">The index position of the cursor of the input box.</param>
+        public void StartTextInput(Window window, int x, int y, Size area, string text = "", int cursor = 0)
         {
             if (_activeIMEWindow == window)
                 return;
@@ -601,6 +607,9 @@ namespace Cerulean.Core
             if (SDL_IsTextInputActive() == SDL_bool.SDL_FALSE)
                 return;
             _activeIMEWindow = window;
+            _IMEText = text;
+            _IMECursor = cursor;
+            _IMECompositionText = "";
             SDL_StartTextInput();
             var rect = new SDL_Rect
             {
