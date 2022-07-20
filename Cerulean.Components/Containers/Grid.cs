@@ -34,6 +34,9 @@ namespace Cerulean.Components
         public Color? BackColor { get; set; }
         public override void Update(object? window, Size clientArea)
         {
+            if (window is not null)
+                CallHook(this, EventHook.BeforeUpdate, window, clientArea);
+
             // anchor to top left
             X = 0;
             Y = 0;
@@ -154,8 +157,16 @@ namespace Cerulean.Components
                 {
                     width += Math.Max(0, _cellSizes[child.GridRow, child.GridColumn + i].W);
                 }
-                child.Update(window, new Size(width, height));
+                var childArea = new Size(width, height);
+                if (window is not null)
+                    CallHook(child, EventHook.BeforeChildUpdate, window, childArea);
+                child.Update(window, childArea);
+                if (window is not null)
+                    CallHook(child, EventHook.AfterChildUpdate, window, childArea);
             }
+
+            if (window is not null)
+                CallHook(this, EventHook.AfterUpdate, window, clientArea);
         }
 
         public override void Draw(IGraphics graphics, int viewportX, int viewportY, Size viewportSize)
@@ -164,12 +175,18 @@ namespace Cerulean.Components
                 return;
             if (_cellSizes is null)
                 return;
-            graphics.GetGlobalPosition(out var oldX, out var oldY);
+            
+            CacheViewportData(viewportX, viewportY, viewportSize);
+
+            CallHook(this, EventHook.BeforeDraw, graphics, viewportX, viewportY, viewportSize);
+
             // Draw fill
             if (BackColor.HasValue)
             {
                 graphics.DrawFilledRectangle(0, 0, ClientArea.Value, BackColor.Value);
             }
+
+            graphics.GetGlobalPosition(out var oldX, out var oldY);
             foreach (var component in Children)
             {
                 /*
@@ -277,8 +294,14 @@ namespace Cerulean.Components
 
                 graphics.SetRenderArea(childSize, aX, aY);
                 graphics.SetGlobalPosition(offsetX, offsetY);
+
+                CallHook(component, EventHook.BeforeChildDraw, graphics, aX, aY, childSize);
                 component.Draw(graphics, aX, aY, childSize);
+                CallHook(component, EventHook.AfterChildDraw, graphics, aX, aY, childSize);
             }
+
+            CallHook(this, EventHook.AfterDraw, graphics, viewportX, viewportY, viewportSize);
+
             graphics.SetRenderArea(viewportSize, viewportX, viewportY);
             graphics.SetGlobalPosition(oldX, oldY);
         }

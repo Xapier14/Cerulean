@@ -23,25 +23,38 @@ namespace Cerulean.Components
 
         public override void Update(object? window, Size clientArea)
         {
+            if (window is not null)
+                CallHook(this, EventHook.BeforeUpdate, window, clientArea);
+
             ClientArea = Size ?? clientArea;
+
+            if (window is not null)
+                CallHook(this, EventHook.AfterUpdate, window, clientArea);
         }
 
         public override void Draw(IGraphics graphics, int viewportX, int viewportY, Size viewportSize)
         {
-            //Console.WriteLine("viewport: ({0}, {1}) {2}", viewportX, viewportY, viewportSize);
-            if (!ClientArea.HasValue) return;
-            if (BackColor.HasValue)
-            {
-                graphics.DrawFilledRectangle(0, 0, ClientArea.Value, BackColor.Value);
-            }
+            if (!ClientArea.HasValue)
+                return;
 
-            if (!ForeColor.HasValue || Text == string.Empty) return;
+            // cache viewport data to be used by CheckHoveredComponent()
+            CacheViewportData(viewportX, viewportY, viewportSize);
+
+            CallHook(this, EventHook.BeforeDraw, graphics, viewportX, viewportY, viewportSize);
+
+            if (BackColor.HasValue)
+                graphics.DrawFilledRectangle(0, 0, ClientArea.Value, BackColor.Value);
+            if (!ForeColor.HasValue || Text == string.Empty) 
+                return;
+
             var size = ClientArea.Value;
             size.W -= X;
             size.H -= Y;
             var textWrap = size.W;
             if (textWrap >= 0)
                 graphics.DrawText(0, 0, Text, FontName, FontStyle, FontSize, ForeColor.Value, WrapText ? (uint)(textWrap) : 0);
+
+            CallHook(this, EventHook.AfterDraw, graphics, viewportX, viewportY, viewportSize);
         }
     }
 }

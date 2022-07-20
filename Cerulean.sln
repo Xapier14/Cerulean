@@ -15,6 +15,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cerulean.CLI", "Cerulean.CL
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestBed", "Examples\TestBed\TestBed.csproj", "{B9CD7BC5-69DC-4489-A668-5C64484C7BDE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cerulean.Test", "Cerulean.Test\Cerulean.Test.csproj", "{650C024C-E9BC-4A20-9C32-F493C882ADE4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -97,6 +99,18 @@ Global
 		{B9CD7BC5-69DC-4489-A668-5C64484C7BDE}.Release|x64.Build.0 = Release|Any CPU
 		{B9CD7BC5-69DC-4489-A668-5C64484C7BDE}.Release|x86.ActiveCfg = Release|Any CPU
 		{B9CD7BC5-69DC-4489-A668-5C64484C7BDE}.Release|x86.Build.0 = Release|Any CPU
+		{650C024C-E9BC-4A20-9C32-F493C882ADE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{650C024C-E9BC-4A20-9C32-F493C882ADE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{650C024C-E9BC-4A20-9C32-F493C882ADE4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{650C024C-E9BC-4A20-9C32-F493C882ADE4}.Debug|x64.Build.0 = Debug|Any CPU
+		{650C024C-E9BC-4A20-9C32-F493C882ADE4}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{650C024C-E9BC-4A20-9C32-F493C882ADE4}.Debug|x86.Build.0 = Debug|Any CPU
+		{650C024C-E9BC-4A20-9C32-F493C882ADE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{650C024C-E9BC-4A20-9C32-F493C882ADE4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{650C024C-E9BC-4A20-9C32-F493C882ADE4}.Release|x64.ActiveCfg = Release|Any CPU
+		{650C024C-E9BC-4A20-9C32-F493C882ADE4}.Release|x64.Build.0 = Release|Any CPU
+		{650C024C-E9BC-4A20-9C32-F493C882ADE4}.Release|x86.ActiveCfg = Release|Any CPU
+		{650C024C-E9BC-4A20-9C32-F493C882ADE4}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

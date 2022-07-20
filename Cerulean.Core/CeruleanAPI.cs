@@ -1,7 +1,8 @@
 ﻿using Cerulean.Common;
 using Cerulean.Core.Logging;
 using System.Collections.Concurrent;
-using System.Runtime.InteropServices.ComTypes;
+using System.Runtime.InteropServices;
+using Cerulean.Core.Input;
 using static SDL2.SDL;
 
 namespace Cerulean.Core
@@ -34,6 +35,13 @@ namespace Cerulean.Core
         private bool _stopped;
         private bool _quitting;
         private int _threadId;
+
+        // IME
+        private Window? _activeIMEWindow;
+        private string? _IMEText;
+        private string? _IMECompositionText;
+        private int? _IMECursor;
+        private int? _IMESelectionLength;
 
         internal EmbeddedLayouts EmbeddedLayouts { get; }
         internal EmbeddedResources EmbeddedResources { get; }
@@ -92,6 +100,54 @@ namespace Cerulean.Core
                     window.InvokeOnMouseLeave();
                     break;
             }
+        }
+
+        /// <summary>
+        /// SDL Text Input Event Handler
+        /// </summary>
+        /// <param name="sdlEvent">The SDL_Event from polling events.</param>
+        private void HandleTextInputEvent(SDL_Event sdlEvent)
+        {
+            if (!_windows.TryGetValue(sdlEvent.window.windowID, out var window))
+                return;
+            if (window != _activeIMEWindow)
+                return;
+            string? text;
+            unsafe
+            {
+                text = Marshal.PtrToStringUTF8(new IntPtr(sdlEvent.text.text));
+            }
+            _IMEText ??= "";
+
+            if (text is not null)
+                _IMEText += text;
+            Log($"Input. Text: {_IMEText}");
+        }
+
+        /// <summary>
+        /// SDL Text Editing Event Handler
+        /// </summary>
+        /// <param name="sdlEvent">The SDL_Event from polling events.</param>
+        private void HandleTextEditingEvent(SDL_Event sdlEvent)
+        {
+            if (!_windows.TryGetValue(sdlEvent.window.windowID, out var window))
+                return;
+            if (window != _activeIMEWindow)
+                return;
+            string? composition;
+            unsafe
+            {
+                composition = Marshal.PtrToStringUTF8(new IntPtr(sdlEvent.edit.text));
+            }
+            var cursor = sdlEvent.edit.start;
+            var selectionLength = sdlEvent.edit.length;
+
+            if (composition is null)
+                return;
+            _IMECompositionText = composition;
+            _IMECursor = cursor;
+            _IMESelectionLength = selectionLength;
+            Log($"Editing. Composition: {composition}");
         }
         #endregion
 
@@ -179,6 +235,12 @@ namespace Cerulean.Core
                             case SDL_EventType.SDL_WINDOWEVENT:
                                 HandleWindowEvent(sdlEvent);
                                 break;
+                            case SDL_EventType.SDL_TEXTINPUT:
+                                HandleTextInputEvent(sdlEvent);
+                                break;
+                            case SDL_EventType.SDL_TEXTEDITING:
+                                HandleTextEditingEvent(sdlEvent);
+                                break;
                         }
                     }
                     Profiler?.EndProfilingCurrentPoint();
@@ -197,6 +259,16 @@ namespace Cerulean.Core
                         // update and draw window
                         window.Layout.Update(window, clientArea);
                         window.Draw();
+
+                        // get hovered components
+                        var mousePosition = Mouse.GetWindowMousePosition(window);
+                        if (mousePosition is not var (x, y))
+                        {
+                            x = -1;
+                            y = -1;
+                        }
+                        window.HoveredComponent = window.Layout.CheckHoveredComponent(x, y);
+
                         Profiler?.EndProfilingCurrentPoint();
                     }
                 }
@@ -524,6 +596,58 @@ namespace Cerulean.Core
             }
 
             work.WaitForCompletion();
+        }
+
+        /// <summary>
+        /// Starts IME Text Input from a given CeruleanAPI window.
+        /// <remarks>
+        /// Only one window can start a IME Text Input session at a given time.
+        /// </remarks>
+        /// </summary>
+        /// <param name="window">The window that starts the session.</param>
+        /// <param name="x">The X coordinate of where the input box is located at. This is relative to the window.</param>
+        /// <param name="y">The Y coordinate of where the input box is located at. This is relative to the window.</param>
+        /// <param name="area">The size of the input box.</param>
+        /// <param name="text">The value of the input box.</param>
+        /// <param name="cursor">The index position of the cursor of the input box.</param>
+        public void StartTextInput(Window window, int x, int y, Size area, string text = "", int cursor = 0)
+        {
+            if (_activeIMEWindow == window)
+                return;
+
+            if (SDL_IsTextInputActive() == SDL_bool.SDL_FALSE)
+                return;
+            _activeIMEWindow = window;
+            _IMEText = text;
+            _IMECursor = cursor;
+            _IMECompositionText = "";
+            SDL_StartTextInput();
+            var rect = new SDL_Rect
+            {
+                x = x,
+                y = y,
+                w = area.W,
+                h = area.H
+            };
+            SDL_SetTextInputRect(ref rect);
+        }
+
+        /// <summary>
+        /// Stops IME Text Input.
+        /// <remarks>
+        /// Only the window that holds the active session can stop the current text input.
+        /// </remarks>
+        /// </summary>
+        /// <param name="window">The window that stops the text input.</param>
+        public void StopTextInput(Window window)
+        {
+            if (_activeIMEWindow != window)
+                return;
+
+            if (SDL_IsTextInputActive() == SDL_bool.SDL_TRUE)
+                return;
+            SDL_StopTextInput();
+            _activeIMEWindow = null;
         }
 
         /// <summary>

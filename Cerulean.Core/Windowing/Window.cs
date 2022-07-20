@@ -27,6 +27,8 @@ namespace Cerulean.Core
         /// </summary>
         public static readonly Size DefaultWindowSize = new(600, 400);
         public delegate void WindowEventHandler(Window sender, WindowEventArgs e);
+
+        #region Events
         /// <summary>
         /// Called when the window has finished resizing.
         /// </summary>
@@ -68,6 +70,7 @@ namespace Cerulean.Core
         /// Called when the window loses focus.
         /// </summary>
         public WindowEventHandler? OnFocusLost;
+        #endregion
         /// <summary>
         /// Returns true if the window has been initialized.
         /// </summary>
@@ -250,8 +253,14 @@ namespace Cerulean.Core
         /// The background fill color for this window.
         /// </summary>
         public Color BackColor { get; set; }
-
+        /// <summary>
+        /// The OpenGL context created by SDL.
+        /// </summary>
         public IntPtr GLContext { get; private set; }
+        /// <summary>
+        /// The top-most hovered component.
+        /// </summary>
+        public Component? HoveredComponent { get; internal set; }
 
         internal Window(Layout windowLayout, string windowTitle, Size windowSize, int threadId, IGraphicsFactory graphicsFactory, Window? parentWindow = null)
         {
@@ -274,6 +283,7 @@ namespace Cerulean.Core
             SDL_DestroyWindow(WindowPtr);
             Closed = true;
         }
+
         /// <summary>
         /// Sends a window close event.
         /// </summary>
@@ -281,6 +291,25 @@ namespace Cerulean.Core
         {
             if (!Closed)
                 CeruleanAPI.GetAPI().CloseWindow(this);
+        }
+
+        /// <summary>
+        /// Starts IME Text Input.
+        /// </summary>
+        /// <param name="x">The X coordinate of where the input box is located at. This is relative to the window.</param>
+        /// <param name="y">The Y coordinate of where the input box is located at. This is relative to the window.</param>
+        /// <param name="area">The size of the input box.</param>
+        public void StartTextInput(int x, int y, Size area)
+        {
+            CeruleanAPI.GetAPI().StartTextInput(this, x, y, area);
+        }
+
+        /// <summary>
+        /// Stops IME Text Input.
+        /// </summary>
+        public void StopTextInput()
+        {
+            CeruleanAPI.GetAPI().StopTextInput(this);
         }
 
         private void EnsureMainThread(string? message = null)
