@@ -54,6 +54,13 @@ namespace Cerulean.Common
             });
         }
 
+        protected void CacheViewportData(int x, int y, Size size)
+        {
+            CachedViewportSize = size;
+            CachedViewportX = x;
+            CachedViewportY = y;
+        }
+
         protected void AddOrUpdateAttribute(string attribute, object value)
         {
             CallHook(this, EventHook.SetAttribute, attribute, value);
@@ -231,6 +238,12 @@ namespace Cerulean.Common
                 CallHook(this, EventHook.AfterUpdate, window, clientArea);
         }
 
+        /// <summary>
+        /// Check if the coordinate is within the drawn area of this component or its other child components.
+        /// </summary>
+        /// <param name="x">The X coordinate to check.</param>
+        /// <param name="y">The Y coordinate to check.</param>
+        /// <returns>The top-most component of the component result set.</returns>
         public virtual Component? CheckHoveredComponent(int x, int y)
         {
             if (CachedViewportSize is not { } viewport ||
@@ -243,12 +256,7 @@ namespace Cerulean.Common
                 return hoveredComponent;
             hoveredComponent = IsHoverableComponent ? this : null;
 
-            foreach (var child in Children)
-            {
-                hoveredComponent = child.CheckHoveredComponent(x, y) ?? hoveredComponent;
-            }
-
-            return hoveredComponent;
+            return Children.Aggregate(hoveredComponent, (current, child) => child.CheckHoveredComponent(x, y) ?? current);
         }
 
         /// <summary>
@@ -265,9 +273,7 @@ namespace Cerulean.Common
             if (!ClientArea.HasValue) return;
 
             // cache viewport data to be used by CheckHoveredComponent()
-            CachedViewportSize = viewportSize;
-            CachedViewportX = viewportX;
-            CachedViewportY = viewportY;
+            CacheViewportData(viewportX, viewportY, viewportSize);
 
             // check if viewport is at least visible
             if (viewportX + viewportSize.W <= 0 && viewportY + viewportSize.H <= 0)

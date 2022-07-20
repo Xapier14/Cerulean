@@ -22,24 +22,35 @@ namespace Cerulean.Components
 
         public override void Update(object? window, Size clientArea)
         {
-            ClientArea = clientArea;
-            base.Update(window, clientArea);
+            if (window is not null)
+                CallHook(this, EventHook.BeforeUpdate, window, clientArea);
+
+            ClientArea = Size ?? clientArea;
+
+            if (window is not null)
+                CallHook(this, EventHook.AfterUpdate, window, clientArea);
         }
 
         public override void Draw(IGraphics graphics, int viewportX, int viewportY, Size viewportSize)
         {
-            var area = Size ?? ClientArea;
-            if (area is not { W: > 4, H: > 4 }) return;
+            if (ClientArea is not { W: > 4, H: > 4 })
+                return;
+
+            // cache viewport data to be used by CheckHoveredComponent()
+            CacheViewportData(viewportX, viewportY, viewportSize);
+            
+            CallHook(this, EventHook.BeforeDraw, graphics, viewportX, viewportY, viewportSize);
+
             // draw border rect
             if (BorderColor.HasValue)
-                graphics.DrawFilledRectangle(0, 0, area.Value, BorderColor.Value);
+                graphics.DrawFilledRectangle(0, 0, ClientArea.Value, BorderColor.Value);
 
             // get percentage
             var value = Math.Max((double)Value / Maximum, 0.0);
             var barX = 2;
             var barY = 2;
-            Size barArea = new(area.Value.W - 4, area.Value.H - 4);
-            Size barBackArea = new(area.Value.W - 4, area.Value.H - 4);
+            Size barArea = new(ClientArea.Value.W - 4, ClientArea.Value.H - 4);
+            Size barBackArea = new(ClientArea.Value.W - 4, ClientArea.Value.H - 4);
                 
             // compute bar area
             switch (Orientation)
@@ -49,7 +60,7 @@ namespace Cerulean.Components
                     break;
                 case Orientation.Vertical:
                     var valueHeight = ((int)Math.Floor(value * barArea.H));
-                    barY += area.Value.H - barArea.H - 4;
+                    barY += ClientArea.Value.H - barArea.H - 4;
                     barArea.H = valueHeight;
                     break;
                 case Orientation.HorizontalFlipped:
@@ -73,6 +84,8 @@ namespace Cerulean.Components
             // draw bar value rect
             if (ForeColor.HasValue)
                 graphics.DrawFilledRectangle(barX, barY, barArea, ForeColor.Value);
+
+            CallHook(this, EventHook.AfterDraw, graphics, viewportX, viewportY, viewportSize);
         }
     }
 }

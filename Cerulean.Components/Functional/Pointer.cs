@@ -19,6 +19,9 @@ namespace Cerulean.Components
 
         public override void Update(object? window, Size clientArea)
         {
+            if (window is not null)
+                CallHook(this, EventHook.BeforeUpdate, window, clientArea);
+
             var ( globalX, globalY) = Mouse.GetGlobalMousePosition();
             ClientArea = null;
             if (window is Window ceruleanWindow)
@@ -32,6 +35,9 @@ namespace Cerulean.Components
                 _x = globalX;
                 _y = globalY;
             }
+
+            if (window is not null)
+                CallHook(this, EventHook.AfterUpdate, window, clientArea);
         }
     }
 }

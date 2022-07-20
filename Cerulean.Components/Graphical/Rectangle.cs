@@ -23,16 +23,23 @@ namespace Cerulean.Components
         {
             if (window is not null)
                 CallHook(this, EventHook.BeforeUpdate, window, clientArea);
+
             ClientArea = Size ?? clientArea;
+
             if (window is not null)
                 CallHook(this, EventHook.AfterUpdate, window, clientArea);
         }
 
         public override void Draw(IGraphics graphics, int viewportX, int viewportY, Size viewportSize)
         {
-            if (!ClientArea.HasValue) return;
+            if (!ClientArea.HasValue)
+                return;
+
+            // cache viewport data to be used by CheckHoveredComponent()
+            CacheViewportData(viewportX, viewportY, viewportSize);
 
             CallHook(this, EventHook.BeforeDraw, graphics, viewportX, viewportY, viewportSize);
+
             // Draw fill
             if (FillColor.HasValue)
             {
@@ -43,6 +50,7 @@ namespace Cerulean.Components
             {
                 graphics.DrawRectangle(0, 0, ClientArea.Value, BorderColor.Value);
             }
+
             CallHook(this, EventHook.AfterDraw, graphics, viewportX, viewportY, viewportSize);
         }
     }

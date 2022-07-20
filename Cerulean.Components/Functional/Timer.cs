@@ -82,6 +82,9 @@ namespace Cerulean.Components
         /// <param name="clientArea">The client area given to the component.</param>
         public override void Update(object? window, Size clientArea)
         {
+            if (window is not null)
+                CallHook(this, EventHook.BeforeUpdate, window, clientArea);
+
             ClientArea = clientArea;
             if (!IsRunning)
                 return;
@@ -94,6 +97,9 @@ namespace Cerulean.Components
                 Interval = Interval,
                 InBetween = TimeSpan.FromTicks(deltaTicks)
             });
+
+            if (window is not null)
+                CallHook(this, EventHook.AfterDraw, window, clientArea);
         }
     }
 }
