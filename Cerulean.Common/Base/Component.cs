@@ -250,11 +250,10 @@ namespace Cerulean.Common
                 CachedViewportX is not { } viewportX ||
                 CachedViewportY is not { } viewportY)
                 return null;
-            Component? hoveredComponent = null;
             if (x < viewportX || x > viewportX + viewport.W ||
                 y < viewportY || y > viewportY + viewport.H)
-                return hoveredComponent;
-            hoveredComponent = IsHoverableComponent ? this : null;
+                return null;
+            var hoveredComponent = IsHoverableComponent ? this : null;
 
             return Children.Aggregate(hoveredComponent, (current, child) => child.CheckHoveredComponent(x, y) ?? current);
         }
