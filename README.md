@@ -14,7 +14,7 @@ Mainly testing on Windows and Ubuntu. Feel free to test on other platforms.<br>
 > This section is heavily under-construction. Use a release build instead if available.
 
 1. Clone the repository via:
-    ```powershell
+    ```bash
     git clone https://github.com/Xapier14/Cerulean.git --recurse-submodules
     ```
 2. Build the Cerulean.CLI project.
@@ -22,19 +22,19 @@ Mainly testing on Windows and Ubuntu. Feel free to test on other platforms.<br>
     - Take note that some features might not be available as a single-file app.
 3. Add the `crn` executable to your binaries folder or `%PATH%` environment variable.
 4. Create your new app via:
-    ```powershell
+    ```bash
     crn new <app_name>
     ```
 > **Note**
 > This will be subject to change in a later release.
 5. Build the XMLs.
-    ```powershell
+    ```bash
     cd <app_name>
     crn build-xml
     ```
     Navigate to the newly created directory and build the XMLs.
 6. Build the project.
-    ```powershell
+    ```bash
     dotnet build
     ```
 7. [*Only For Windows Users*] Bundle the SDL2 runtime binaries.
@@ -51,7 +51,7 @@ Mainly testing on Windows and Ubuntu. Feel free to test on other platforms.<br>
     You'll need to bundle these too when publishing the app.
 
 8. Run the app via:
-    ```powershell
+    ```bash
     dotnet run
     ```
 
