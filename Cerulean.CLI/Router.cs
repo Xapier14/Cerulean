@@ -11,7 +11,7 @@ namespace Cerulean.CLI
             return _router ??= new Router();
         }
 
-        public void RegisterCommand(string? commandName, Action<string[]> action)
+        public void RegisterCommand(string? commandName, Func<string[], int> action)
         {
             if (commandName is not null)
                 _commands[commandName] = action;
@@ -30,10 +30,10 @@ namespace Cerulean.CLI
             foreach (var command in commands)
             {
                 var commandName = (string?)command?.GetProperty("CommandName")?.GetValue(null);
-                var action = command?.GetMethod("DoAction")?.CreateDelegate(typeof(Action<string[]>));
-                if (commandName is not null && action is not null)
+                var func = command?.GetMethod("DoAction")?.CreateDelegate(typeof(Func<string[], int>));
+                if (commandName is not null && func is not null)
                 {
-                    _commands[commandName] = action;
+                    _commands[commandName] = func;
                 }
                 else
                 {
