@@ -28,7 +28,12 @@
         #endregion
 
         #region TEXT
-        public void DrawText(int x, int y, string text, string fontName, string fontStyle, int fontPointSize, Color color, uint textWrap = 0, double angle = 0.0);
+
+        public void DrawText(int x, int y, string text, string fontName, string fontStyle, int fontPointSize,
+            Color color, uint textWrap = 0, double angle = 0.0);
+
+        public (int, int) MeasureText(string text, string fontName, string fontStyle, int fontPointSize,
+            int textWrap = 0);
         #endregion
 
         #region API FUNCTIONS

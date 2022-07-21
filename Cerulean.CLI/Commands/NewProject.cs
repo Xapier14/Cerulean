@@ -86,15 +86,12 @@ namespace Cerulean.CLI.Commands
         public static void DoAction(string[] args)
         {
             var workingDir = Environment.CurrentDirectory;
-            if (args.Length > 0)
+            foreach (var arg in args)
             {
-                foreach (var arg in args)
-                {
-                    if (arg.StartsWith('-'))
-                        continue;
-                    workingDir = arg;
-                    break;
-                }
+                if (arg.StartsWith('-'))
+                    continue;
+                workingDir = arg;
+                break;
             }
             workingDir = Path.GetFullPath(workingDir);
 

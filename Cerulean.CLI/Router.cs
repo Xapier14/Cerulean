@@ -5,18 +5,10 @@ namespace Cerulean.CLI
     internal class Router
     {
         private static Router? _router = null;
-        private IDictionary<string, Delegate> _commands;
-
-        private Router()
-        {
-            _commands = new Dictionary<string, Delegate>();
-        }
-
+        private readonly IDictionary<string, Delegate> _commands = new Dictionary<string, Delegate>();
         public static Router GetRouter()
         {
-            if (_router is null)
-                _router = new Router();
-            return _router;
+            return _router ??= new Router();
         }
 
         public void RegisterCommand(string? commandName, Action<string[]> action)
@@ -52,12 +44,12 @@ namespace Cerulean.CLI
 
         public bool ExecuteCommand(string commandName, params string[] args)
         {
-            if (_commands.TryGetValue(commandName, out var command))
-            {
-                command?.DynamicInvoke(new[] { args });
-                return true;
-            }
-            return false;
+            if (!_commands.TryGetValue(commandName, out var command))
+                return false;
+            var result = command?.DynamicInvoke(new object?[] { args });
+            if (result is int exitCode && exitCode != 0)
+                Environment.Exit(exitCode);
+            return true;
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
+using Cerulean.CLI.Extensions;
 using Cerulean.Common;
 
 namespace Cerulean.CLI
@@ -57,7 +58,7 @@ namespace Cerulean.CLI
         public static int FromHex(string str)
             => int.Parse(str, NumberStyles.HexNumber);
 
-        public static string? GetRecommendedDataType(string propertyName, out string? enumFamiy)
+        public static string? GetRecommendedDataType(string propertyName, out string? enumFamily)
         {
             var type = propertyName switch
             {
@@ -74,10 +75,10 @@ namespace Cerulean.CLI
                 "PictureMode" => "enum",
                 _ => null
             };
-            enumFamiy = propertyName switch
+            enumFamily = propertyName switch
             {
-                "PictureMode" => "PictureMode",
-                _ => null
+                "TargetMouseButton" => "MouseButton",
+                _ => propertyName
             };
             return type;
         }
@@ -241,7 +242,7 @@ namespace Cerulean.CLI
                         context.Styles.Add(name, content);
                         ColoredConsole.WriteLine($"[$green^GOOD$r^][$yellow^STYLE$r^] Generated style '{name}'.");
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         ColoredConsole.WriteLine("[$red^FAIL$r^][$yellow^STYLE$r^] Failed generating style for XML-Fragment.");
                         if (((IXmlLineInfo)style).HasLineInfo())
@@ -260,18 +261,18 @@ namespace Cerulean.CLI
         }
         private static string GenerateStyle(BuilderContext context, XElement element, out string content)
         {
-            var name = element.Attribute("Name")?.Value;
-            var target = element.Attribute("Target")?.Value;
-            if (name is null)
-                throw new InvalidDataException("Style does not have a 'Name' attribute.");
-            StringBuilder source = new();
-            GenerateHeader(context, source, name, "Style");
-            foreach (var setter in element.Elements("Setter"))
-            {
-
-            }
-            GenerateFooter(source);
             throw new NotImplementedException();
+            //var name = element.Attribute("Name")?.Value;
+            //var target = element.Attribute("Target")?.Value;
+            //if (name is null)
+            //    throw new InvalidDataException("Style does not have a 'Name' attribute.");
+            //StringBuilder source = new();
+            //GenerateHeader(context, source, name, "Style");
+            //foreach (var setter in element.Elements("Setter"))
+            //{
+
+            //}
+            //GenerateFooter(source);
         }
         private static string GenerateLayout(BuilderContext context, XElement element, out string content)
         {
@@ -373,11 +374,6 @@ namespace Cerulean.CLI
                                         target += ".";
                                     stringBuilder.AppendIndented(indent, $"{root}{target}{method}({args});\n");
                                 }
-
-                                /*
-                            if (child.Value != string.Empty)
-                                stringBuilder.AppendIndented(indent, $"(({type})GetChild(\"{componentName}\")).{eventName} += {eventHandler};\n");
-                            */
                             }
                             else
                             {

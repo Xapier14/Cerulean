@@ -189,51 +189,11 @@ namespace Cerulean.Components
             graphics.GetGlobalPosition(out var oldX, out var oldY);
             foreach (var component in Children)
             {
-                /*
-                 * Algorithm:
-                 *  *NOTE: its weird, its clunky, but it works.
-                 *         also, slight modification from Component.cs.
-                 *         viewport is not from the parent but from the computed cell size
-                 *
-                 *  WHERE:
-                 *      VP          = viewport
-                 *      C           = child component (X & Y are new viewport position)
-                 *      CA          = child component client area
-                 *      childSize   = child component's new viewport
-                 *      offset      = sent to graphics backend
-                 *
-                 * -> (VP.X + Max(0, C.X), VP.Y + Max(0, C.Y)) = (A.X, A.Y)
-                 * -> childSize = CA.W x CA.H
-                 * -> offset = 0, 0
-                 *
-                 * [WIDTH CHECKS]
-                 * [CHECK LEFT]
-                 * if (C.X < 0):
-                 *      offset.X = C.X
-                 *      C.W += C.X
-                 * [CHECK RIGHT]
-                 * if (Max(0, C.X) + C.W > VP.W):
-                 *      C.W -= (Max(0, C.X) + C.W) - VP.W
-                 *
-                 * [HEIGHT CHECKS]
-                 * [CHECK TOP]
-                 * if (C.Y < 0):
-                 *      offset.Y = C.Y
-                 *      C.H += C.Y
-                 * if (Max(0, C.Y) + C.H > VP.H):
-                 *      C.H -= (Max(0, C.Y) + C.H) - VP.H
-                 *
-                 * [SET VIEWPORT + GLOBAL OFFSET]
-                 * setRenderArea(A.X, A.Y, childSize, offset.X, offset.Y)
-                 * setGlobalPosition(A.X + offset.X, A.Y + offset.Y)
-                 * [DRAW AS CONTAINER]
-                 * child.draw(A.X, A.Y, childSize)
-                 */
-
-                // get viewport data from cell size
                 Size childViewport = new();
                 var childViewportX = viewportX;
                 var childViewportY = viewportY;
+
+                // get viewport x offset from previous cells
                 for (var column = 0; column < component.GridColumn && column < ColumnCount; ++column)
                 {
                     if (_cellSizes is null)
@@ -241,6 +201,8 @@ namespace Cerulean.Components
                     var add = _cellSizes[0, column].W;
                     childViewportX += add > 0 ? add : 0;
                 }
+
+                // get viewport y offset from previous cells
                 for (var row = 0; row < component.GridRow && row < RowCount; ++row)
                 {
                     if (_cellSizes is null)
@@ -248,22 +210,26 @@ namespace Cerulean.Components
                     var add = _cellSizes[row, 0].H;
                     childViewportY += add > 0 ? add : 0;
                 }
+
+                // get viewport w with respect to column span
                 for (var columnIndex = component.GridColumn;
                      columnIndex < component.GridColumn + component.GridColumnSpan && component.GridColumn < ColumnCount;
                      ++columnIndex)
                     childViewport.W += Math.Max(0, _cellSizes![0, columnIndex].W);
+
+                // get viewport h with respect to row span
                 for (var rowIndex = component.GridRow;
                      rowIndex < component.GridRow + component.GridRowSpan && component.GridRow < RowCount;
                      ++rowIndex)
                     childViewport.H += Math.Max(0, _cellSizes![rowIndex, 0].H);
 
+                /* Viewport Clipping */
                 var aX = childViewportX + Math.Max(0, component.X);
                 var aY = childViewportY + Math.Max(0, component.Y);
                 var offsetX = aX;
                 var offsetY = aY;
                 var childSize = new Size(component.ClientArea!.Value);
-
-                /* WIDTH CHECKS */
+                
                 // check left is clipping
                 if (component.X + oldX < 0)
                 {
@@ -275,7 +241,7 @@ namespace Cerulean.Components
                 {
                     childSize.W -= (Math.Max(0, component.X) + childSize.W) - Math.Min(childViewport.W, viewportSize.W);
                 }
-                /* HEIGHT CHECKS */
+
                 // check top is clipping
                 if (component.Y + oldY < 0)
                 {
