@@ -18,6 +18,9 @@ namespace Cerulean.Components.Input
         public int? HintW { get; set; }
         public int? HintH { get; set; }
         public string? Text { get; set; }
+        public string FontName { get; set; } = "Arial";
+        public int FontSize { get; set; } = 12;
+        public string FontStyle { get; set; } = string.Empty;
         public Color? BackColor { get; set; }
         public Color? ForeColor { get; set; }
         public Color? BorderColor { get; set; }
@@ -117,10 +120,35 @@ namespace Cerulean.Components.Input
 
             CallHook(this, EventHook.BeforeDraw, graphics, viewportX, viewportY, viewportSize);
 
-            if (BackColor.HasValue)
-                graphics.DrawFilledRectangle(0, 0, ClientArea.Value, BackColor.Value);
+            // draw background
+            var backgroundColor = BackColor;
+            if (_hovered)
+            {
+                backgroundColor = _clicked ?
+                    ActivatedColor :
+                    HighlightColor;
+            }
+            if (backgroundColor.HasValue)
+                graphics.DrawFilledRectangle(0, 0, ClientArea.Value, backgroundColor.Value);
+
+            // draw child components
             if (Children.Any())
                 base.Draw(graphics, viewportX, viewportY, viewportSize);
+
+            // draw text
+            if (Text is { } and not "" &&
+                FontName is not "" &&
+                FontSize > 0 &&
+                ForeColor.HasValue)
+            {
+                var (w, h) = graphics.MeasureText(Text, FontName, FontStyle, FontSize, viewportSize.W);
+                var textX = Math.Max(0, viewportSize.W - w) / 2;
+                var textY = Math.Max(0, viewportSize.H - h) / 2;
+
+                graphics.DrawText(textX, textY, Text, FontName, FontStyle, FontSize, ForeColor.Value, (uint)viewportSize.W);
+            }
+
+            // draw border
             if (BorderColor.HasValue)
                 graphics.DrawRectangle(0, 0, ClientArea.Value, BorderColor.Value);
 

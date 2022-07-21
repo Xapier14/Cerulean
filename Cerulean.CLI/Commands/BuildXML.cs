@@ -62,10 +62,10 @@ namespace Cerulean.CLI.Commands
             var dirs = outDirInfo.GetDirectories();
 
             // delete top-level files
-            var cleanErrors = files.Sum(file => file.TryDelete());
+            var cleanErrors = files.Sum(file => file.TryDelete("[$red^FAIL$r^][$cyan^CLEAN$r^]"));
 
             // delete sub-directories
-            cleanErrors += dirs.Sum(dir => dir.TryDelete(true));
+            cleanErrors += dirs.Sum(dir => dir.TryDelete(true, "[$red^FAIL$r^][$cyan^CLEAN$r^]"));
 
             ColoredConsole.WriteLine(cleanErrors > 0 ? $"[$yellow^WARN$r^][$cyan^CLEAN$r^] Directory cleaned with {cleanErrors} errors."
                                                       : "[$green^GOOD$r^][$cyan^CLEAN$r^] Directory cleaned successfully.");

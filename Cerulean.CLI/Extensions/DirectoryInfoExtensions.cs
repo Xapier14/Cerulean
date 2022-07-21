@@ -15,7 +15,7 @@
             return files.ToArray();
         }
 
-        public static int TryDelete(this DirectoryInfo dirInfo, bool recursive = false)
+        public static int TryDelete(this DirectoryInfo dirInfo, bool recursive = false, string? appendMessage = null)
         {
             var status = 0;
             try
@@ -24,7 +24,10 @@
             }
             catch (Exception ex)
             {
-                ColoredConsole.WriteLine($"[$red^FAIL$r^][$cyan^CLEAN$r^] Could not delete directory '{dirInfo.FullName}'. {ex.Message}");
+                if (appendMessage is { })
+                    appendMessage += " ";
+
+                ColoredConsole.WriteLine($"{appendMessage}Could not delete directory '{dirInfo.FullName}'. {ex.Message}");
                 status++;
             }
 

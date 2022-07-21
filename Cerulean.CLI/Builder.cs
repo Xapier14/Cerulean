@@ -374,11 +374,6 @@ namespace Cerulean.CLI
                                         target += ".";
                                     stringBuilder.AppendIndented(indent, $"{root}{target}{method}({args});\n");
                                 }
-
-                                /*
-                            if (child.Value != string.Empty)
-                                stringBuilder.AppendIndented(indent, $"(({type})GetChild(\"{componentName}\")).{eventName} += {eventHandler};\n");
-                            */
                             }
                             else
                             {

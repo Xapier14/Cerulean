@@ -14,7 +14,7 @@ namespace Cerulean.Core
         private readonly FontCache _fontCache;
 
         // global TTF Init
-        private static bool _initializedSubmodules;
+        private static bool _initializedSubmodules = false;
         private int _globalX;
         private int _globalY;
         internal IntPtr WindowPtr => _window.WindowPtr;
@@ -321,7 +321,7 @@ namespace Cerulean.Core
         }
         #endregion
         #region TEXT
-        public void DrawText(int x, int y, string text, string fontName, string fontStyle, int fontPointSize, Color color, uint textWrap, double angle)
+        public void DrawText(int x, int y, string text, string fontName, string fontStyle, int fontPointSize, Color color, uint textWrap = 0, double angle = 0)
         {
             CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("DrawText");
             _ = SDL_GetRenderDrawColor(
@@ -406,7 +406,7 @@ namespace Cerulean.Core
                 {
                     var rawTexture = textTexture.Value;
                     rawTexture.AccScore(10000);
-                    rawTexture.SetScore(Min((long)rawTexture.Score, 100000000000));
+                    rawTexture.SetScore(Min(rawTexture.Score, 100000000000));
                     SDL_Point center = new();
                     var texture = textTexture.Value.SDLTexture;
                     if (SDL_RenderCopyEx(RendererPtr, texture, IntPtr.Zero, ref rect, angle, ref center, SDL_RendererFlip.SDL_FLIP_NONE) != 0)
@@ -426,6 +426,17 @@ namespace Cerulean.Core
                 b,
                 a);
             CeruleanAPI.GetAPI().Profiler?.EndProfilingCurrentPoint();
+        }
+
+        public (int, int) MeasureText(string text, string fontName, string fontStyle, int fontPointSize,
+            int textWrap = 0)
+        {
+            var font = _fontCache.GetFont(fontName, fontStyle, fontPointSize);
+            TTF_SizeUTF8(font.Data, text, out var w, out var h);
+            if (textWrap == 0  || textWrap >= w)
+                return (w, h);
+            var totalRows = (w / textWrap);
+            return (textWrap, totalRows * h);
         }
         #endregion
     }
