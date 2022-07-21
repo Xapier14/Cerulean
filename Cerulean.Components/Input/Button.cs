@@ -2,7 +2,7 @@
 using Cerulean.Core;
 using Cerulean.Core.Input;
 
-namespace Cerulean.Components.Input
+namespace Cerulean.Components
 {
     public class ButtonEventArgs : EventArgs
     {
