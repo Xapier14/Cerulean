@@ -1,6 +1,7 @@
 .vs/
 .vscode/
 .idea/
+.sonarqube/
 Cerulean.Stub.*/
 bin/
 obj/

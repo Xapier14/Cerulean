@@ -14,5 +14,21 @@
             files.AddRange(directoryInfo.GetFiles());
             return files.ToArray();
         }
+
+        public static int TryDelete(this DirectoryInfo dirInfo, bool recursive = false)
+        {
+            var status = 0;
+            try
+            {
+                dirInfo.Delete(recursive);
+            }
+            catch (Exception ex)
+            {
+                ColoredConsole.WriteLine($"[$red^FAIL$r^][$cyan^CLEAN$r^] Could not delete directory '{dirInfo.FullName}'. {ex.Message}");
+                status++;
+            }
+
+            return status;
+        }
     }
 }

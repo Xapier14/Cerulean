@@ -42,7 +42,7 @@ namespace Cerulean.Components
         /// <summary>
         /// Fired when the elapsed time is greater than the interval.
         /// </summary>
-        public TimerEventHandler? OnElapse;
+        public event TimerEventHandler? OnElapse;
 
         /// <summary>
         /// Creates a stopped timer instance.

@@ -12,7 +12,6 @@ namespace Cerulean.Components.Input
     }
     public sealed class Button : Component, ISized
     {
-        private bool _hovering = false;
         private bool _hovered = false;
         private bool _clicked = false;
         public Size? Size { get; set; } = null;
@@ -26,10 +25,10 @@ namespace Cerulean.Components.Input
         public Color? ActivatedColor { get; set; }
         public delegate void ButtonEventHandler(object sender, ButtonEventArgs e);
 
-        public ButtonEventHandler? OnClick;
-        public ButtonEventHandler? OnRelease;
-        public ButtonEventHandler? OnHover;
-        public ButtonEventHandler? OnLeave;
+        public event ButtonEventHandler? OnClick;
+        public event ButtonEventHandler? OnRelease;
+        public event ButtonEventHandler? OnHover;
+        public event ButtonEventHandler? OnLeave;
 
         public Button()
         {
@@ -57,46 +56,39 @@ namespace Cerulean.Components.Input
             // process events
             if (window is not Window ceruleanWindow)
                 return;
-            _hovering = ceruleanWindow.HoveredComponent == this;
+            var hovering = ceruleanWindow.HoveredComponent == this;
+
+            // prepare event args
             var coords = Mouse.GetWindowMousePosition(ceruleanWindow);
-            if (_hovering)
+            var eventArgs = new ButtonEventArgs
+            {
+                CallingWindow = ceruleanWindow,
+                MouseX = coords?.Item1 ?? 0,
+                MouseY = coords?.Item2 ?? 0
+            };
+
+            if (hovering)
             {
                 if (!_hovered)
                 {
-                    OnHover?.Invoke(this, new ButtonEventArgs
-                    {
-                        CallingWindow = ceruleanWindow,
-                        MouseX = coords?.Item1 ?? 0,
-                        MouseY = coords?.Item2 ?? 0
-                    });
+                    OnHover?.Invoke(this, eventArgs);
 
                     _hovered = true;
                 }
 
                 if (Mouse.CheckMouseButton(MouseButton.Left))
                 {
-                    if (!_clicked)
-                    {
-                        OnClick?.Invoke(this, new ButtonEventArgs
-                        {
-                            CallingWindow = ceruleanWindow,
-                            MouseX = coords?.Item1 ?? 0,
-                            MouseY = coords?.Item2 ?? 0
-                        });
+                    if (_clicked)
+                        return;
+                    OnClick?.Invoke(this, eventArgs);
 
-                        _clicked = true;
-                    }
+                    _clicked = true;
                 }
                 else
                 {
                     if (_clicked)
                     {
-                        OnRelease?.Invoke(this, new ButtonEventArgs
-                        {
-                            CallingWindow = ceruleanWindow,
-                            MouseX = coords?.Item1 ?? 0,
-                            MouseY = coords?.Item2 ?? 0
-                        });
+                        OnRelease?.Invoke(this, eventArgs);
                     }
 
                     _clicked = false;
@@ -106,12 +98,7 @@ namespace Cerulean.Components.Input
             {
                 if (_hovered)
                 {
-                    OnLeave?.Invoke(this, new ButtonEventArgs
-                    {
-                        CallingWindow = ceruleanWindow,
-                        MouseX = coords?.Item1 ?? 0,
-                        MouseY = coords?.Item2 ?? 0
-                    });
+                    OnLeave?.Invoke(this, eventArgs);
                 }
 
                 _hovered = false;

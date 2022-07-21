@@ -8,7 +8,7 @@ var router = Router.GetRouter();
 //router.RegisterCommands();
 
 // if using .NET <=6
-router.RegisterCommand(BuildXML.CommandName, BuildXML.DoAction);
+router.RegisterCommand(BuildXml.CommandName, BuildXml.DoAction);
 router.RegisterCommand(NewProject.CommandName, NewProject.DoAction);
 
 // Display help if no args
