@@ -66,6 +66,7 @@ namespace Cerulean.CLI.Commands
             if (workingDir is not null)
                 startInfo.WorkingDirectory = workingDir;
 
+            var startTime = DateTime.Now;
             var process = Process.Start(startInfo);
             if (process is not { })
             {
@@ -73,7 +74,7 @@ namespace Cerulean.CLI.Commands
                 return true;
             }
             process.WaitForExit();
-            Console.WriteLine("Took {0:hh\\:mm\\:ss\\:fff} to finish.\n", process.StartTime - process.ExitTime);
+            Console.WriteLine("Took {0:hh\\:mm\\:ss\\:fff} to finish.\n", startTime - process.ExitTime);
 
             if (process.ExitCode == 0)
                 return false;
@@ -116,32 +117,32 @@ namespace Cerulean.CLI.Commands
             Directory.CreateDirectory(workingDir);
 
             // create dotnet console project
-            if (DoTask("Creating .NET console project...", 
-                    "dotnet", 
+            if (DoTask("Creating .NET console project...",
+                    "dotnet",
                     "new console", workingDir))
                 return -1;
 
             // create a git repository
-            if (DoTask("Creating a git repository...", 
-                    "git", 
+            if (DoTask("Creating a git repository...",
+                    "git",
                     "init", workingDir))
                 return -2;
 
             // add Cerulean as git submodule
-            if (DoTask("Adding CeruleanUI as a submodule...", 
-                    "git", 
+            if (DoTask("Adding CeruleanUI as a submodule...",
+                    "git",
                     "submodule add " + CERULEAN_REPOSITORY_GIT_URL, workingDir))
                 return -3;
 
             // pull the submodule
-            if (DoTask("Pulling submodule(s)...", 
-                    "git", 
+            if (DoTask("Pulling submodule(s)...",
+                    "git",
                     "submodule update --init --recursive", workingDir))
                 return -4;
 
             // add project references
-            if (DoTask("Adding reference to Cerulean.Common.", 
-                    "dotnet", 
+            if (DoTask("Adding reference to Cerulean.Common.",
+                    "dotnet",
                     "add reference Cerulean/Cerulean.Common/Cerulean.Common.csproj", workingDir))
                 return -5;
             if (DoTask("Adding reference to Cerulean.Core.",
@@ -152,7 +153,7 @@ namespace Cerulean.CLI.Commands
                     "dotnet",
                     "add reference Cerulean/Cerulean.Components/Cerulean.Components.csproj", workingDir))
                 return -7;
-            
+
             // initialize project
             Console.WriteLine("Creating project boilerplate + settings...");
             // create boilerplate
