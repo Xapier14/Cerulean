@@ -3,15 +3,15 @@ using System.Text.RegularExpressions;
 
 namespace Cerulean.CLI
 {
-    internal class Help
+    internal class Splash
     {
         public static void DisplayGeneralHelp()
         {
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine(@"  ______                _                    _____ _     ___ ");
             Console.WriteLine(@" / _____|              | |                  /  ___| |   |_ _|");
-            Console.WriteLine(@" | |     ___ _ __ _   _| | ___  __ _ _ ___  | |   | |    | |  ");
-            Console.WriteLine(@" | |    / _ \ '__| | | | |/ _ \/ _` | '_  \ | |   | |    | |  ");
+            Console.WriteLine(@" | |     ___ _ __ _   _| | ___  __ _ _ ___  | |   | |    | | ");
+            Console.WriteLine(@" | |    / _ \ '__| | | | |/ _ \/ _` | '_  \ | |   | |    | | ");
             Console.WriteLine(@" | |____| __/ |  | |_| | |  __/ (_| | | | | | |___| |___ | | ");
             Console.WriteLine(@" \______\___|_|  \___,_|_|\___|\__,_|_| |_| \_____|_____|___|");
             Console.WriteLine();

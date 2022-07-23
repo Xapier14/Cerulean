@@ -23,5 +23,5 @@ var commandName = args[0];
 var commandArgs = args.Skip(1).ToArray();
 if (!router.ExecuteCommand(commandName, commandArgs))
 {
-    Help.DisplayGeneralHelp();
+    Splash.DisplayGeneralHelp();
 }
