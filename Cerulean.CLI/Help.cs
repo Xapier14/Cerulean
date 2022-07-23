@@ -21,7 +21,7 @@ namespace Cerulean.CLI
             {
                 var version = FileVersionInfo.GetVersionInfo(Path.Combine(AppContext.BaseDirectory, "crn.exe"));
                 name = version.InternalName ?? "crn.exe";
-                Console.WriteLine($" Cerulean CLI: {version.FileMajorPart}.{version.FileMajorPart}.{version.FileBuildPart}");
+                Console.WriteLine($" Cerulean CLI: {version.FileMajorPart}.{version.FileMinorPart}.{version.FileBuildPart}");
             }
             catch
             {
@@ -31,7 +31,7 @@ namespace Cerulean.CLI
 
             var process = new Process
             {
-                StartInfo = new()
+                StartInfo = new ProcessStartInfo
                 {
                     FileName = "dotnet",
                     Arguments = "--version",
