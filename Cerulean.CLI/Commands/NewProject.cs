@@ -61,7 +61,9 @@ namespace Cerulean.CLI.Commands
             var startInfo = new ProcessStartInfo(command, args ?? "")
             {
                 UseShellExecute = false,
-                CreateNoWindow = true
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
             };
             if (workingDir is not null)
                 startInfo.WorkingDirectory = workingDir;
