@@ -109,6 +109,7 @@ namespace Cerulean.CLI.Commands
 
         private static void CreateProjectBoilerplate(string workingDir)
         {
+            Console.WriteLine("Creating project boilerplate + settings...");
             File.WriteAllText(workingDir + "/Usings.cs", USINGS_BOILERPLATE);
             File.WriteAllText(workingDir + "/Program.cs", PROGRAM_BOILERPLATE);
             File.WriteAllText(workingDir + "/ExampleLayout.xml", LAYOUT_BOILERPLATE);
@@ -124,6 +125,7 @@ namespace Cerulean.CLI.Commands
             var bytesToInject = Encoding.UTF8.GetBytes(PROJECT_XML_INJECT);
             projectStream.Write(bytesToInject);
             projectStream.Close();
+            Console.WriteLine("Initialized project!\n");
         }
 
         private static string DetermineWorkingDirectoryFromArgs(string[] args)
@@ -185,9 +187,7 @@ namespace Cerulean.CLI.Commands
                 return -7;
 
             // initialize project
-            Console.WriteLine("Creating project boilerplate + settings...");
             CreateProjectBoilerplate(workingDir);
-            Console.WriteLine("Initialized project!\n");
 
             // commit as initial repo commit
             if (DoTask("Doing initial commit (1/2)...", "git", "add .", workingDir))
