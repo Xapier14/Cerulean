@@ -112,10 +112,10 @@ Mainly testing on Windows and Ubuntu. Feel free to test on other platforms.<br>
      - [x] Image
      - [x] Progress Bar
      - [x] Label
- - [ ] Input Components
+ - [x] Input Components
      - [ ] TextBox
      - [ ] MultiTextBox
-     - [ ] Button
+     - [x] Button
      - [ ] Check Box
      - [ ] Radio Button
      - [ ] Drop Down List
