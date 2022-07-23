@@ -84,24 +84,14 @@ namespace Cerulean.CLI.Commands
 
         }
 
-        public static int DoAction(string[] args)
+        private static void CreateProjectDirectory(string workingDir)
         {
-            var workingDir = Environment.CurrentDirectory;
-            foreach (var arg in args)
-            {
-                if (arg.StartsWith('-'))
-                    continue;
-                workingDir = arg;
-                break;
-            }
-            workingDir = Path.GetFullPath(workingDir);
-
             // confirm if user wants to create a project in working directory
             Console.WriteLine("A project will be created in the folder {0}.", workingDir);
             Console.Write("Do you want to proceed? (Y/n): ");
             if (Console.ReadLine() is { } choice
                 && choice.ToLower() == "n")
-                return 0;
+                return;
 
             // check if directory already exists and has a project/solution already
             if (Directory.Exists(workingDir)
@@ -115,6 +105,46 @@ namespace Cerulean.CLI.Commands
 
             // ensure directory exists
             Directory.CreateDirectory(workingDir);
+        }
+
+        private static void CreateProjectBoilerplate(string workingDir)
+        {
+            File.WriteAllText(workingDir + "/Usings.cs", USINGS_BOILERPLATE);
+            File.WriteAllText(workingDir + "/Program.cs", PROGRAM_BOILERPLATE);
+            File.WriteAllText(workingDir + "/ExampleLayout.xml", LAYOUT_BOILERPLATE);
+            File.WriteAllText(workingDir + "/.gitignore", GIT_IGNORE_LIST);
+            // inject includes item group to project xml
+            var projectDirInfo = new DirectoryInfo(workingDir);
+            var projectInfo = projectDirInfo
+                .EnumerateFiles()
+                .First(fileInfo => fileInfo.Extension.ToLower() == ".csproj");
+            var projectStream = File.OpenWrite(projectInfo.FullName);
+            var seekAmount = "</Project>".Length + 2;
+            projectStream.Seek(-seekAmount, SeekOrigin.End);
+            var bytesToInject = Encoding.UTF8.GetBytes(PROJECT_XML_INJECT);
+            projectStream.Write(bytesToInject);
+            projectStream.Close();
+        }
+
+        private static string DetermineWorkingDirectoryFromArgs(string[] args)
+        {
+            var workingDir = Environment.CurrentDirectory;
+            foreach (var arg in args)
+            {
+                if (arg.StartsWith('-'))
+                    continue;
+                return arg;
+            }
+            return Path.GetFullPath(workingDir);
+        }
+
+        public static int DoAction(string[] args)
+        {
+            // get working directory
+            var workingDir = DetermineWorkingDirectoryFromArgs(args);
+
+            // create project dir
+            CreateProjectDirectory(workingDir);
 
             // create dotnet console project
             if (DoTask("Creating .NET console project...",
@@ -156,22 +186,7 @@ namespace Cerulean.CLI.Commands
 
             // initialize project
             Console.WriteLine("Creating project boilerplate + settings...");
-            // create boilerplate
-            File.WriteAllText(workingDir + "/Usings.cs", USINGS_BOILERPLATE);
-            File.WriteAllText(workingDir + "/Program.cs", PROGRAM_BOILERPLATE);
-            File.WriteAllText(workingDir + "/ExampleLayout.xml", LAYOUT_BOILERPLATE);
-            File.WriteAllText(workingDir + "/.gitignore", GIT_IGNORE_LIST);
-            // inject includes item group to project xml
-            var projectDirInfo = new DirectoryInfo(workingDir);
-            var projectInfo = projectDirInfo
-                .EnumerateFiles()
-                .First(fileInfo => fileInfo.Extension.ToLower() == ".csproj");
-            var projectStream = File.OpenWrite(projectInfo.FullName);
-            var seekAmount = "</Project>".Length + 2;
-            projectStream.Seek(-seekAmount, SeekOrigin.End);
-            var bytesToInject = Encoding.UTF8.GetBytes(PROJECT_XML_INJECT);
-            projectStream.Write(bytesToInject);
-            projectStream.Close();
+            CreateProjectBoilerplate(workingDir);
             Console.WriteLine("Initialized project!\n");
 
             // commit as initial repo commit
