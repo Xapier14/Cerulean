@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Cerulean.CLI": {
+      "commandName": "Project",
+      "commandLineArgs": "help"
+    }
+  }
+}

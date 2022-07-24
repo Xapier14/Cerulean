@@ -53,8 +53,6 @@ namespace Cerulean.CLI.Commands
               "scripts/\n" +
               "publish/\n";
         #endregion
-
-        private const string CERULEAN_REPOSITORY_GIT_URL = "https://github.com/Xapier14/Cerulean.git";
         
         private static bool DoTask(string taskName, string command, string? args, string? workingDir)
         {
@@ -166,7 +164,7 @@ namespace Cerulean.CLI.Commands
             // add Cerulean as git submodule
             if (DoTask("Adding CeruleanUI as a submodule...",
                     "git",
-                    "submodule add " + CERULEAN_REPOSITORY_GIT_URL, workingDir))
+                    "submodule add " + Properties.Resources.CERULEAN_REPOSITORY_GIT, workingDir))
                 return -3;
 
             // pull the submodule

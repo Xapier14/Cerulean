@@ -62,7 +62,7 @@ namespace Cerulean.CLI
             var buffer = new StringBuilder();
             foreach (var word in words)
             {
-                if (buffer.Length + word.Length + 1 <= lineWidth - 1)
+                if (buffer.Length + word.Length <= lineWidth)
                 {
                     buffer.Append(word + " ");
                 }
