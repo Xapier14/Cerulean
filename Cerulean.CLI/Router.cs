@@ -1,4 +1,6 @@
-﻿using Cerulean.CLI.Extensions;
+﻿using System.Reflection;
+using Cerulean.CLI.Attributes;
+using Cerulean.CLI.Extensions;
 
 namespace Cerulean.CLI
 {
@@ -29,7 +31,17 @@ namespace Cerulean.CLI
 
             foreach (var command in commands)
             {
-                var commandName = (string?)command?.GetProperty("CommandName")?.GetValue(null);
+                var attributes = command?.GetCustomAttributes();
+
+                if (attributes is null)
+                    continue;
+
+                string? commandName = null;
+                foreach (var attribute in attributes)
+                {
+                    if (attribute is CommandNameAttribute nameAttribute)
+                        commandName = nameAttribute.CommandName;
+                }
                 var func = command?.GetMethod("DoAction")?.CreateDelegate(typeof(Func<string[], int>));
                 if (commandName is not null && func is not null)
                 {
