@@ -78,6 +78,7 @@ namespace Cerulean.CLI
                 yield break;
             yield return buffer.ToString()[..^1];
         }
+
         public static string FormatString(string value, int length)
         {
             if (value.Length >= length)

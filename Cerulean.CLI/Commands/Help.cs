@@ -22,9 +22,7 @@ namespace Cerulean.CLI.Commands
 
             var commandString = Helper.FormatString(command, commandWidth);
             var descriptionStrings = Helper.WordWrap(description, descriptionWidth)
-                .Select(
-                    line => Helper.FormatString(line, descriptionWidth)
-                ).ToArray();
+                .Select(line => Helper.FormatString(line, descriptionWidth)).ToArray();
 
             ColoredConsole.WriteLine($" $cyan^{commandString}$r^ - {descriptionStrings[0]}");
             for (var i = 1; i < descriptionStrings.Length; i++)
