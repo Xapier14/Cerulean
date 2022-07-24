@@ -1,11 +1,12 @@
-﻿using Cerulean.CLI.Extensions;
+﻿using Cerulean.CLI.Attributes;
+using Cerulean.CLI.Extensions;
 
 namespace Cerulean.CLI.Commands
 {
+    [CommandName("build-xml")]
+    [CommandDescription("Builds layouts and styles from CeruleanXMLs.")]
     public class BuildXml : ICommand
     {
-        public static string? CommandName { get; set; } = "build-xml";
-
         public static int DoAction(string[] args)
         {
             // file extension to process

@@ -1,13 +1,14 @@
 ﻿using System.Diagnostics;
 using System.Text;
+using Cerulean.CLI.Attributes;
 
 namespace Cerulean.CLI.Commands
 {
+    [CommandName("new")]
+    [CommandDescription("Generates and scaffolds a new Cerulean UI project.")]
     public class NewProject : ICommand
     {
-        private const string CERULEAN_REPOSITORY_GIT_URL = "https://github.com/Xapier14/Cerulean.git";
-
-        #region BOILERPLATE
+        #region BOILERPLATE CONTENT
         private const string USINGS_BOILERPLATE
             = "global using Cerulean.Common;\n" +
               "global using Cerulean.Core;\n" +
@@ -53,8 +54,8 @@ namespace Cerulean.CLI.Commands
               "publish/\n";
         #endregion
 
-        public static string? CommandName { get; set; } = "new";
-
+        private const string CERULEAN_REPOSITORY_GIT_URL = "https://github.com/Xapier14/Cerulean.git";
+        
         private static bool DoTask(string taskName, string command, string? args, string? workingDir)
         {
             Console.WriteLine(taskName);

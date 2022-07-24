@@ -3,9 +3,9 @@ using System.Text.RegularExpressions;
 
 namespace Cerulean.CLI
 {
-    internal class Splash
+    internal static class Splash
     {
-        public static void DisplayGeneralHelp()
+        public static void DisplaySplash()
         {
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine(@"  ______                _                    _____ _     ___ ");
@@ -16,6 +16,11 @@ namespace Cerulean.CLI
             Console.WriteLine(@" \______\___|_|  \___,_|_|\___|\__,_|_| |_| \_____|_____|___|");
             Console.WriteLine();
             Console.ResetColor();
+        }
+        public static void DisplaySplashHelp()
+        {
+            DisplaySplash();
+
             var name = "crn.exe";
             try
             {
@@ -29,24 +34,7 @@ namespace Cerulean.CLI
             }
             var cli = name.Remove(name.Length - 4, 4);
 
-            var process = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = "dotnet",
-                    Arguments = "--version",
-                    RedirectStandardOutput = true,
-                    CreateNoWindow = true,
-                    UseShellExecute = false
-                }
-            };
-            process.Start();
-            process.WaitForExit();
-            var versionString = process.StandardOutput.ReadToEnd();
-            var match = Regex.Match(versionString, @"(\d+).(\d+).(\d+)");
-            var netMajor = int.Parse(match.Groups[1].Value);
-            var netMinor = int.Parse(match.Groups[2].Value);
-            var netBuild = int.Parse(match.Groups[3].Value);
+            Helper.GetDotNetVersion(out var netMajor, out var netMinor, out var netBuild);
             var outdated = netMajor < 6;
             ColoredConsole.WriteLine($" .NET SDK: {netMajor}.{netMinor}.{netBuild} " +
                                      (outdated ? "$red^(outdated)$r^" : "$green^(supported)$r^"));
