@@ -393,6 +393,7 @@ namespace Cerulean.Core
             SDL_GetWindowPosition(WindowPtr,
                 out _windowPosition.Item1,
                 out _windowPosition.Item2);
+            FlagForRedraw();
             OnResize?.Invoke(this, new WindowEventArgs
             {
                 WindowWidth = w,
@@ -428,6 +429,7 @@ namespace Cerulean.Core
             SDL_GetWindowPosition(WindowPtr,
                 out _windowPosition.Item1,
                 out _windowPosition.Item2);
+            FlagForRedraw();
             OnRestore?.Invoke(this, new WindowEventArgs());
         }
 
@@ -436,6 +438,7 @@ namespace Cerulean.Core
             SDL_GetWindowPosition(WindowPtr,
                 out _windowPosition.Item1,
                 out _windowPosition.Item2);
+            FlagForRedraw();
             OnMaximize?.Invoke(this, new WindowEventArgs());
         }
 
@@ -443,6 +446,7 @@ namespace Cerulean.Core
         {
             _windowPosition.Item1 = x;
             _windowPosition.Item2 = y;
+            FlagForRedraw();
             OnMoved?.Invoke(this, new WindowEventArgs
             {
                 WindowX = x,
@@ -452,6 +456,7 @@ namespace Cerulean.Core
 
         internal void InvokeOnFocusGained()
         {
+            FlagForRedraw();
             OnFocusGained?.Invoke(this, new WindowEventArgs());
         }
 
@@ -462,11 +467,13 @@ namespace Cerulean.Core
 
         internal void InvokeOnMouseEnter()
         {
+            FlagForRedraw();
             OnMouseEnter?.Invoke(this, new WindowEventArgs());
         }
 
         internal void InvokeOnFocusLost()
         {
+            FlagForRedraw();
             OnFocusLost?.Invoke(this, new WindowEventArgs());
         }
     }
