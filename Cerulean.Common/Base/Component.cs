@@ -26,6 +26,7 @@ namespace Cerulean.Common
         public virtual int Y { get; set; }
         public virtual bool IsHoverableComponent { get; set; } = false;
         public Size? ClientArea { get; protected set; }
+        public virtual bool Modified { get; protected set; }
 
         public object this[string attribute]
         {
@@ -136,6 +137,7 @@ namespace Cerulean.Common
             _components[name] = component;
             component.Parent = this;
             component.Init();
+            Modified = true;
             CallHook(this, EventHook.AddChild, name, component);
             return component;
         }
