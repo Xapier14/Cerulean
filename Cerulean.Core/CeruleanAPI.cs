@@ -258,7 +258,12 @@ namespace Cerulean.Core
 
                         // update and draw window
                         window.Layout.Update(window, clientArea);
-                        window.Draw();
+
+                        if (window.IsFlaggedForRedraw)
+                        {
+                            window.Draw();
+                            window.UnFlagRedraw();
+                        }
 
                         // get hovered components
                         var mousePosition = Mouse.GetWindowMousePosition(window);

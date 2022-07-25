@@ -1,9 +1,12 @@
 using Cerulean.Common;
+using Cerulean.Core;
 
 namespace Cerulean.Components
 {
     public sealed class ProgressBar : Component, ISized
     {
+        private int _oldValue;
+        private Size? _oldClientArea = null;
         public Size? Size { get; set; }
         public int? HintW { get; set; }
         public int? HintH { get; set; }
@@ -20,12 +23,24 @@ namespace Cerulean.Components
             CanBeParent = false;
         }
 
+        public override void Init()
+        {
+            base.Init();
+            _oldValue = Value;
+        }
+
         public override void Update(object? window, Size clientArea)
         {
             if (window is not null)
                 CallHook(this, EventHook.BeforeUpdate, window, clientArea);
 
             ClientArea = Size ?? clientArea;
+
+            if ((_oldClientArea != ClientArea || _oldValue != Value) && window is Window ceruleanWindow)
+                ceruleanWindow.FlagForRedraw();
+
+            _oldValue = Value;
+            _oldClientArea = ClientArea;
 
             if (window is not null)
                 CallHook(this, EventHook.AfterUpdate, window, clientArea);

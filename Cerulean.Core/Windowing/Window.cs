@@ -20,6 +20,7 @@ namespace Cerulean.Core
 
         internal bool OnCloseFromEvent;
         private string _windowTitle = "";
+
         #endregion
 
         /// <summary>
@@ -79,6 +80,11 @@ namespace Cerulean.Core
         /// Returns true if the window has been closed.
         /// </summary>
         public bool Closed { get; private set; }
+        /// <summary>
+        /// Returns true if window is flagged for a redraw.
+        /// </summary>
+        public bool IsFlaggedForRedraw { get; private set; } = true;
+
         /// <summary>
         /// The graphics context or backend that the window is using.
         /// </summary>
@@ -312,6 +318,14 @@ namespace Cerulean.Core
             CeruleanAPI.GetAPI().StopTextInput(this);
         }
 
+        /// <summary>
+        /// Raises the redraw flag for this window.
+        /// </summary>
+        public void FlagForRedraw()
+        {
+            IsFlaggedForRedraw = true;
+        }
+
         private void EnsureMainThread(string? message = null)
         {
             if (_threadId == Environment.CurrentManagedThreadId) return;
@@ -365,6 +379,11 @@ namespace Cerulean.Core
 
             GraphicsContext?.RenderPresent();
             CeruleanAPI.GetAPI().Profiler?.EndProfilingCurrentPoint();
+        }
+
+        internal void UnFlagRedraw()
+        {
+            IsFlaggedForRedraw = false;
         }
 
         internal void InvokeOnResize(int w, int h)

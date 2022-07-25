@@ -1,9 +1,11 @@
 ﻿using Cerulean.Common;
+using Cerulean.Core;
 
 namespace Cerulean.Components
 {
     public class Rectangle : Component, ISized
     {
+        private Size? _oldClientArea = null;
         public Size? Size { get; set; } = null;
         public int? HintW { get; set; }
         public int? HintH { get; set; }
@@ -25,6 +27,11 @@ namespace Cerulean.Components
                 CallHook(this, EventHook.BeforeUpdate, window, clientArea);
 
             ClientArea = Size ?? clientArea;
+
+            if (_oldClientArea != ClientArea && window is Window ceruleanWindow)
+                ceruleanWindow.FlagForRedraw();
+
+            _oldClientArea = ClientArea;
 
             if (window is not null)
                 CallHook(this, EventHook.AfterUpdate, window, clientArea);

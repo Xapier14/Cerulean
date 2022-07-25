@@ -5,6 +5,8 @@ namespace Cerulean.Components
 {
     public class Image : Component, ISized
     {
+        private Size? _oldClientArea = null;
+        private string _oldImagePath = string.Empty;
         public Size? Size { get; set; } = null;
         public int? HintW { get; set; }
         public int? HintH { get; set; }
@@ -39,12 +41,24 @@ namespace Cerulean.Components
             CanBeParent = false;
         }
 
+        public override void Init()
+        {
+            base.Init();
+            _oldImagePath = _imagePath;
+        }
+
         public override void Update(object? window, Size clientArea)
         {
             if (window is not null)
                 CallHook(this, EventHook.BeforeUpdate, window, clientArea);
 
             ClientArea = Size ?? clientArea;
+
+            if ((_oldClientArea != ClientArea || _oldImagePath != _imagePath) && window is Window ceruleanWindow)
+                ceruleanWindow.FlagForRedraw();
+
+            _oldClientArea = ClientArea;
+            _oldImagePath = _imagePath;
 
             if (window is not null)
                 CallHook(this, EventHook.AfterUpdate, window, clientArea);
