@@ -1,14 +1,64 @@
 ﻿using Cerulean.Common;
+using Cerulean.Core;
 
 namespace Cerulean.Components
 {
     public class Panel : Component, ISized
     {
-        public Size? Size { get; set; }
-        public int? HintW { get; set; }
-        public int? HintH { get; set; }
-        public Color? BackColor { get; set; }
-        public Color? BorderColor { get; set; }
+        private Size? _size;
+        public Size? Size
+        {
+            get => _size;
+            set
+            {
+                Modified = true;
+                _size = value;
+            }
+        }
+
+        private int? _hintW;
+        public int? HintW
+        {
+            get => _hintW;
+            set
+            {
+                Modified = true;
+                _hintW = value;
+            }
+        }
+
+        private int? _hintH;
+        public int? HintH
+        {
+            get => _hintH;
+            set
+            {
+                Modified = true;
+                _hintH = value;
+            }
+        }
+
+        private Color? _backColor;
+        public Color? BackColor
+        {
+            get => _backColor;
+            set
+            {
+                Modified = true;
+                _backColor = value;
+            }
+        }
+
+        private Color? _borderColor;
+        public Color? BorderColor
+        {
+            get => _borderColor;
+            set
+            {
+                Modified = true;
+                _borderColor = value;
+            }
+        }
         public Panel()
         {
             CanBeParent = true;
@@ -22,6 +72,12 @@ namespace Cerulean.Components
 
             ClientArea = Size ?? clientArea;
             base.Update(window, ClientArea.Value);
+
+            if (Modified && window is Window ceruleanWindow)
+            {
+                Modified = false;
+                ceruleanWindow.FlagForRedraw();
+            }
 
             if (window is not null)
                 CallHook(this, EventHook.AfterUpdate, window, clientArea);

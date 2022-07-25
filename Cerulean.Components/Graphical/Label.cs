@@ -6,17 +6,115 @@ namespace Cerulean.Components
 {
     public class Label : Component, ISized
     {
-        private Size? _oldClientArea = null;
-        public Size? Size { get; set; } = null;
-        public int? HintW { get; set; }
-        public int? HintH { get; set; }
-        public Color? ForeColor { get; set; }
-        public Color? BackColor { get; set; }
-        public string Text { get; set; } = "";
-        public string FontName { get; set; } = "Arial";
-        public int FontSize { get; set; } = 12;
-        public string FontStyle { get; set; } = string.Empty;
-        public bool WrapText { get; set; } = true;
+        private Size? _size;
+        public Size? Size
+        {
+            get => _size;
+            set
+            {
+                Modified = true;
+                _size = value;
+            }
+        }
+
+        private int? _hintW;
+        public int? HintW
+        {
+            get => _hintW;
+            set
+            {
+                Modified = true;
+                _hintW = value;
+            }
+        }
+
+        private int? _hintH;
+        public int? HintH
+        {
+            get => _hintH;
+            set
+            {
+                Modified = true;
+                _hintH = value;
+            }
+        }
+
+        private Color? _backColor;
+        public Color? BackColor
+        {
+            get => _backColor;
+            set
+            {
+                Modified = true;
+                _backColor = value;
+            }
+        }
+
+        private Color? _foreColor;
+        public Color? ForeColor
+        {
+            get => _foreColor;
+            set
+            {
+                Modified = true;
+                _foreColor = value;
+            }
+        }
+
+        private string? _text;
+        public string? Text
+        {
+            get => _text;
+            set
+            {
+                Modified = true;
+                _text = value;
+            }
+        }
+
+        private string _fontName = "Arial";
+        public string FontName
+        {
+            get => _fontName;
+            set
+            {
+                Modified = true;
+                _fontName = value;
+            }
+        }
+
+        private int _fontSize = 12;
+        public int FontSize
+        {
+            get => _fontSize;
+            set
+            {
+                Modified = true;
+                _fontSize = value;
+            }
+        }
+
+        private string _fontStyle = string.Empty;
+        public string FontStyle
+        {
+            get => _fontStyle;
+            set
+            {
+                Modified = true;
+                _fontStyle = value;
+            }
+        }
+
+        private bool _wrapText = true;
+        public bool WrapText
+        {
+            get => _wrapText;
+            set
+            {
+                Modified = true;
+                _wrapText = value;
+            }
+        }
 
         public Label()
         {
@@ -30,10 +128,11 @@ namespace Cerulean.Components
 
             ClientArea = Size ?? clientArea;
 
-            if (_oldClientArea != ClientArea && window is Window ceruleanWindow)
+            if (Modified && window is Window ceruleanWindow)
+            {
+                Modified = false;
                 ceruleanWindow.FlagForRedraw();
-
-            _oldClientArea = ClientArea;
+            }
 
             if (window is not null)
                 CallHook(this, EventHook.AfterUpdate, window, clientArea);

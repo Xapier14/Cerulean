@@ -5,28 +5,108 @@ namespace Cerulean.Components
 {
     public sealed class ProgressBar : Component, ISized
     {
-        private int _oldValue;
-        private Size? _oldClientArea = null;
-        public Size? Size { get; set; }
-        public int? HintW { get; set; }
-        public int? HintH { get; set; }
+        private Size? _size;
+        public Size? Size
+        {
+            get => _size;
+            set
+            {
+                Modified = true;
+                _size = value;
+            }
+        }
 
-        public Color? ForeColor { get; set; }
-        public Color? BackColor { get; set; }
-        public Color? BorderColor { get; set; }
-        public int Value { get; set; } = 0;
-        public int Maximum { get; set; } = 100;
-        public Orientation Orientation { get; set; } = Orientation.Horizontal;
+        private int? _hintW;
+        public int? HintW
+        {
+            get => _hintW;
+            set
+            {
+                Modified = true;
+                _hintW = value;
+            }
+        }
+
+        private int? _hintH;
+        public int? HintH
+        {
+            get => _hintH;
+            set
+            {
+                Modified = true;
+                _hintH = value;
+            }
+        }
+
+        private Color? _foreColor;
+        public Color? ForeColor
+        {
+            get => _foreColor;
+            set
+            {
+                Modified = true;
+                _foreColor = value;
+            }
+        }
+
+        private Color? _backColor;
+        public Color? BackColor
+        {
+            get => _backColor;
+            set
+            {
+                Modified = true;
+                _backColor = value;
+            }
+        }
+
+        private Color? _borderColor;
+        public Color? BorderColor
+        {
+            get => _borderColor;
+            set
+            {
+                Modified = true;
+                _borderColor = value;
+            }
+        }
+
+        private int _value = 0;
+        public int Value
+        {
+            get => _value;
+            set
+            {
+                Modified = true;
+                _value = value;
+            }
+        }
+
+        private int _maximum = 100;
+        public int Maximum
+        {
+            get => _maximum;
+            set
+            {
+                Modified = true;
+                _maximum = value;
+            }
+        }
+
+        private Orientation _orientation = Orientation.Horizontal;
+        public Orientation Orientation
+        {
+            get => _orientation;
+            set
+            {
+                Modified = true;
+                _orientation = value;
+            }
+        }
 
         public ProgressBar()
         {
             CanBeParent = false;
-        }
-
-        public override void Init()
-        {
-            base.Init();
-            _oldValue = Value;
         }
 
         public override void Update(object? window, Size clientArea)
@@ -36,11 +116,11 @@ namespace Cerulean.Components
 
             ClientArea = Size ?? clientArea;
 
-            if ((_oldClientArea != ClientArea || _oldValue != Value) && window is Window ceruleanWindow)
+            if (Modified && window is Window ceruleanWindow)
+            {
+                Modified = false;
                 ceruleanWindow.FlagForRedraw();
-
-            _oldValue = Value;
-            _oldClientArea = ClientArea;
+            }
 
             if (window is not null)
                 CallHook(this, EventHook.AfterUpdate, window, clientArea);

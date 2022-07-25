@@ -1,3 +1,4 @@
+using System.Reflection.Metadata;
 using Cerulean.Core;
 using Cerulean.Common;
 
@@ -5,11 +6,39 @@ namespace Cerulean.Components
 {
     public class Image : Component, ISized
     {
-        private Size? _oldClientArea = null;
-        private string _oldImagePath = string.Empty;
-        public Size? Size { get; set; } = null;
-        public int? HintW { get; set; }
-        public int? HintH { get; set; }
+        private Size? _size;
+        public Size? Size
+        {
+            get => _size;
+            set
+            {
+                Modified = true;
+                _size = value;
+            }
+        }
+
+        private int? _hintW;
+        public int? HintW
+        {
+            get => _hintW;
+            set
+            {
+                Modified = true;
+                _hintW = value;
+            }
+        }
+
+        private int? _hintH;
+        public int? HintH
+        {
+            get => _hintH;
+            set
+            {
+                Modified = true;
+                _hintH = value;
+            }
+        }
+
         private string _imagePath = string.Empty;
         public string FileName
         {
@@ -18,12 +47,43 @@ namespace Cerulean.Components
             {
                 if (!File.Exists(value))
                     throw new FileNotFoundException($"File {value} not found.");
+                Modified = true;
                 _imagePath = value;
             }
         }
-        public Color? BackColor { get; set; }
-        public Color? BorderColor { get; set; }
-        public PictureMode PictureMode { get; set; } = PictureMode.None;
+
+        private Color? _backColor;
+        public Color? BackColor
+        {
+            get => _backColor;
+            set
+            {
+                Modified = true;
+                _backColor = value;
+            }
+        }
+
+        private Color? _borderColor;
+        public Color? BorderColor
+        {
+            get => _borderColor;
+            set
+            {
+                Modified = true;
+                _borderColor = value;
+            }
+        }
+
+        private PictureMode _pictureMode = PictureMode.None;
+        public PictureMode PictureMode
+        {
+            get => _pictureMode;
+            set
+            {
+                Modified = true;
+                _pictureMode = value;
+            }
+        }
         private double _opacity = 1.0;
         public double Opacity
         {
@@ -32,6 +92,7 @@ namespace Cerulean.Components
             {
                 if (value is < 0.0 or > 1.0)
                     throw new ArgumentOutOfRangeException(nameof(value), "Opacity must be between 0.0 and 1.0.");
+                Modified = true;
                 _opacity = value;
             }
         }
@@ -41,12 +102,6 @@ namespace Cerulean.Components
             CanBeParent = false;
         }
 
-        public override void Init()
-        {
-            base.Init();
-            _oldImagePath = _imagePath;
-        }
-
         public override void Update(object? window, Size clientArea)
         {
             if (window is not null)
@@ -54,11 +109,11 @@ namespace Cerulean.Components
 
             ClientArea = Size ?? clientArea;
 
-            if ((_oldClientArea != ClientArea || _oldImagePath != _imagePath) && window is Window ceruleanWindow)
+            if (Modified && window is Window ceruleanWindow)
+            {
+                Modified = false;
                 ceruleanWindow.FlagForRedraw();
-
-            _oldClientArea = ClientArea;
-            _oldImagePath = _imagePath;
+            }
 
             if (window is not null)
                 CallHook(this, EventHook.AfterUpdate, window, clientArea);

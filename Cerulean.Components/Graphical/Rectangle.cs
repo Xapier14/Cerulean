@@ -5,14 +5,82 @@ namespace Cerulean.Components
 {
     public class Rectangle : Component, ISized
     {
-        private Size? _oldClientArea = null;
-        public Size? Size { get; set; } = null;
-        public int? HintW { get; set; }
-        public int? HintH { get; set; }
-        public Color? FillColor { get; set; }
-        public Color? BorderColor { get; set; }
-        public double FillOpacity { get; set; }
-        public double BorderOpacity { get; set; }
+        private Size? _size;
+        public Size? Size
+        {
+            get => _size;
+            set
+            {
+                Modified = true;
+                _size = value;
+            }
+        }
+
+        private int? _hintW;
+        public int? HintW
+        {
+            get => _hintW;
+            set
+            {
+                Modified = true;
+                _hintW = value;
+            }
+        }
+
+        private int? _hintH;
+        public int? HintH
+        {
+            get => _hintH;
+            set
+            {
+                Modified = true;
+                _hintH = value;
+            }
+        }
+
+        private Color? _fillColor;
+        public Color? FillColor
+        {
+            get => _fillColor;
+            set
+            {
+                Modified = true;
+                _fillColor = value;
+            }
+        }
+
+        private Color? _borderColor;
+        public Color? BorderColor
+        {
+            get => _borderColor;
+            set
+            {
+                Modified = true;
+                _borderColor = value;
+            }
+        }
+
+        private double _fillOpacity;
+        public double FillOpacity
+        {
+            get => _fillOpacity;
+            set
+            {
+                Modified = true;
+                _fillOpacity = value;
+            }
+        }
+
+        private double _borderOpacity;
+        public double BorderOpacity
+        {
+            get => _borderOpacity;
+            set
+            {
+                Modified = true;
+                _borderOpacity = value;
+            }
+        }
 
         public Rectangle()
         {
@@ -28,10 +96,11 @@ namespace Cerulean.Components
 
             ClientArea = Size ?? clientArea;
 
-            if (_oldClientArea != ClientArea && window is Window ceruleanWindow)
+            if (Modified && window is Window ceruleanWindow)
+            {
+                Modified = false;
                 ceruleanWindow.FlagForRedraw();
-
-            _oldClientArea = ClientArea;
+            }
 
             if (window is not null)
                 CallHook(this, EventHook.AfterUpdate, window, clientArea);

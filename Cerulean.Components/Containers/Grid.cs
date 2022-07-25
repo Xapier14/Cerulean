@@ -1,4 +1,5 @@
 ﻿using Cerulean.Common;
+using Cerulean.Core;
 
 namespace Cerulean.Components
 {
@@ -32,19 +33,44 @@ namespace Cerulean.Components
             }
         }
         public Color? BackColor { get; set; }
-        public override void Update(object? window, Size clientArea)
+
+        private void UpdateChildComponents(object window)
         {
-            if (window is not null)
-                CallHook(this, EventHook.BeforeUpdate, window, clientArea);
+            if (_cellSizes is null)
+                return;
 
-            // anchor to top left
-            X = 0;
-            Y = 0;
+            foreach (var child in Children)
+            {
+                // compute element clientArea
+                var width = 0;
+                var height = 0;
 
-            // use full window area
-            ClientArea = clientArea;
+                // add additional space via span
+                // if i < span OR i 0
+                // AND i < row count
+                for (var i = 0;
+                     (i < child.GridRowSpan || child.GridRowSpan == 0) && child.GridRow + i < RowCount;
+                     i++)
+                {
+                    height += Math.Max(0, _cellSizes[child.GridRow + i, child.GridColumn].H);
+                }
+                // if i < span OR i 0
+                // AND i < column count
+                for (var i = 0;
+                     (i < child.GridColumnSpan || child.GridColumnSpan == 0) && child.GridColumn + i < ColumnCount;
+                     i++)
+                {
+                    width += Math.Max(0, _cellSizes[child.GridRow, child.GridColumn + i].W);
+                }
+                var childArea = new Size(width, height);
+                CallHook(child, EventHook.BeforeChildUpdate, window, childArea);
+                child.Update(window, childArea);
+                CallHook(child, EventHook.AfterChildUpdate, window, childArea);
+            }
+        }
 
-            // calculate client area for each cell
+        private void CalculateCellSizes(Size clientArea)
+        {
             _cellSizes = new Size[RowCount, ColumnCount];
 
             // get auto-sized cell sizes
@@ -131,38 +157,30 @@ namespace Cerulean.Components
                 autoColumnsComputed = 0;
                 inverseSmallWidth = 0;
             }
+        }
 
-            // update child components
-            foreach (var child in Children)
+        public override void Update(object? window, Size clientArea)
+        {
+            if (window is not null)
+                CallHook(this, EventHook.BeforeUpdate, window, clientArea);
+
+            // anchor to top left
+            X = 0;
+            Y = 0;
+
+            // use full window area
+            ClientArea = clientArea;
+
+            // calculate client area for each cell
+            CalculateCellSizes(clientArea);
+
+            if (window is not null)
+                UpdateChildComponents(window);
+
+            if (Modified && window is Window ceruleanWindow)
             {
-                // compute element clientArea
-                var cell = _cellSizes[child.GridRow, child.GridColumn];
-                var width = 0;
-                var height = 0;
-
-                // add additional space via span
-                // if i < span OR i 0
-                // AND i < row count
-                for (var i = 0;
-                     (i < child.GridRowSpan || child.GridRowSpan == 0) && child.GridRow + i < RowCount;
-                     i++)
-                {
-                    height += Math.Max(0, _cellSizes[child.GridRow + i, child.GridColumn].H);
-                }
-                // if i < span OR i 0
-                // AND i < column count
-                for (var i = 0;
-                     (i < child.GridColumnSpan || child.GridColumnSpan == 0) && child.GridColumn + i < ColumnCount;
-                     i++)
-                {
-                    width += Math.Max(0, _cellSizes[child.GridRow, child.GridColumn + i].W);
-                }
-                var childArea = new Size(width, height);
-                if (window is not null)
-                    CallHook(child, EventHook.BeforeChildUpdate, window, childArea);
-                child.Update(window, childArea);
-                if (window is not null)
-                    CallHook(child, EventHook.AfterChildUpdate, window, childArea);
+                Modified = false;
+                ceruleanWindow.FlagForRedraw();
             }
 
             if (window is not null)
