@@ -14,18 +14,139 @@ namespace Cerulean.Components
     {
         private bool _hovered = false;
         private bool _clicked = false;
-        public Size? Size { get; set; } = null;
-        public int? HintW { get; set; }
-        public int? HintH { get; set; }
-        public string? Text { get; set; }
-        public string FontName { get; set; } = "Arial";
-        public int FontSize { get; set; } = 12;
-        public string FontStyle { get; set; } = string.Empty;
-        public Color? BackColor { get; set; }
-        public Color? ForeColor { get; set; }
-        public Color? BorderColor { get; set; }
-        public Color? HighlightColor { get; set; }
-        public Color? ActivatedColor { get; set; }
+
+        private Size? _size;
+        public Size? Size
+        {
+            get => _size;
+            set
+            {
+                Modified = true;
+                _size = value;
+            }
+        }
+
+        private int? _hintW;
+        public int? HintW
+        {
+            get => _hintW;
+            set
+            {
+                Modified = true;
+                _hintW = value;
+            }
+        }
+
+        private int? _hintH;
+        public int? HintH
+        {
+            get => _hintH;
+            set
+            {
+                Modified = true;
+                _hintH = value;
+            }
+        }
+
+        private string? _text;
+        public string? Text
+        {
+            get => _text;
+            set
+            {
+                Modified = true;
+                _text = value;
+            }
+        }
+
+        private string _fontName = "Arial";
+        public string FontName
+        {
+            get => _fontName;
+            set
+            {
+                Modified = true;
+                _fontName = value;
+            }
+        }
+
+        private int _fontSize = 12;
+        public int FontSize
+        {
+            get => _fontSize;
+            set
+            {
+                Modified = true;
+                _fontSize = value;
+            }
+        }
+
+        private string _fontStyle = string.Empty;
+        public string FontStyle
+        {
+            get => _fontStyle;
+            set
+            {
+                Modified = true;
+                _fontStyle = value;
+            }
+        }
+
+        private Color? _backColor;
+        public Color? BackColor
+        {
+            get => _backColor;
+            set
+            {
+                Modified = true;
+                _backColor = value;
+            }
+        }
+
+        private Color? _foreColor;
+        public Color? ForeColor
+        {
+            get => _foreColor;
+            set
+            {
+                Modified = true;
+                _foreColor = value;
+            }
+        }
+
+        private Color? _borderColor;
+        public Color? BorderColor
+        {
+            get => _borderColor;
+            set
+            {
+                Modified = true;
+                _borderColor = value;
+            }
+        }
+
+        private Color? _highlightColor;
+        public Color? HighlightColor
+        {
+            get => _highlightColor;
+            set
+            {
+                Modified = true;
+                _highlightColor = value;
+            }
+        }
+
+        private Color? _activatedColor;
+        public Color? ActivatedColor
+        {
+            get => _activatedColor;
+            set
+            {
+                Modified = true;
+                _activatedColor = value;
+            }
+        }
+
         public delegate void ButtonEventHandler(object sender, ButtonEventArgs e);
 
         public event ButtonEventHandler? OnClick;
@@ -52,6 +173,9 @@ namespace Cerulean.Components
 
         public override void Update(object? window, Size clientArea)
         {
+            if (window is not null)
+                CallHook(this, EventHook.BeforeUpdate, window, clientArea);
+
             ClientArea = Size ?? clientArea;
 
             base.Update(window, clientArea);
@@ -74,6 +198,7 @@ namespace Cerulean.Components
             {
                 if (!_hovered)
                 {
+                    ceruleanWindow.FlagForRedraw();
                     OnHover?.Invoke(this, eventArgs);
 
                     _hovered = true;
@@ -83,6 +208,7 @@ namespace Cerulean.Components
                 {
                     if (_clicked)
                         return;
+                    ceruleanWindow.FlagForRedraw();
                     OnClick?.Invoke(this, eventArgs);
 
                     _clicked = true;
@@ -91,6 +217,7 @@ namespace Cerulean.Components
                 {
                     if (_clicked)
                     {
+                        ceruleanWindow.FlagForRedraw();
                         OnRelease?.Invoke(this, eventArgs);
                     }
 
@@ -101,13 +228,21 @@ namespace Cerulean.Components
             {
                 if (_hovered)
                 {
+                    ceruleanWindow.FlagForRedraw();
                     OnLeave?.Invoke(this, eventArgs);
                 }
 
                 _hovered = false;
                 _clicked = false;
             }
-                    
+
+            if (Modified)
+            {
+                Modified = false;
+                ceruleanWindow.FlagForRedraw();
+            }
+            
+            CallHook(this, EventHook.AfterUpdate, window, clientArea);
         }
 
         public override void Draw(IGraphics graphics, int viewportX, int viewportY, Size viewportSize)

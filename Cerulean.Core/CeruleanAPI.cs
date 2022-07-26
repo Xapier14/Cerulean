@@ -256,18 +256,21 @@ namespace Cerulean.Core
                         window.GraphicsContext?.SetRenderArea(clientArea, 0, 0);
                         window.GraphicsContext?.SetGlobalPosition(0, 0);
 
-                        // update and draw window
+                        // update window
                         window.Layout.Update(window, clientArea);
-                        window.Draw();
 
-                        // get hovered components
-                        var mousePosition = Mouse.GetWindowMousePosition(window);
-                        if (mousePosition is not var (x, y))
+                        // draw window
+                        if (window.IsFlaggedForRedraw || window.AlwaysRedraw)
                         {
-                            x = -1;
-                            y = -1;
+                            window.Draw();
+                            window.UnFlagRedraw();
                         }
-                        window.HoveredComponent = window.Layout.CheckHoveredComponent(x, y);
+
+                        // update hovered component
+                        window.HoveredComponent = null;
+                        var mousePosition = Mouse.GetWindowMousePosition(window);
+                        if (mousePosition is var (x, y))
+                            window.HoveredComponent = window.Layout.CheckHoveredComponent(x, y);
 
                         Profiler?.EndProfilingCurrentPoint();
                     }
