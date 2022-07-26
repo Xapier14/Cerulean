@@ -61,8 +61,8 @@ namespace Cerulean.Components
             }
         }
 
-        private string? _text;
-        public string? Text
+        private string _text = string.Empty;
+        public string Text
         {
             get => _text;
             set
@@ -150,7 +150,7 @@ namespace Cerulean.Components
 
             if (BackColor.HasValue)
                 graphics.DrawFilledRectangle(0, 0, ClientArea.Value, BackColor.Value);
-            if (!ForeColor.HasValue || Text == string.Empty) 
+            if (!ForeColor.HasValue || Text == string.Empty)
                 return;
 
             var size = ClientArea.Value;
