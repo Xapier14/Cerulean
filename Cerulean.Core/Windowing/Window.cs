@@ -81,10 +81,14 @@ namespace Cerulean.Core
         /// </summary>
         public bool Closed { get; private set; }
         /// <summary>
-        /// Returns true if window is flagged for a redraw.
+        /// The redraw flag that determines if the window should be redrawn for the cycle.
         /// </summary>
         public bool IsFlaggedForRedraw { get; private set; } = true;
-
+        /// <summary>
+        /// An override for the redraw flag that makes the window be drawn for each cycle.
+        /// Makes the window draw function like a game draw loop.
+        /// </summary>
+        public bool AlwaysRedraw { get; set; } = false;
         /// <summary>
         /// The graphics context or backend that the window is using.
         /// </summary>
