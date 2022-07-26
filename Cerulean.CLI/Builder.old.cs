@@ -8,7 +8,7 @@ using Cerulean.Common;
 
 namespace Cerulean.CLI
 {
-    public class BuilderContextOld
+    public class BuilderContext
     {
         public IDictionary<string, string> Layouts { get; init; }
         public IDictionary<string, string> Styles { get; init; }
@@ -33,7 +33,7 @@ namespace Cerulean.CLI
             Imports.Add("Cerulean.Components");
         }
     }
-    public static class BuilderOld
+    public static class Builder
     {
         public static string ParseNestedComponentName(string nestedName, string root)
         {

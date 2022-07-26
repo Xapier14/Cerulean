@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace Cerulean.CLI
 {
-    public class BuilderContext
+    public class BuilderContextNew
     {
         public IDictionary<string, string> Layouts { get; init; }
         public IDictionary<string, string> Styles { get; init; }
         public IList<string> Imports { get; init; }
         public IDictionary<string, string> Aliases { get; init; }
 
-        public BuilderContext()
+        public BuilderContextNew()
         {
             Layouts = new Dictionary<string, string>();
             Styles = new Dictionary<string, string>();
@@ -31,7 +31,7 @@ namespace Cerulean.CLI
             Imports.Add("Cerulean.Components");
         }
     }
-    public class Builder
+    public class BuilderNew
     {
 
     }
