@@ -15,7 +15,7 @@ namespace Cerulean.CLI
         public IList<string> Imports { get; init; }
         public IDictionary<string, string> Aliases { get; init; }
 
-        public BuilderContext()
+        public BuilderContextOld()
         {
             Layouts = new Dictionary<string, string>();
             Styles = new Dictionary<string, string>();
