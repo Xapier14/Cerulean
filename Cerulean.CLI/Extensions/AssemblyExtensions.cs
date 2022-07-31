@@ -1,19 +1,18 @@
 ﻿using System.Reflection;
 
-namespace Cerulean.CLI.Extensions
+namespace Cerulean.CLI.Extensions;
+
+internal static class AssemblyExtensions
 {
-    internal static class AssemblyExtensions
+    public static Type?[] GetLoadableTypes(this Assembly assembly)
     {
-        public static Type?[] GetLoadableTypes(this Assembly assembly)
+        try
         {
-            try
-            {
-                return assembly.GetTypes();
-            }
-            catch (ReflectionTypeLoadException e)
-            {
-                return e.Types.Where(t => t != null).ToArray();
-            }
+            return assembly.GetTypes();
+        }
+        catch (ReflectionTypeLoadException e)
+        {
+            return e.Types.Where(t => t != null).ToArray();
         }
     }
 }

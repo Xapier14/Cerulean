@@ -1,13 +1,12 @@
 ﻿using System.Text;
 
-namespace Cerulean.CLI.Extensions
+namespace Cerulean.CLI.Extensions;
+
+internal static class StringBuilderExtensions
 {
-    internal static class StringBuilderExtensions
+    public static void AppendIndented(this StringBuilder stringBuilder, int indent, string text)
     {
-        public static void AppendIndented(this StringBuilder stringBuilder, int indent, string text)
-        {
-            string tabs = new('\t', indent);
-            stringBuilder.Append(tabs + text);
-        }
+        string tabs = new(' ', indent * 4);
+        stringBuilder.Append(tabs + text);
     }
 }
