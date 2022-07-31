@@ -6,7 +6,7 @@ namespace Cerulean.CLI.Extensions
     {
         public static void AppendIndented(this StringBuilder stringBuilder, int indent, string text)
         {
-            string tabs = new('\t', indent);
+            string tabs = new(' ', indent * 4);
             stringBuilder.Append(tabs + text);
         }
     }

@@ -112,5 +112,90 @@ namespace Cerulean.CLI
             minor = int.Parse(match.Groups[2].Value);
             build = int.Parse(match.Groups[3].Value);
         }
+        public static string ParseNestedComponentName(string nestedName, string root)
+        {
+            StringBuilder component = new();
+            var nests = nestedName.Split('.');
+            component.Append($"{root}GetChild(\"{nests[0]}\")");
+            for (var i = 1; i < nests.Length; i++)
+            {
+                component.Append($".GetChild(\"{nests[i]}\")");
+            }
+            return component.ToString();
+        }
+
+        public static string ParseHintedString(string hintedString, string root, string? enumFamily = null, string? overrideType = null)
+        {
+            // hinted value pattern ([name]="[type]: [value]")
+            var regex = Regex.Match(hintedString, @"^(\w+):\s?(.+)");
+            var value = hintedString;
+
+            // attribute value-part has datatype hint
+            if (!regex.Success && overrideType is null) return value;
+            var type = overrideType ?? regex.Groups[1].ToString().ToLower();
+            var raw = overrideType is null ? regex.Groups[2].ToString() : hintedString;
+            try
+            {
+                value = type switch
+                {
+                    "bool" => $"{bool.Parse(raw)}",
+                    "byte" => $"{byte.Parse(raw)}",
+                    "char" => $"'{raw[0]}'",
+                    "short" => $"{short.Parse(raw)}",
+                    "ushort" => $"{ushort.Parse(raw)}",
+                    "int" => $"{int.Parse(raw)}",
+                    "uint" => $"{uint.Parse(raw)}",
+                    "long" => $"{long.Parse(raw)}",
+                    "ulong" => $"{ulong.Parse(raw)}",
+                    "float" => $"{float.Parse(raw)}",
+                    "double" => $"{double.Parse(raw)}",
+                    "string" => $"\"{raw}\"",
+                    "component" => ParseNestedComponentName(raw, root),
+                    "color" => $"new Color(\"{raw}\")",
+                    "literal" => value,
+                    "enum" => $"{enumFamily}.{raw}",
+                    _ => "null"
+                };
+                switch (value)
+                {
+                    case "null":
+                        ColoredConsole.WriteLine($"[$yellow^WARN$r^][$yellow^COMPONENT$r^] Type '{type}' for attribute '{hintedString}' not recognized, using null instead.");
+                        break;
+                    case "Colors.None" when type == "color":
+                        ColoredConsole.WriteLine($"[$yellow^WARN$r^][$yellow^COMPONENT$r^] Color '{hintedString}' not parsed correctly, using Colors.None instead.");
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                ColoredConsole.WriteLine($"[$yellow^WARN$r^][$yellow^COMPONENT$r^] Could not cast type '{type}' for attribute '{hintedString}': {raw}, using null instead. {ex.Message}");
+                value = "null";
+            }
+            return value;
+        }
+        public static string? GetRecommendedDataType(string propertyName, out string? enumFamily)
+        {
+            var type = propertyName switch
+            {
+                "ForeColor" => "color",
+                "BackColor" => "color",
+                "BorderColor" => "color",
+                "FontName" => "string",
+                "FontSize" => "int",
+                "FontStyle" => "string",
+                "Text" => "string",
+                "FileName" => "string",
+                "X" => "int",
+                "Y" => "int",
+                "PictureMode" => "enum",
+                _ => null
+            };
+            enumFamily = propertyName switch
+            {
+                "TargetMouseButton" => "MouseButton",
+                _ => propertyName
+            };
+            return type;
+        }
     }
 }

@@ -2,7 +2,8 @@
   "profiles": {
     "Cerulean.CLI": {
       "commandName": "Project",
-      "commandLineArgs": "help"
+      "commandLineArgs": "build-xml",
+      "workingDirectory": "E:\\Repositories\\Cerulean (C#)\\test-bed"
     }
   }
 }

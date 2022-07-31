@@ -53,8 +53,9 @@ namespace Cerulean.CLI.Commands
             foreach (var file in xmlFiles)
             {
                 // reset imports
+                var builder = new Builder();
                 context.UseDefaultImports();
-                ColoredConsole.WriteLine(Builder.BuildContextFromXML(context, file)
+                ColoredConsole.WriteLine(builder.BuildContextFromXml(context, file)
                     ? $"[$green^GOOD$r^][$yellow^XML$r^] '{file}'"
                     : $"[$red^FAIL$r^][$yellow^XML$r^] '{file}'");
             }
