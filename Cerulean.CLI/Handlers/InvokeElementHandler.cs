@@ -17,7 +17,7 @@ internal class InvokeElementHandler : IElementHandler
         var parentType = element.Parent?.Name.LocalName;
         var targetComponent = element.Attribute("Target")?.Value;
         var componentType = element.Attribute("Type")?.Value;
-        if (method is null)
+        if (method is null || parentType is null)
             return false;
 
         return parentType is "Layout"
