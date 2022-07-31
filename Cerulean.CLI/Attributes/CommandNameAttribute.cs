@@ -1,19 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Cerulean.CLI.Attributes;
 
-namespace Cerulean.CLI.Attributes
+[AttributeUsage(AttributeTargets.Class)]
+public class CommandNameAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Class)]
-    public class CommandNameAttribute : Attribute
+    public CommandNameAttribute(string commandName)
     {
-        public string CommandName { get; init; }
-
-        public CommandNameAttribute(string commandName)
-        {
-            CommandName = commandName;
-        }
+        CommandName = commandName;
     }
+
+    public string CommandName { get; init; }
 }

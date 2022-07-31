@@ -1,19 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Cerulean.CLI.Attributes;
 
-namespace Cerulean.CLI.Attributes
+[AttributeUsage(AttributeTargets.Class)]
+public class ElementTypeAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Class)]
-    public class ElementTypeAttribute : Attribute
+    public ElementTypeAttribute(string elementType)
     {
-        public string ElementType { get; init; }
-
-        public ElementTypeAttribute(string elementType)
-        {
-            ElementType = elementType;
-        }
+        ElementType = elementType;
     }
+
+    public string ElementType { get; init; }
 }
