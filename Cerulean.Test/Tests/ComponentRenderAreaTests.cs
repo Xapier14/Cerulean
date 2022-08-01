@@ -9,7 +9,6 @@ using SDL2;
 namespace Cerulean.Test
 {
     [TestFixture]
-    [NonParallelizable]
     public class ComponentRenderAreaTests
     {
         private readonly CeruleanAPI _api = CeruleanAPI.GetAPI();
@@ -31,7 +30,6 @@ namespace Cerulean.Test
                 Y = 64,
                 Size = new Size(128, 256)
             });
-            _window = _api.CreateWindow(layout);
             layout.FirstPanel.SecondPanel.AddChild("ThirdPanel", new Panel
             {
                 X = 8,
@@ -39,6 +37,7 @@ namespace Cerulean.Test
                 Size = new Size(64, 64)
             });
             _window = _api.CreateWindow(layout);
+            _window.AlwaysRedraw = true;
         }
 
         [OneTimeTearDown]

@@ -174,19 +174,6 @@ namespace Cerulean.Common
         /// <summary>
         /// Retrieves a child component.
         /// </summary>
-        /// <param name="name">The name of the child component.</param>
-        /// <returns>The child component as a dynamic? var.</returns>
-        public dynamic? GetChildNullable(string name)
-        {
-            var child = _components.TryGetValue(name, out var value) ? value : null;
-            if (child is not null)
-                CallHook(this, EventHook.GetChild, name, child);
-            return child;
-        }
-
-        /// <summary>
-        /// Retrieves a child component.
-        /// </summary>
         /// <typeparam name="T">The type of the component.</typeparam>
         /// <param name="name">The name of the child component.</param>
         /// <returns>The type-cast child component.</returns>
@@ -197,6 +184,19 @@ namespace Cerulean.Common
                 throw new GeneralAPIException("Invalid component type.");
 
             CallHook(this, EventHook.GetChild, name, child);
+            return child;
+        }
+
+        /// <summary>
+        /// Retrieves a child component.
+        /// </summary>
+        /// <param name="name">The name of the child component.</param>
+        /// <returns>The child component as a dynamic? var.</returns>
+        public dynamic? GetChildNullable(string name)
+        {
+            var child = _components.TryGetValue(name, out var value) ? value : null;
+            if (child is not null)
+                CallHook(this, EventHook.GetChild, name, child);
             return child;
         }
 
