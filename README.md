@@ -80,7 +80,7 @@ Mainly testing on Windows and Ubuntu. Feel free to test on other platforms.<br>
 
 ### Cerulean API
  - [x] Window Events
- - [ ] Styler Element
+ - [x] Styler Element
 ### Cerulean Components
  - [x] Functional Components
      - [x] Timer
@@ -95,7 +95,7 @@ Mainly testing on Windows and Ubuntu. Feel free to test on other platforms.<br>
      - [x] Image
      - [x] Progress Bar
      - [x] Label
- - [x] Input Components
+ - [ ] Input Components
      - [ ] TextBox
      - [ ] MultiTextBox
      - [x] Button
