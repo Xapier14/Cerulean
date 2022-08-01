@@ -45,6 +45,7 @@ namespace Cerulean.Core
 
         internal EmbeddedLayouts EmbeddedLayouts { get; }
         internal EmbeddedResources EmbeddedResources { get; }
+        internal EmbeddedStyles EmbeddedStyles { get; }
         #endregion
 
         /// <summary>
@@ -162,6 +163,7 @@ namespace Cerulean.Core
             _workItems = new ConcurrentQueue<WorkItem>();
             EmbeddedLayouts = new EmbeddedLayouts();
             EmbeddedResources = new EmbeddedResources();
+            EmbeddedStyles = new EmbeddedStyles();
             Profiler = null;
         }
 
@@ -310,6 +312,7 @@ namespace Cerulean.Core
             _logger?.Log("Loading embedded layouts...");
             EmbeddedLayouts.RetrieveLayouts();
             EmbeddedResources.RetrieveResources();
+            EmbeddedStyles.RetrieveStyles();
             _thread.Start();
             return this;
         }
@@ -379,6 +382,8 @@ namespace Cerulean.Core
         {
             _logger = loggingService;
             EmbeddedLayouts.SetLogger(loggingService);
+            EmbeddedResources.SetLogger(loggingService);
+            EmbeddedStyles.SetLogger(loggingService);
             return this;
         }
 
