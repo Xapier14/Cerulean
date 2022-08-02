@@ -108,7 +108,7 @@ Mainly testing on Windows and Ubuntu. Feel free to test on other platforms.<br>
      - [ ] Stack Panel
      - [ ] Group Tab
 ### Cerulean CLI
- - [ ] Style Builder
+ - [x] Style Builder
  - [ ] C# Snippet Element
  - [x] Project Builder/Scaffolder
 <h2>Warning</h2>
