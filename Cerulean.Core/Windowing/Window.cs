@@ -367,6 +367,7 @@ namespace Cerulean.Core
             SDL_SetWindowMaximumSize(WindowPtr, _maximumWindowSize.W, _maximumWindowSize.H);
             GraphicsContext = _graphicsFactory.CreateGraphics(this);
             Layout.Init();
+            ((Layout)Layout).ApplyStyles();
         }
 
         internal void Draw()

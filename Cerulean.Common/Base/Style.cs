@@ -52,5 +52,11 @@ namespace Cerulean.Common
                 ApplyStyle(child, true);
             });
         }
+
+        public void DeriveFrom(Style style)
+        {
+            style._setters.Values.ToList()
+                .ForEach(setter => AddSetter(setter.Property, setter.Value));
+        }
     }
 }

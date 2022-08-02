@@ -42,11 +42,22 @@ namespace Cerulean.Core
         private string? _IMECompositionText;
         private int? _IMECursor;
         private int? _IMESelectionLength;
-
-        internal EmbeddedLayouts EmbeddedLayouts { get; }
-        internal EmbeddedResources EmbeddedResources { get; }
-        internal EmbeddedStyles EmbeddedStyles { get; }
         #endregion
+
+        /// <summary>
+        /// The managed for embedded layouts.
+        /// </summary>
+        public EmbeddedLayouts EmbeddedLayouts { get; }
+
+        /// <summary>
+        /// The manager for embedded resources.
+        /// </summary>
+        public EmbeddedResources EmbeddedResources { get; }
+
+        /// <summary>
+        /// The manager for embedded styles.
+        /// </summary>
+        public EmbeddedStyles EmbeddedStyles { get; }
 
         /// <summary>
         /// Set of all open windows.
