@@ -23,7 +23,7 @@ internal class GeneralElementHandler : IElementHandler
         var elementProperties = element.Attributes().Where(
             attribute =>
                 attribute.Name.NamespaceName != "Attribute" &&
-                attribute.Name.LocalName is not ("Name" or "Data")
+                attribute.Name.LocalName is not ("Name" or "Data" or "Style")
         );
         var elementAttributes = element.Attributes().Where(
             attribute => attribute.Name.NamespaceName == "Attribute"
