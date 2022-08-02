@@ -23,7 +23,7 @@ namespace Cerulean.Core
             CeruleanAPI.GetAPI().Profiler?.EndProfilingCurrentPoint();
         }
 
-        private void QueueStyle(Component component, Style style)
+        protected void QueueStyle(Component component, Style style)
         {
             _queuedStyles.Enqueue((component, style));
         }
