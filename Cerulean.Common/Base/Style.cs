@@ -40,15 +40,15 @@ namespace Cerulean.Common
                 setters.ForEach(setter => setter.ApplyTo(component));
             }
             
-            // apply style to component's children that matches target type
+            // apply style to component's children
             if (!ApplyToChildren)
                 return;
             var targetChildren = component.Children
-                .Where(c => c.GetType() == TargetType)
                 .ToList();
             targetChildren.ForEach(child =>
             {
-                setters.ForEach(setter => setter.ApplyTo(child));
+                if (child.GetType() == TargetType)
+                    setters.ForEach(setter => setter.ApplyTo(child));
                 ApplyStyle(child, true);
             });
         }
