@@ -4,7 +4,7 @@ namespace Cerulean.CLI.Extensions;
 
 internal static class AssemblyExtensions
 {
-    public static Type?[] GetLoadableTypes(this Assembly assembly)
+    public static IEnumerable<Type?> GetLoadableTypes(this Assembly assembly)
     {
         try
         {
