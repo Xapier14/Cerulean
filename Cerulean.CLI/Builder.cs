@@ -107,8 +107,8 @@ public class Builder
 
     public static string GenerateAnonymousName()
     {
-        const string prefix = " _.";
-        return $"{prefix}{DateTime.Now.Ticks}_Component";
+        const string prefix = "AnonymousComponent_";
+        return $"{prefix}{DateTime.Now.Ticks}";
     }
 
     private void ProcessLayout(XElement layoutElement, BuilderContext context)
