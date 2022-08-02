@@ -4,6 +4,7 @@ namespace Cerulean.Core
 {
     public class Layout : Component
     {
+        private readonly Queue<(Component, Style)> _queuedStyles = new();
         public dynamic DynamicLayout => this;
         public Layout()
         {
@@ -20,6 +21,20 @@ namespace Cerulean.Core
             // update the child components
             base.Update(window, clientArea);
             CeruleanAPI.GetAPI().Profiler?.EndProfilingCurrentPoint();
+        }
+
+        private void QueueStyle(Component component, Style style)
+        {
+            _queuedStyles.Enqueue((component, style));
+        }
+
+        internal void ApplyStyles()
+        {
+            while (_queuedStyles.Any())
+            {
+                var (component, style) = _queuedStyles.Dequeue();
+                style.ApplyStyle(component);
+            }
         }
     }
 }
