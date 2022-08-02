@@ -116,10 +116,17 @@ public class Builder
         var layoutName = layoutElement.Attribute("Name")?.Value;
         if (string.IsNullOrEmpty(layoutName))
             return;
+        var styleName = layoutElement.Attribute("Style")?.Value;
 
         var stringBuilder = new StringBuilder();
         Snippets.WriteClassHeader(stringBuilder, layoutName, context.Imports, context.Aliases, "Layout");
         Snippets.WriteCtorHeader(stringBuilder, layoutName, true);
+        if (styleName is not null)
+        {
+            var queueStyle =
+                $"QueueStyle(this, styles.FetchStyle(\"{styleName}\"));\n";
+            stringBuilder.AppendIndented(3, queueStyle);
+        }
         foreach (var xElement in layoutElement.Elements()) ProcessXElement(stringBuilder, 3, xElement);
         Snippets.WriteCtorFooter(stringBuilder);
         Snippets.WriteClassFooter(stringBuilder);
