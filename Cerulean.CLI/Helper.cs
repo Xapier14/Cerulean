@@ -180,7 +180,7 @@ internal static class Helper
             "ForeColor" => "color",
             "BackColor" => "color",
             "BorderColor" => "color",
-            "HighlightColor" => "color"
+            "HighlightColor" => "color",
             "ActivatedColor" => "color",
             "FontName" => "string",
             "FontSize" => "int",
