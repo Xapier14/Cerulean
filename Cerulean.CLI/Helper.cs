@@ -180,6 +180,8 @@ internal static class Helper
             "ForeColor" => "color",
             "BackColor" => "color",
             "BorderColor" => "color",
+            "HighlightColor" => "color"
+            "ActivatedColor" => "color",
             "FontName" => "string",
             "FontSize" => "int",
             "FontStyle" => "string",
@@ -188,6 +190,7 @@ internal static class Helper
             "X" => "int",
             "Y" => "int",
             "PictureMode" => "enum",
+            "Orientation" => "enum",
             _ => null
         };
         enumFamily = propertyName switch
