@@ -29,6 +29,7 @@ internal class GeneralElementHandler : IElementHandler
             attribute => attribute.Name.NamespaceName == "Attribute"
         );
         var ctrData = constructorParams != string.Empty ? $"({constructorParams})" : "";
+        var styleName = element.Attribute("Style")?.Value;
 
         // get new object's properties
         var properties =
@@ -54,6 +55,14 @@ internal class GeneralElementHandler : IElementHandler
 
         const string footer = "});\n";
         stringBuilder.AppendIndented(indentDepth, footer);
+
+        // apply style if specified
+        if (styleName is not null)
+        {
+            var queueStyle =
+                $"QueueStyle({parentPrefix}GetChild(\"{elementName}\"), styles.FetchStyle(\"{styleName}\"));\n";
+            stringBuilder.AppendIndented(indentDepth, queueStyle);
+        }
 
         // write attributes
         foreach (var attribute in elementAttributes)

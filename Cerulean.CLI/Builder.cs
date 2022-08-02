@@ -2,6 +2,7 @@
 using System.Text;
 using System.Xml.Linq;
 using Cerulean.CLI.Attributes;
+using Cerulean.CLI.Commands;
 using Cerulean.CLI.Extensions;
 
 namespace Cerulean.CLI;
@@ -87,6 +88,23 @@ public class Builder
                 $"[$cyan^{handler.GetType()}$r^] Handler returned an error while parsing an XElement.");
     }
 
+    private static void ProcessSetter(StringBuilder stringBuilder, int depth, XElement element)
+    {
+        var property = element.Attribute("Name")?.Value ?? element.Attribute("Property")?.Value;
+        if (property is null)
+        {
+            ColoredConsole.WriteLine(
+                $"[$cyan^Style.Setter$r^] [$red^WARN$r^] Setter does not have a 'Name' or 'Property' attribute.");
+            return;
+        }
+
+        var rawValue = element.Attribute("Value")?.Value ?? element.Value;
+        var type = Helper.GetRecommendedDataType(property, out var enumFamily);
+        var value = Helper.ParseHintedString(rawValue, string.Empty, enumFamily, type);
+
+        stringBuilder.AppendIndented(depth, $"AddSetter(\"{property}\", {value});\n");
+    }
+
     public static string GenerateAnonymousName()
     {
         const string prefix = " _.";
@@ -109,13 +127,32 @@ public class Builder
         context.Layouts.Add(layoutName, stringBuilder.ToString());
     }
 
-    private void ProcessStyle(XElement styleElement, BuilderContext context)
+    private static void ProcessStyle(XElement styleElement, BuilderContext context)
     {
-        var styleName = styleElement.Name.LocalName;
-        if (styleName == string.Empty)
+        var styleName = styleElement.Attribute("Name")?.Value;
+        if (string.IsNullOrEmpty(styleName))
             return;
+        var target = styleElement.Attribute("Target")?.Value;
+        var hasSelfFlag = bool.TryParse(styleElement.Attribute("ApplyToSelf")?.Value, out var applyToSelf);
+        var hasChildFlag = bool.TryParse(styleElement.Attribute("ApplyToChildren")?.Value, out var applyToChildren);
+        var derivedFrom = styleElement.Attribute("DerivedFrom")?.Value ?? styleElement.Attribute("From")?.Value;
 
-        throw new NotImplementedException();
+        var stringBuilder = new StringBuilder();
+        Snippets.WriteClassHeader(stringBuilder, styleName, context.Imports, context.Aliases, "Style");
+        Snippets.WriteCtorHeader(stringBuilder, styleName, true);
+        if (target is not null)
+            stringBuilder.AppendIndented(3, $"TargetType = typeof({target});\n");
+        if (hasSelfFlag)
+            stringBuilder.AppendIndented(3, $"ApplyToSelf = {applyToSelf.ToLowerString()};\n");
+        if (hasChildFlag)
+            stringBuilder.AppendIndented(3, $"ApplyToChildren = {applyToChildren.ToLowerString()};\n");
+        if (derivedFrom is not null)
+            stringBuilder.AppendIndented(3, $"DeriveFrom(styles.FetchStyle(\"{derivedFrom}\"));\n");
+        foreach (var xElement in styleElement.Elements("Setter")) ProcessSetter(stringBuilder, 3, xElement);
+        Snippets.WriteCtorFooter(stringBuilder);
+        Snippets.WriteClassFooter(stringBuilder);
+
+        context.Styles.Add(styleName, stringBuilder.ToString());
     }
 
     private void RegisterHandlers()

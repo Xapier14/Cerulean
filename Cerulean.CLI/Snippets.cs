@@ -47,6 +47,9 @@ internal static class Snippets
         var baseSuffix = hasInheritance ? " : base()" : string.Empty;
         stringBuilder.AppendIndented(2, $"public {className}(){baseSuffix}\n");
         stringBuilder.AppendIndented(2, "{\n");
+        stringBuilder.AppendIndented(3, "var api = CeruleanAPI.GetAPI();\n");
+        stringBuilder.AppendIndented(3, "var resources = api.EmbeddedResources;\n");
+        stringBuilder.AppendIndented(3, "var styles = api.EmbeddedStyles;\n");
     }
 
     public static void WriteCtorFooter(StringBuilder stringBuilder)
