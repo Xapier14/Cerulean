@@ -1,18 +1,22 @@
 using System.Reflection.Metadata;
+using System.Text;
+using System.Text.RegularExpressions;
 using Cerulean.Core;
 using Cerulean.Common;
 
 namespace Cerulean.Components
 {
-    public class Image : Component, ISized
+    public class Image : Component, ISized, IVisible
     {
+        private const string SVG_CHECK_REGEX = @"[Ss]vg:\s?(.+)";
+
         private Size? _size;
         public Size? Size
         {
             get => _size;
             set
             {
-                Modified = true;
+                Modified = _size != value;
                 _size = value;
             }
         }
@@ -23,7 +27,7 @@ namespace Cerulean.Components
             get => _hintW;
             set
             {
-                Modified = true;
+                Modified = _hintW != value;
                 _hintW = value;
             }
         }
@@ -34,21 +38,21 @@ namespace Cerulean.Components
             get => _hintH;
             set
             {
-                Modified = true;
+                Modified = _hintH != value;
                 _hintH = value;
             }
         }
 
-        private string _imagePath = string.Empty;
-        public string FileName
+        private string _imageSource = string.Empty;
+        public string ImageSource
         {
-            get => _imagePath;
+            get => _imageSource;
             set
             {
-                if (!File.Exists(value))
+                if (!File.Exists(value) && !Regex.Match(value, SVG_CHECK_REGEX).Success)
                     throw new FileNotFoundException($"File {value} not found.");
-                Modified = true;
-                _imagePath = value;
+                Modified = _imageSource != value;
+                _imageSource = value;
             }
         }
 
@@ -80,7 +84,7 @@ namespace Cerulean.Components
             get => _pictureMode;
             set
             {
-                Modified = true;
+                Modified = _pictureMode != value;
                 _pictureMode = value;
             }
         }
@@ -92,8 +96,20 @@ namespace Cerulean.Components
             {
                 if (value is < 0.0 or > 1.0)
                     throw new ArgumentOutOfRangeException(nameof(value), "Opacity must be between 0.0 and 1.0.");
-                Modified = true;
+                Modified = Math.Abs(_opacity - value) > 0.001;
                 _opacity = value;
+            }
+        }
+
+        private bool _visible = true;
+
+        public bool Visible
+        {
+            get => _visible;
+            set
+            {
+                Modified = _visible != value;
+                _visible = value;
             }
         }
 
@@ -132,9 +148,17 @@ namespace Cerulean.Components
             {
                 graphics.DrawFilledRectangle(0, 0, ClientArea.Value, BackColor.Value);
             }
-            if (FileName != string.Empty)
+            if (ImageSource != string.Empty && Visible)
             {
-                graphics.DrawImage(0, 0, ClientArea.Value, FileName, PictureMode);
+                var match = Regex.Match(ImageSource, SVG_CHECK_REGEX);
+                var useSvgString = match.Success && match.Groups[1].Value != string.Empty;
+                if (useSvgString)
+                {
+                    var bytes = Encoding.UTF8.GetBytes(ImageSource);
+                    graphics.DrawImageFromBytes(0, 0, ClientArea.Value, bytes, PictureMode);
+                }
+                else
+                    graphics.DrawImage(0, 0, ClientArea.Value, ImageSource, PictureMode);
             }
 
             if (BorderColor.HasValue)
