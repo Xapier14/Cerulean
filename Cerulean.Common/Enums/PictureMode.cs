@@ -4,17 +4,29 @@ namespace Cerulean.Common
 {
     public enum PictureMode
     {
-        // Stretch to bounds of frame
+        /// <summary>
+        /// Stretches the image to the bounds of the container.
+        /// </summary>
         Stretch,
-        // center image to bounds of frame without resize
+        /// <summary>
+        /// Positions the image to the center of the container without resizing.
+        /// </summary>
         Center,
-        // tile image starting from top-left
+        /// <summary>
+        /// Tiles the image starting from the top-left corner of the container.
+        /// </summary>
         Tile,
-        // fit image to frame without cropping (possible empty space)
+        /// <summary>
+        /// Fits the image into the container without cropping. May introduce empty space.
+        /// </summary>
         Fit,
-        // cover frame with image (possible cropping, but no empty space)
+        /// <summary>
+        /// Covers the container with the image by cropping. Will not introduce empty space.
+        /// </summary>
         Cover,
-        // draw image as-is without scaling and other stuff
+        /// <summary>
+        /// No resizing or cropping.
+        /// </summary>
         None
     }
 }

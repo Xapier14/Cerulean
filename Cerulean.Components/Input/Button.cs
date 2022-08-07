@@ -208,8 +208,7 @@ namespace Cerulean.Components
                 {
                     if (_clicked)
                         return;
-                    ceruleanWindow.FlagForRedraw();
-                    OnClick?.Invoke(this, eventArgs);
+                    RaiseHandler(OnClick, eventArgs, ceruleanWindow);
 
                     _clicked = true;
                 }
@@ -217,8 +216,7 @@ namespace Cerulean.Components
                 {
                     if (_clicked)
                     {
-                        ceruleanWindow.FlagForRedraw();
-                        OnRelease?.Invoke(this, eventArgs);
+                        RaiseHandler(OnRelease, eventArgs, ceruleanWindow);
                     }
 
                     _clicked = false;
@@ -228,8 +226,7 @@ namespace Cerulean.Components
             {
                 if (_hovered)
                 {
-                    ceruleanWindow.FlagForRedraw();
-                    OnLeave?.Invoke(this, eventArgs);
+                    RaiseHandler(OnLeave, eventArgs, ceruleanWindow);
                 }
 
                 _hovered = false;
@@ -288,6 +285,12 @@ namespace Cerulean.Components
                 graphics.DrawRectangle(0, 0, ClientArea.Value, BorderColor.Value);
 
             CallHook(this, EventHook.AfterDraw, graphics, viewportX, viewportY, viewportSize);
+        }
+
+        private void RaiseHandler(ButtonEventHandler? handler, ButtonEventArgs eventArgs, Window ceruleanWindow)
+        {
+            ceruleanWindow.FlagForRedraw();
+            handler?.Invoke(this, eventArgs);
         }
     }
 }

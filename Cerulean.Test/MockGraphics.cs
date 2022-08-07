@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Win32.SafeHandles;
 
+#pragma warning disable S1186 // Methods should not be empty
 namespace Cerulean.Test
 {
     internal class MockGraphicsFactory : IGraphicsFactory
@@ -62,7 +63,7 @@ namespace Cerulean.Test
         public void DrawRectangle(int x, int y, Size size, Color color)
         {
         }
-
+        
         public void DrawFilledRectangle(int x, int y, Size size)
         {
         }
@@ -72,6 +73,10 @@ namespace Cerulean.Test
         }
 
         public void DrawImage(int x, int y, Size size, string fileName, PictureMode pictureMode = PictureMode.None,
+            double opacity = 1)
+        {
+        }
+        public void DrawImageFromBytes(int x, int y, Size size, byte[] bytes, PictureMode pictureMode = PictureMode.None,
             double opacity = 1)
         {
         }
@@ -91,3 +96,4 @@ namespace Cerulean.Test
         }
     }
 }
+#pragma warning restore S1186 // Methods should not be empty

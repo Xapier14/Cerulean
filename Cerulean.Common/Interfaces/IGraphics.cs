@@ -22,7 +22,12 @@
         #endregion
 
         #region TEXTURE
-        public void DrawImage(int x, int y, Size size, string fileName, PictureMode pictureMode = PictureMode.None, double opacity = 1.0);
+
+        public void DrawImage(int x, int y, Size size, string fileName, PictureMode pictureMode = PictureMode.None,
+            double opacity = 1.0);
+
+        public void DrawImageFromBytes(int x, int y, Size size, byte[] bytes,
+            PictureMode pictureMode = PictureMode.None, double opacity = 1.0);
         // DrawImageFromBytes(byte[])
         // DrawImageFromStream(Srteam)
         #endregion

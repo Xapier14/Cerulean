@@ -1,14 +1,29 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<CeruleanAPI xmlns:a='Attrubute'>
+
+<CeruleanAPI xmlns:a='Attribute'>
 	<Import>Cerulean.Components</Import>
+	<Style Name='BaseLabel' Target='Label'>
+		<Setter Property='FontName' Value='Arial' />
+		<Setter Property='FontSize' Value='28' />
+		<Setter Property='ForeColor' Value='#FFF' />
+		<Setter Property='X' Value='8' />
+		<Setter Property='Y' Value='8' />
+	</Style>
+	<Style Name='DefaultImage' Target='Image' ApplyToChildren='true'>
+		<Setter Property='ImageSource' Value='Cerulean.png' />
+	</Style>
+	<Style Name='DefaultImageSVG' Target='Image' ApplyToChildren='true'>
+		<Setter Property='ImageSource'
+		        Value='svg: &lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 93 107"&gt;&lt;path d="M74,74a42,42 0,1,0-57,0l28,29a42,41 0,0,0 0-57" fill="#ff0000" fill-rule="evenodd"/&gt;&lt;/svg&gt;' />
+	</Style>
 	<Layout Name='MainLayout'>
 		<Grid
 			Name='MainGrid'
 			RowCount='2'
-			ColumnCount='3'>
+			ColumnCount='3'
+			Style='DefaultImageSVG'>
 			<Image
 				Name='Image1'
-				FileName='Cerulean.png'
 				PictureMode='None'
 				GridRow='0'
 				GridColumn='0' />
@@ -24,7 +39,6 @@
 				GridColumn='0' />
 			<Image
 				Name='Image2'
-				FileName='Cerulean.png'
 				PictureMode='Stretch'
 				GridRow='0'
 				GridColumn='1' />
@@ -40,7 +54,6 @@
 				GridColumn='1' />
 			<Image
 				Name='Image3'
-				FileName='Cerulean.png'
 				PictureMode='Center'
 				GridRow='0'
 				GridColumn='2' />
@@ -56,7 +69,6 @@
 				GridColumn='2' />
 			<Image
 				Name='Image4'
-				FileName='Cerulean.png'
 				PictureMode='Tile'
 				GridRow='1'
 				GridColumn='0' />
@@ -72,7 +84,6 @@
 				GridColumn='0' />
 			<Image
 				Name='Image5'
-				FileName='Cerulean.png'
 				PictureMode='Fit'
 				GridRow='1'
 				GridColumn='1' />
@@ -88,7 +99,6 @@
 				GridColumn='1' />
 			<Image
 				Name='Image6'
-				FileName='Cerulean.png'
 				PictureMode='Cover'
 				GridRow='1'
 				GridColumn='2' />
