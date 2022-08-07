@@ -1,6 +1,8 @@
 ﻿
 using Cerulean.Common;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Text;
 using static SDL2.SDL;
 using static SDL2.SDL_image;
 using static SDL2.SDL_ttf;
@@ -17,6 +19,7 @@ namespace Cerulean.Core
         private static bool _initializedSubmodules = false;
         private int _globalX;
         private int _globalY;
+        private SHA256 _hash;
         internal IntPtr WindowPtr => _window.WindowPtr;
         internal IntPtr RendererPtr { get; }
 
@@ -38,6 +41,7 @@ namespace Cerulean.Core
             RendererPtr = renderer;
             _textureCache = new TextureCache(64);
             _fontCache = new FontCache();
+            _hash = SHA256.Create();
         }
 
         public void Update()
@@ -49,10 +53,31 @@ namespace Cerulean.Core
         {
             _fontCache.Clear();
             _textureCache.Clear();
+            _hash.Dispose();
         }
         #region AUXILLIARY
         private static dynamic Min(dynamic i1, dynamic i2)
             => i1 < i2 ? i1 : i2;
+
+        private static (IntPtr, IntPtr) SDL_RWfromBytes(byte[] bytes)
+        {
+            var pointer = Marshal.AllocHGlobal(bytes.Length);
+            Marshal.Copy(bytes, 0, pointer, bytes.Length);
+            return (pointer, SDL_RWFromMem(pointer, bytes.Length));
+        }
+
+        private string HashBytes(byte[] bytes)
+        {
+            var hash = _hash.ComputeHash(bytes);
+
+            var stringBuilder = new StringBuilder();
+            foreach (var b in hash)
+            {
+                stringBuilder.Append(b.ToString("x2"));
+            }
+            return stringBuilder.ToString();
+        }
+
         private bool EnsureSurfaceSize(ref IntPtr surfacePtr)
         {
             if (surfacePtr == IntPtr.Zero)
@@ -211,11 +236,28 @@ namespace Cerulean.Core
         #region TEXTURE
         public void DrawImage(int x, int y, Size size, string fileName, PictureMode pictureMode, double opacity)
         {
-            var fingerprint = $"{fileName}_{pictureMode.ToString()}_{opacity}";
+            var bytes = File.ReadAllBytes(fileName);
+            DrawImageFromBytes(x, y, size, bytes, pictureMode, opacity);
+        }
+        public void DrawImageFromBytes(int x, int y, Size size, byte[] bytes, PictureMode pictureMode, double opacity)
+        {
+            var hash = HashBytes(bytes);
+            var fingerprint = $"{hash}_{pictureMode.ToString()}_{opacity}";
             Texture? texture;
             if (!_textureCache.TryGetTexture(fingerprint, out texture))
             {
-                var sdlSurface = IMG_Load(fileName);
+                var (pointer, rwops) = SDL_RWfromBytes(bytes);
+                var sdlSurface = IntPtr.Zero;
+                if (IMG_isSVG(rwops) != 0)
+                {
+                    sdlSurface = pictureMode is PictureMode.None or PictureMode.Tile
+                        ? IMG_LoadSVG_RW(rwops)
+                        : IMG_LoadSizedSVG_RW(rwops, size.W, size.H);
+                }
+                else
+                {
+                    sdlSurface = IMG_Load_RW(rwops, 0);
+                }
                 if (sdlSurface == IntPtr.Zero)
                 {
                     var error = IMG_GetError();
@@ -240,9 +282,11 @@ namespace Cerulean.Core
                     Score = 5
                 };
                 SDL_FreeSurface(sdlSurface);
+                SDL_RWclose(rwops);
+                Marshal.FreeHGlobal(pointer);
                 _textureCache.AddTexture(texture.Value);
             }
-            if (texture is not null && texture.Value.UserData is Size imageSize)
+            if (texture?.UserData is Size imageSize)
             {
                 // draw texture
                 var sdlTexture = texture.Value.SDLTexture;
@@ -300,7 +344,7 @@ namespace Cerulean.Core
                     {
                         for (var j = 0; j < yRep; j++)
                         {
-                            DrawImage(imageX + i * imageSize.W, imageY + j * imageSize.H, imageSize, fileName, PictureMode.None, opacity);
+                            DrawImageFromBytes(imageX + i * imageSize.W, imageY + j * imageSize.H, imageSize, bytes, PictureMode.None, opacity);
                         }
                     }
                     return;
