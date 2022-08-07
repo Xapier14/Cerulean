@@ -99,7 +99,7 @@ Mainly testing on Windows and Ubuntu. Feel free to test on other platforms.<br>
      - [ ] TextBox
      - [ ] MultiTextBox
      - [x] Button
-     - [ ] Check Box
+     - [x] Check Box
      - [ ] Radio Button
      - [ ] Drop Down List
  - [ ] Container Components
