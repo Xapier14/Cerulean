@@ -118,6 +118,13 @@ internal static class Helper
         return component.ToString();
     }
 
+    public static string EscapeString(string sourceString)
+    {
+        return sourceString
+            .Replace("\\", "\\\\")
+            .Replace("\"", "\\\"");
+    }
+
     public static string ParseHintedString(string hintedString, string root, string? enumFamily = null,
         string? overrideType = null)
     {
@@ -135,7 +142,7 @@ internal static class Helper
             {
                 "bool" => $"{bool.Parse(raw)}",
                 "byte" => $"{byte.Parse(raw)}",
-                "char" => $"'{raw[0]}'",
+                "char" => $"'{(raw[0] == '\'' ? "\'" : raw[0])}'",
                 "short" => $"{short.Parse(raw)}",
                 "ushort" => $"{ushort.Parse(raw)}",
                 "int" => $"{int.Parse(raw)}",
@@ -144,7 +151,7 @@ internal static class Helper
                 "ulong" => $"{ulong.Parse(raw)}",
                 "float" => $"{float.Parse(raw)}",
                 "double" => $"{double.Parse(raw)}",
-                "string" => $"\"{raw}\"",
+                "string" => $"\"{EscapeString(raw)}\"",
                 "component" => ParseNestedComponentName(raw, root),
                 "color" => $"new Color(\"{raw}\")",
                 "literal" => value,
@@ -187,6 +194,8 @@ internal static class Helper
             "FontStyle" => "string",
             "Text" => "string",
             "FileName" => "string",
+            "Source" => "string",
+            "ImageSource" => "string",
             "X" => "int",
             "Y" => "int",
             "PictureMode" => "enum",
