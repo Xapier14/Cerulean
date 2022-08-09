@@ -111,9 +111,13 @@ Mainly testing on Windows and Ubuntu. Feel free to test on other platforms.<br>
  - [x] Style Builder
  - [ ] C# Snippet Element
  - [x] Project Builder/Scaffolder
-<h2>Warning</h2>
-This is a WIP project, please do not use in commercial projects.<br>
-<h2>License<h2/>
+ 
+ 
+## Warning
+This is a WIP project, please do not use in commercial projects.
+
+## License
+
 This project uses the MIT License.
 SDL2 and SDL2-CS, dependencies of this project, are released under the zlib license.
 
