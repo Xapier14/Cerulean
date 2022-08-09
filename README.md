@@ -59,7 +59,7 @@ Mainly testing on Windows and Ubuntu. Feel free to test on other platforms.<br>
 
  - .NET 6 is **required**.
  - Use the appropriate SDL2 binaries for your app/system.
-    - On Any CPU, use the binaries with the for your system's architecture.
+    - On Any CPU, use the binaries appropriate for your system's architecture.
     - On x86, use x86.
     - On x64, use x64.
  - On Windows, use the runtime binaries available at <a href="https://libsdl.org/">libsdl.org</a>.
