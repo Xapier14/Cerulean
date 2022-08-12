@@ -41,9 +41,9 @@ namespace Cerulean.CLI.Commands
             var dependenciesPath = Path.Join(projectPath, ".dependencies");
             Directory.CreateDirectory(dependenciesPath);
             var (preferredSDL, preferredImage, preferredTTF) = urls;
-            var core = urls?.SDLLinks?[preferredSDL];
-            var image = urls?.ImageLinks?[preferredImage];
-            var ttf = urls?.TTFLinks?[preferredTTF];
+            var core = urls?.SDL?[preferredSDL];
+            var image = urls?.Image?[preferredImage];
+            var ttf = urls?.TTF?[preferredTTF];
             GetArchedFile(core, targetArch, dependenciesPath, $"sdl2-{targetArch}.zip");
             GetArchedFile(image, targetArch, dependenciesPath, $"sdl2_image-{targetArch}.zip");
             GetArchedFile(ttf, targetArch, dependenciesPath, $"sdl2_ttf-{targetArch}.zip");
