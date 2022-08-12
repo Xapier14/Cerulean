@@ -1,0 +1,86 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
+using Cerulean.CLI.Attributes;
+using Cerulean.CLI.JsonStructure;
+
+namespace Cerulean.CLI.Commands
+{
+    [CommandName("bundle")]
+    [CommandDescription("Bundles needed dependencies for app runtime.")]
+    internal class BundleDependencies : ICommand
+    {
+        private static void GetArchedFile(ArchedLinkEntry? entry, string targetArch, string filePath, string fileName)
+        {
+            if (entry is null)
+                return;
+            var url = targetArch == "x64" ? entry.X64 : entry.X86;
+            if (url is null)
+                return;
+            var path = Path.Join(filePath, fileName);
+            Directory.CreateDirectory(filePath);
+            var fileInfo = new FileInfo(path);
+            using var http = new HttpClient();
+            Console.WriteLine("Fetching {0}...", path);
+            var stream = http.GetStreamAsync(url).GetAwaiter().GetResult();
+            if (fileInfo.Length == stream.Length)
+            {
+                Console.WriteLine("File with the same length already exists, skipping...");
+                return;
+            }
+            using var file = new FileStream(path, FileMode.Create);
+            stream.CopyTo(file);
+            Console.WriteLine("Done!");
+        }
+
+        private static void GetSDL2FromWeb(SDLUrlInfo urls, string targetArch, string projectPath)
+        {
+            var dependenciesPath = Path.Join(projectPath, ".dependencies");
+            Directory.CreateDirectory(dependenciesPath);
+            var (preferredSDL, preferredImage, preferredTTF) = urls;
+            var core = urls?.SDLLinks?[preferredSDL];
+            var image = urls?.ImageLinks?[preferredImage];
+            var ttf = urls?.TTFLinks?[preferredTTF];
+            GetArchedFile(core, targetArch, dependenciesPath, $"sdl2-{targetArch}.zip");
+            GetArchedFile(image, targetArch, dependenciesPath, $"sdl2_image-{targetArch}.zip");
+            GetArchedFile(ttf, targetArch, dependenciesPath, $"sdl2_ttf-{targetArch}.zip");
+        }
+
+        public int DoAction(string[] args)
+        {
+            var projectPath = "./";
+            if (args.Length > 0)
+                projectPath = args[0];
+            var os = Helper.GetOSPlatform();
+            var arch = Environment.Is64BitOperatingSystem ? "x64" : "x86";
+
+            if (os != "win")
+            {
+                ColoredConsole.WriteLine("$red^This command is not available for the target operating system.\n" +
+                                         "$r^Please check with the documentation on how to bundle the needed" +
+                                         "dependencies for the target runtime.");
+                Console.WriteLine($"Current target operating system: {os}");
+                return 0;
+            }
+
+            var config = Config.GetConfig();
+            Console.WriteLine("Fetching SDL2 data...");
+            var sdlLinks =
+                Helper.GetJsonAsObject<SDLUrlInfo>(config.GetProperty<string>("SDL_BUNDLE_JSON") ?? string.Empty);
+            if (sdlLinks is not null)
+            {
+                Console.WriteLine("SDL2 source is set to retrieve from web.");
+                GetSDL2FromWeb(sdlLinks, arch, projectPath);
+            }
+            else
+            {
+                Console.WriteLine("SDL2 source is set to retrieve from local cache.");
+            }
+
+            return 0;
+        }
+    }
+}

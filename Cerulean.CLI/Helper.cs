@@ -1,6 +1,10 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
+using System.Net;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Cerulean.CLI.Attributes;
 using Cerulean.CLI.Extensions;
@@ -10,6 +14,45 @@ namespace Cerulean.CLI;
 
 internal static class Helper
 {
+    public static bool DoTask(string? taskName, string command, string? args, string? workingDir)
+    {
+        if (taskName is not null)
+            ColoredConsole.WriteLine(taskName);
+        var startInfo = new ProcessStartInfo(command, args ?? "")
+        {
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true
+        };
+        if (workingDir is not null)
+            startInfo.WorkingDirectory = workingDir;
+
+        var startTime = DateTime.Now;
+        var process = Process.Start(startInfo);
+        if (process is not { })
+        {
+            Console.WriteLine("Could not create '{0}' process.", command);
+            return true;
+        }
+
+        process.WaitForExit();
+        Console.WriteLine("Took {0:hh\\:mm\\:ss\\:fff} to finish.\n", startTime - process.ExitTime);
+
+        if (process.ExitCode == 0)
+            return false;
+
+        ColoredConsole.WriteLine(
+            $"$red^Command aborted because of an error with {command}. (Exit Code: {process.ExitCode})$r^");
+        return true;
+    }
+    public static bool CheckProjectExists(string projectPath)
+    {
+        var projectPathInfo = new DirectoryInfo(projectPath);
+        return projectPathInfo
+            .EnumerateFiles()
+            .Any(fileInfo => fileInfo.Extension.ToLower() == ".csproj");
+    }
     public static IEnumerable<(string, string)> GetAllCommandInfo()
     {
         var interfaceType = typeof(ICommand);
@@ -208,5 +251,41 @@ internal static class Helper
             _ => propertyName
         };
         return type;
+    }
+
+    public static T? GetJsonAsObject<T>(string url) where T : class
+    {
+        return GetJsonAsObjectAsync<T>(url).GetAwaiter().GetResult();
+    }
+
+    public static async Task<T?> GetJsonAsObjectAsync<T>(string url) where T : class
+    {
+        using var http = new HttpClient();
+        try
+        {
+            var jsonData = await http.GetStringAsync(url);
+            var jsonObject = JsonSerializer.Deserialize<T>(jsonData, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+            return jsonObject;
+        }
+        catch (Exception e)
+        {
+            ColoredConsole.WriteLine("$red^" + e.Message + "$r^");
+            return null;
+        }
+    }
+
+    public static string? GetOSPlatform()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            return "win";
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            return "linux";
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            return "osx";
+
+        return null;
     }
 }

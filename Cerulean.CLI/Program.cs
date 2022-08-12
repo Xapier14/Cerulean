@@ -1,8 +1,12 @@
 ﻿using Cerulean.CLI;
 
+var config = Config.GetConfig();
 var router = Router.GetRouter();
 
-/* Register commands */
+/* Use Default Configs */
+config.UseDefaultConfiguration();
+
+/* Register Commands */
 router.RegisterCommands();
 
 // Display help if no args
@@ -12,7 +16,7 @@ if (args.Length == 0)
     Environment.Exit(0);
 }
 
-// Parse and execute command
+/* Parse Command */
 var commandName = args[0];
 var commandArgs = args.Skip(1).ToArray();
 if (!router.ExecuteCommand(commandName, commandArgs)) Splash.DisplaySplashHelp();

@@ -7,17 +7,15 @@ namespace Cerulean.CLI;
 internal class Router
 {
     private static Router? _router;
-    private readonly IDictionary<string, Delegate> _commands = new Dictionary<string, Delegate>();
+
+    private readonly IDictionary<string, (object, MethodInfo)> _commands =
+        new Dictionary<string, (object, MethodInfo)>();
+
+    private Router() { }
 
     public static Router GetRouter()
     {
         return _router ??= new Router();
-    }
-
-    public void RegisterCommand(string? commandName, Func<string[], int> action)
-    {
-        if (commandName is not null)
-            _commands[commandName] = action;
     }
 
     public void RegisterCommands()
@@ -41,9 +39,14 @@ internal class Router
             foreach (var attribute in attributes)
                 if (attribute is CommandNameAttribute nameAttribute)
                     commandName = nameAttribute.CommandName;
-            var func = command?.GetMethod("DoAction")?.CreateDelegate(typeof(Func<string[], int>));
-            if (commandName is not null && func is not null)
-                _commands[commandName] = func;
+            var method = command?.GetMethod("DoAction");
+            var instance = command?.GetConstructor(Array.Empty<Type>())?.Invoke(null);
+            if (commandName is not null
+                && method is not null
+                && instance is not null)
+            {
+                _commands[commandName] = (instance, method);
+            }
             else
                 ColoredConsole.WriteLine(
                     $"[$cyan^Router.RegisterCommands()$r^] Could not load command \"{command?.Name}\".");
@@ -54,7 +57,8 @@ internal class Router
     {
         if (!_commands.TryGetValue(commandName, out var command))
             return false;
-        var result = command?.DynamicInvoke(new object?[] { args });
+        var (instance, method) = command;
+        var result = method?.Invoke(instance, new object?[] { args });
         if (result is int exitCode && exitCode != 0)
             Environment.Exit(exitCode);
         return true;
