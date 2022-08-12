@@ -1,0 +1,26 @@
+{
+    "preferredSDL": "2.0.22",
+    "minimumSDL": "2.0.0",
+    "preferredImage": "2.6.1",
+    "minimumImage": "2.6.0",
+    "preferredTTF": "2.20.0",
+    "minimumTTF": "2.0.18",
+    "sdl": {
+        "2.0.22": {
+            "X64": "https://www.libsdl.org/release/SDL2-2.0.22-win32-x64.zip",
+            "X86": "https://www.libsdl.org/release/SDL2-2.0.22-win32-x86.zip"
+        }
+    },
+    "image": {
+        "2.6.1": {
+            "X64": "https://github.com/libsdl-org/SDL_image/releases/download/release-2.6.1/SDL2_image-2.6.1-win32-x64.zip",
+            "X86": "https://github.com/libsdl-org/SDL_image/releases/download/release-2.6.1/SDL2_image-2.6.1-win32-x86.zip"
+        }
+    },
+    "ttf": {
+        "2.20.0": {
+            "X64": "https://github.com/libsdl-org/SDL_ttf/releases/download/release-2.20.0/SDL2_ttf-2.20.0-win32-x64.zip",
+            "X86": "https://github.com/libsdl-org/SDL_ttf/releases/download/release-2.20.0/SDL2_ttf-2.20.0-win32-x86.zip"
+        }
+    }
+}
