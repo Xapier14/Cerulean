@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,16 +25,18 @@ namespace Cerulean.CLI.Commands
             Directory.CreateDirectory(filePath);
             var fileInfo = new FileInfo(path);
             using var http = new HttpClient();
-            Console.WriteLine("Fetching {0}...", path);
-            var stream = http.GetStreamAsync(url).GetAwaiter().GetResult();
-            if (fileInfo.Length == stream.Length)
+            Console.Write("Downloading {0}... ", fileName);
+            var head = http.Send(new HttpRequestMessage(HttpMethod.Head, url));
+            var contentLength = head.Content.Headers.ContentLength;
+            if (fileInfo.Exists && fileInfo.Length == contentLength)
             {
-                Console.WriteLine("File with the same length already exists, skipping...");
+                Console.WriteLine("Skipped. (Already exists)");
                 return;
             }
+            var stream = http.GetStreamAsync(url).GetAwaiter().GetResult();
             using var file = new FileStream(path, FileMode.Create);
             stream.CopyTo(file);
-            Console.WriteLine("Done!");
+            Console.WriteLine("OK.");
         }
 
         private static void GetSDL2FromWeb(SDLUrlInfo urls, string targetArch, string projectPath)
@@ -83,6 +86,7 @@ namespace Cerulean.CLI.Commands
 
             // check if local dep cache has sdl2 packages
             // then extract to target dir
+            Console.WriteLine("Extracting to build directory...");
 
             return 0;
         }

@@ -17,8 +17,9 @@ namespace Cerulean.CLI.Commands
             var targetRuntime = $"{os}-{arch}";
             if (!Helper.DoTask(null,
                     "dotnet",
-                    $"build -c {config} -r {targetRuntime}",
-                    projectPath))
+                    $"build -c {config} -r {targetRuntime} --no-self-contained",
+                    projectPath,
+                    false))
                 return false;
 
             ColoredConsole.WriteLine("$red^Error building project file.$r^");
@@ -53,7 +54,7 @@ namespace Cerulean.CLI.Commands
             Router.GetRouter().ExecuteCommand("build-xml", projectPath);
 
             // Build dotnet project
-            ColoredConsole.WriteLine("$yellow^[DOTNET]$r Building project...");
+            ColoredConsole.WriteLine("$yellow^[DOTNET]$r^ Building project...");
             if (Build(projectPath, arch, os))
                 return -3;
 

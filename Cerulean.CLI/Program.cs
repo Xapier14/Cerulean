@@ -5,6 +5,7 @@ var router = Router.GetRouter();
 
 /* Use Default Configs */
 config.UseDefaultConfiguration();
+config.SetProperty("SDL_BUNDLE_JSON", "https://raw.githubusercontent.com/Xapier14/Cerulean/cli-build/.json/sdl.json");
 
 /* Register Commands */
 router.RegisterCommands();

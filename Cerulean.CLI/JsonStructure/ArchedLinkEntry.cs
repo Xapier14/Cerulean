@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Cerulean.CLI.JsonStructure
 {
-    internal abstract class ArchedLinkEntry
+    internal class ArchedLinkEntry
     {
         public string? X64 { get; set; }
         public string? X86 { get; set; }

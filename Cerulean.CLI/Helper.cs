@@ -14,16 +14,16 @@ namespace Cerulean.CLI;
 
 internal static class Helper
 {
-    public static bool DoTask(string? taskName, string command, string? args, string? workingDir)
+    public static bool DoTask(string? taskName, string command, string? args, string? workingDir, bool noOutput = true)
     {
         if (taskName is not null)
             ColoredConsole.WriteLine(taskName);
         var startInfo = new ProcessStartInfo(command, args ?? "")
         {
             UseShellExecute = false,
-            CreateNoWindow = true,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true
+            CreateNoWindow = noOutput,
+            RedirectStandardOutput = noOutput,
+            RedirectStandardError = noOutput
         };
         if (workingDir is not null)
             startInfo.WorkingDirectory = workingDir;
