@@ -49,6 +49,11 @@ namespace Cerulean.CLI.Commands
             GetArchedFile(ttf, targetArch, dependenciesPath, $"sdl2_ttf-{targetArch}.zip");
         }
 
+        private static void UnpackFromCacheToProject(string targetArch, string cachePath, string projectPath)
+        {
+
+        }
+
         public int DoAction(string[] args)
         {
             var projectPath = "./";
@@ -72,13 +77,12 @@ namespace Cerulean.CLI.Commands
                 Helper.GetJsonAsObject<SDLUrlInfo>(config.GetProperty<string>("SDL_BUNDLE_JSON") ?? string.Empty);
             if (sdlLinks is not null)
             {
-                Console.WriteLine("SDL2 source is set to retrieve from web.");
+                Console.WriteLine("Retrieving SDL2 runtime libraries from web...");
                 GetSDL2FromWeb(sdlLinks, arch, projectPath);
             }
-            else
-            {
-                Console.WriteLine("SDL2 source is set to retrieve from local cache.");
-            }
+
+            // check if local dep cache has sdl2 packages
+            // then extract to target dir
 
             return 0;
         }
