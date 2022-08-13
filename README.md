@@ -59,7 +59,7 @@ Mainly testing on Windows and Ubuntu. Feel free to test on other platforms.<br>
 
  - .NET 6 is **required**.
  - Use the appropriate SDL2 binaries for your app/system.
-    - On Any CPU, use the binaries with the for your system's architecture.
+    - On Any CPU, use the binaries appropriate for your system's architecture.
     - On x86, use x86.
     - On x64, use x64.
  - On Windows, use the runtime binaries available at <a href="https://libsdl.org/">libsdl.org</a>.
@@ -72,8 +72,8 @@ Mainly testing on Windows and Ubuntu. Feel free to test on other platforms.<br>
     - **NOTE:** the snap version of `dotnet` will NOT find the SDL2 library. Please install dotnet with APT.
         - See <a href="https://docs.microsoft.com/en-us/dotnet/core/install/linux-ubuntu">installing dotnet</a> on MSDN.
         - Relevant issue: <a href="https://github.com/exelix11/SysDVR/issues/118">exelix11/SysDVR (#118)</a>.
- - Fonts will be searched first in a folder called `Fonts` in the environment's current directory, then and the system's font directory.
-    - The default font for the Label component is `Arial`.
+ - Fonts will be searched first in a folder called `Fonts` in the environment's current directory, and then the system's font directory.
+    - The default font for the Label component is `Arial` (*Subject to change*).
     - The library will find the first font with a filename of `Arial.ttf` or `Arial.otf`, this is case-insensitive.
     - If not found, it will simply throw a `GeneralAPIException: "Font not found."`.
 <h2>Features</h2>
@@ -111,5 +111,14 @@ Mainly testing on Windows and Ubuntu. Feel free to test on other platforms.<br>
  - [x] Style Builder
  - [ ] C# Snippet Element
  - [x] Project Builder/Scaffolder
-<h2>Warning</h2>
-This is a WIP project, please do not use in commercial projects.<br>
+ 
+ 
+## Warning
+This is a WIP project, please do not use in commercial projects.
+
+## License
+
+This project uses the MIT License.
+SDL2 and SDL2-CS, dependencies of this project, are released under the zlib license.
+
+

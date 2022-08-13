@@ -1,6 +1,7 @@
 ﻿using Cerulean.Common;
 using Cerulean.Core.Logging;
 using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Cerulean.Core.Input;
 using static SDL2.SDL;
@@ -35,6 +36,10 @@ namespace Cerulean.Core
         private bool _stopped;
         private bool _quitting;
         private int _threadId;
+        private Action<CeruleanAPI>? _initializerCallback;
+        private bool _useMainThread = false;
+        private bool _quitIfNoWindowsOpen = false;
+        private bool _callbackDone = false;
 
         // IME
         private Window? _activeIMEWindow;
@@ -176,6 +181,14 @@ namespace Cerulean.Core
             EmbeddedResources = new EmbeddedResources();
             EmbeddedStyles = new EmbeddedStyles();
             Profiler = null;
+
+            // check if platform is osx
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                Log("OSX detected as runtime platform. Applying osx-specific configuration...");
+                _useMainThread = true;
+                _quitIfNoWindowsOpen = true;
+            }
         }
 
         /// <summary>
@@ -220,6 +233,13 @@ namespace Cerulean.Core
             _logger?.Log($"Running on SDL {version.major}.{version.minor}.{version.patch}.");
             _initialized = true;
             _logger?.Log("Initialized SDL2.");
+            
+            _initializerCallback?.Invoke(this);
+            if (_useMainThread && _initializerCallback == null)
+            {
+                SDL_Quit();
+                throw new FatalAPIException("A callback must be specified when useMainThread is true.");
+            }
 
             // Start event loop
             try
@@ -238,6 +258,8 @@ namespace Cerulean.Core
                         offloaded++;
                     }
                     Profiler?.EndProfilingCurrentPoint();
+                    if (!_callbackDone)
+                        _callbackDone = true;
 
                     // start processing sdl events
                     Profiler?.StartProfilingPoint("Handle_SDLEvents");
@@ -287,6 +309,11 @@ namespace Cerulean.Core
 
                         Profiler?.EndProfilingCurrentPoint();
                     }
+
+                    if (_quitIfNoWindowsOpen && !Windows.Any())
+                    {
+                        Quit();
+                    }
                 }
             }
             // this exception is thrown by Quit() which functions as a stop signal for the event pump/loop.
@@ -313,10 +340,14 @@ namespace Cerulean.Core
         /// Does nothing when called from an initialized instance.
         /// </summary>
         /// <returns>The current initialized controller instance.</returns>
-        public CeruleanAPI Initialize()
+        public CeruleanAPI Initialize(Action<CeruleanAPI>? initializerCallback = null, bool? useMainThread = null,
+            bool? quitIfNoWindowsOpen = null)
         {
             if (_initialized)
                 return this;
+            _initializerCallback = initializerCallback;
+            _useMainThread = useMainThread ?? _useMainThread;
+            _quitIfNoWindowsOpen = quitIfNoWindowsOpen ?? _quitIfNoWindowsOpen;
             _logger?.Log("Initializing CeruleanAPI...");
             _running = true;
             _stopped = false;
@@ -324,7 +355,14 @@ namespace Cerulean.Core
             EmbeddedLayouts.RetrieveLayouts();
             EmbeddedResources.RetrieveResources();
             EmbeddedStyles.RetrieveStyles();
-            _thread.Start();
+            if (_useMainThread)
+            {
+                WorkerThread();
+            }
+            else
+            {
+                _thread.Start();
+            }
             return this;
         }
 
@@ -362,7 +400,7 @@ namespace Cerulean.Core
             }
             else
             {
-                _logger?.Log("Quit() was called from the CeruleanAPI thread, interuptting thread...");
+                _logger?.Log("Quit() was called from the CeruleanAPI thread, interrupting thread...");
                 throw new CeruleanQuitException();
             }
             _initialized = false;
@@ -374,9 +412,7 @@ namespace Cerulean.Core
         /// <param name="quitOnComplete">Invoke Quit() on completion?</param>
         public void WaitForAllWindowsClosed(bool quitOnComplete = false)
         {
-            if (!_initialized)
-                return;
-            while (Windows.Any())
+            while (Windows.Any() || !_callbackDone || !_initialized)
             {
                 Thread.Sleep(100);
             }
