@@ -397,7 +397,7 @@ namespace Cerulean.Core
             }
             else
             {
-                _logger?.Log("Quit() was called from the CeruleanAPI thread, interuptting thread...");
+                _logger?.Log("Quit() was called from the CeruleanAPI thread, interrupting thread...");
                 throw new CeruleanQuitException();
             }
             _initialized = false;
