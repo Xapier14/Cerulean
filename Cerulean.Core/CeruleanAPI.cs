@@ -39,6 +39,7 @@ namespace Cerulean.Core
         private Action<CeruleanAPI>? _initializerCallback;
         private bool _useMainThread = false;
         private bool _quitIfNoWindowsOpen = false;
+        private bool _callbackDone = false;
 
         // IME
         private Window? _activeIMEWindow;
@@ -234,6 +235,7 @@ namespace Cerulean.Core
             _logger?.Log("Initialized SDL2.");
             
             _initializerCallback?.Invoke(this);
+            _callbackDone = true;
             if (_useMainThread && _initializerCallback == null)
             {
                 SDL_Quit();
@@ -411,7 +413,7 @@ namespace Cerulean.Core
         {
             if (!_initialized)
                 return;
-            while (Windows.Any())
+            while (Windows.Any() || !_callbackDone)
             {
                 Thread.Sleep(100);
             }
