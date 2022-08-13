@@ -412,9 +412,7 @@ namespace Cerulean.Core
         /// <param name="quitOnComplete">Invoke Quit() on completion?</param>
         public void WaitForAllWindowsClosed(bool quitOnComplete = false)
         {
-            if (!_initialized)
-                return;
-            while (Windows.Any() || !_callbackDone)
+            while (Windows.Any() || !_callbackDone || !_initialized)
             {
                 Thread.Sleep(100);
             }
