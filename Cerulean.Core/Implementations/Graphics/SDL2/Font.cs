@@ -9,7 +9,7 @@ namespace Cerulean.Core
         public string Name { get; set; }
         public int PointSize { get; set; }
         public string Style { get; set; }
-        public IntPtr Data { get; set; } = IntPtr.Zero;
+        public IntPtr Data { get; private set; } = IntPtr.Zero;
 
         private Font(string name, string style, int ptSize)
         {
@@ -32,8 +32,9 @@ namespace Cerulean.Core
                            && (file.Extension.ToLower() == ".ttf" || file.Extension.ToLower() == ".otf") // is a ttf or otf file
                            && !file.Attributes.HasFlag(FileAttributes.ReparsePoint); // is not a symlink
                 });
-            if (!files.Any()) return false;
-            filePath = files.First().FullName;
+            var fileInfos = files as FileInfo[] ?? files.ToArray();
+            if (!fileInfos.Any()) return false;
+            filePath = fileInfos.First().FullName;
             CeruleanAPI.GetAPI().Log($"Found font {filePath}.");
             return true;
         }
@@ -47,21 +48,6 @@ namespace Cerulean.Core
                 "Fonts");
             if (TryGetFile(basePath, name, out path))
                 return true;
-            // if (Directory.Exists(basePath))
-            // {
-            //     var dirInfo = new DirectoryInfo(basePath);
-            //     var files = dirInfo.GetFiles(name + "*", SearchOption.TopDirectoryOnly)
-            //         .Where(file =>
-            //         {
-            //             return file.Extension.ToLower() == ".ttf"
-            //                 || file.Extension.Length == 0;
-            //         });
-            //     if (files.Any())
-            //     {
-            //         path = files.First().FullName;
-            //         return true;
-            //     }
-            // }
 
             // find in system fonts
             var systemPath = "";
@@ -77,54 +63,31 @@ namespace Cerulean.Core
             {
                 systemPath = "/Library/Fonts";
             }
-            //CeruleanAPI.GetAPI().Log($"Trying to find {name} in {systemPath}");
-            // check if system path exists
-            //CeruleanAPI.GetAPI().Log($"{systemPath} exists: {Directory.Exists(systemPath)}");
-            if (TryGetFile(systemPath, name, out path))
-                return true;
-            // if (Directory.Exists(systemPath))
-            // {
-            //     var dirInfo = new DirectoryInfo(systemPath);
-            //     var files = dirInfo.GetFiles("*", SearchOption.AllDirectories)
-            //         .Where(file =>
-            //         {
-            //             //if (file.Extension.ToLower() == ".ttf")
-            //                 //CeruleanAPI.GetAPI().Log($"Checking {file.Name}");
-            //             return file.Name.ToLower().Contains(name.ToLower()) // contains the name of the font
-            //                     && (file.Extension.ToLower() == ".ttf" || file.Extension.ToLower() == ".otf"); // is a ttf or otf file
-            //         });
-            //     if (files.Any())
-            //     {
-            //         path = files.First().FullName;
-            //         return true;
-            //     }
-            // }
 
-            return false;
+            return TryGetFile(systemPath, name, out path);
         }
 
         public static Font LoadFont(string name, string style, int pointSize)
         {
-            if (TryFindTTF(name, out var path))
+            if (!TryFindTTF(name, out var path))
+                throw new GeneralAPIException("Font file not found.");
+
+            var fontPtr = TTF_OpenFont(path, pointSize);
+            if (fontPtr == IntPtr.Zero)
             {
-                var fontPtr = TTF_OpenFont(path, pointSize);
-                if (fontPtr == IntPtr.Zero)
-                {
-                    throw new GeneralAPIException("Error loading TTF font.");
-                }
-                TTF_SetFontStyle(fontPtr, style.ToLower() switch
-                {
-                    "bold" => TTF_STYLE_BOLD,
-                    "italic" => TTF_STYLE_ITALIC,
-                    "bold italic" => TTF_STYLE_BOLD | TTF_STYLE_ITALIC,
-                    _ => TTF_STYLE_NORMAL
-                });
-                return new Font(name, style, pointSize)
-                {
-                    Data = fontPtr
-                };
+                throw new GeneralAPIException("Error loading TTF font.");
             }
-            throw new GeneralAPIException("Font file not found.");
+            TTF_SetFontStyle(fontPtr, style.ToLower() switch
+            {
+                "bold" => TTF_STYLE_BOLD,
+                "italic" => TTF_STYLE_ITALIC,
+                "bold italic" => TTF_STYLE_BOLD | TTF_STYLE_ITALIC,
+                _ => TTF_STYLE_NORMAL
+            });
+            return new Font(name, style, pointSize)
+            {
+                Data = fontPtr
+            };
         }
 
         public override string ToString()
