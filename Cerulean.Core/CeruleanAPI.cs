@@ -235,7 +235,6 @@ namespace Cerulean.Core
             _logger?.Log("Initialized SDL2.");
             
             _initializerCallback?.Invoke(this);
-            _callbackDone = true;
             if (_useMainThread && _initializerCallback == null)
             {
                 SDL_Quit();
@@ -259,6 +258,8 @@ namespace Cerulean.Core
                         offloaded++;
                     }
                     Profiler?.EndProfilingCurrentPoint();
+                    if (!_callbackDone)
+                        _callbackDone = true;
 
                     // start processing sdl events
                     Profiler?.StartProfilingPoint("Handle_SDLEvents");
