@@ -6,8 +6,6 @@ namespace Cerulean.CLI.Commands;
 [CommandDescription("Displays help information for all or specific commands.")]
 public class Help : ICommand
 {
-    public static string? CommandName { get; set; } = "help";
-
     private static void PrintCommandInfo(string command, string description)
     {
         var consoleWidth = Console.BufferWidth - 4;
@@ -29,15 +27,13 @@ public class Help : ICommand
         foreach (var (command, description) in commands) PrintCommandInfo(command, description);
     }
 
-    public static int DoAction(string[] args)
+    public int DoAction(string[] args, IEnumerable<string> flags, IDictionary<string, string> options)
     {
-        if (args.Length == 0)
-        {
-            Splash.DisplaySplash();
-            PrintAllCommandInfo();
-            return 0;
-        }
+        if (args.Length != 0)
+            throw new NotImplementedException();
+        Splash.DisplaySplash();
+        PrintAllCommandInfo();
+        return 0;
 
-        throw new NotImplementedException();
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Text;
 using Cerulean.CLI.Attributes;
-using Cerulean.CLI.Properties;
 
 namespace Cerulean.CLI.Commands;
 
@@ -9,38 +8,6 @@ namespace Cerulean.CLI.Commands;
 [CommandDescription("Generates and scaffolds a new Cerulean UI project.")]
 public class NewProject : ICommand
 {
-    private static bool DoTask(string taskName, string command, string? args, string? workingDir)
-    {
-        Console.WriteLine(taskName);
-        var startInfo = new ProcessStartInfo(command, args ?? "")
-        {
-            UseShellExecute = false,
-            CreateNoWindow = true,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true
-        };
-        if (workingDir is not null)
-            startInfo.WorkingDirectory = workingDir;
-
-        var startTime = DateTime.Now;
-        var process = Process.Start(startInfo);
-        if (process is not { })
-        {
-            Console.WriteLine("Could not create '{0}' process.", command);
-            return true;
-        }
-
-        process.WaitForExit();
-        Console.WriteLine("Took {0:hh\\:mm\\:ss\\:fff} to finish.\n", startTime - process.ExitTime);
-
-        if (process.ExitCode == 0)
-            return false;
-
-        ColoredConsole.WriteLine(
-            $"$red^Command aborted because of an error with {command}. (Exit Code: {process.ExitCode})$r^");
-        return true;
-    }
-
     private static void CreateProjectDirectory(string workingDir)
     {
         // confirm if user wants to create a project in working directory
@@ -85,7 +52,7 @@ public class NewProject : ICommand
         Console.WriteLine("Initialized project!\n");
     }
 
-    private static string DetermineWorkingDirectoryFromArgs(string[] args)
+    private static string DetermineWorkingDirectoryFromArgs(IEnumerable<string> args)
     {
         var workingDir = Environment.CurrentDirectory;
         foreach (var arg in args)
@@ -98,8 +65,11 @@ public class NewProject : ICommand
         return Path.GetFullPath(workingDir);
     }
 
-    public static int DoAction(string[] args)
+    public int DoAction(string[] args, IEnumerable<string> flags, IDictionary<string, string> options)
     {
+        // get current configuration
+        var config = Config.GetConfig();
+
         // get working directory
         var workingDir = DetermineWorkingDirectoryFromArgs(args);
 
@@ -107,39 +77,39 @@ public class NewProject : ICommand
         CreateProjectDirectory(workingDir);
 
         // create dotnet console project
-        if (DoTask("Creating .NET console project...",
+        if (Helper.DoTask("Creating .NET console project...",
                 "dotnet",
                 "new console", workingDir))
             return -1;
 
         // create a git repository
-        if (DoTask("Creating a git repository...",
+        if (Helper.DoTask("Creating a git repository...",
                 "git",
                 "init", workingDir))
             return -2;
 
         // add Cerulean as git submodule
-        if (DoTask("Adding CeruleanUI as a submodule...",
+        if (Helper.DoTask("Adding CeruleanUI as a submodule...",
                 "git",
-                "submodule add " + Resources.CERULEAN_REPOSITORY_GIT, workingDir))
+                "submodule add " + config.GetProperty<string>("CERULEAN_UI_GIT"), workingDir))
             return -3;
 
         // pull the submodule
-        if (DoTask("Pulling submodule(s)...",
+        if (Helper.DoTask("Pulling submodule(s)...",
                 "git",
                 "submodule update --init --recursive", workingDir))
             return -4;
 
         // add project references
-        if (DoTask("Adding reference to Cerulean.Common.",
+        if (Helper.DoTask("Adding reference to Cerulean.Common.",
                 "dotnet",
                 "add reference Cerulean/Cerulean.Common/Cerulean.Common.csproj", workingDir))
             return -5;
-        if (DoTask("Adding reference to Cerulean.Core.",
+        if (Helper.DoTask("Adding reference to Cerulean.Core.",
                 "dotnet",
                 "add reference Cerulean/Cerulean.Core/Cerulean.Core.csproj", workingDir))
             return -6;
-        if (DoTask("Adding reference to Cerulean.Components.",
+        if (Helper.DoTask("Adding reference to Cerulean.Components.",
                 "dotnet",
                 "add reference Cerulean/Cerulean.Components/Cerulean.Components.csproj", workingDir))
             return -7;
@@ -148,9 +118,9 @@ public class NewProject : ICommand
         CreateProjectBoilerplate(workingDir);
 
         // commit as initial repo commit
-        if (DoTask("Doing initial commit (1/2)...", "git", "add .", workingDir))
+        if (Helper.DoTask("Doing initial commit (1/2)...", "git", "add .", workingDir))
             return -8;
-        if (DoTask("Doing initial commit (2/2)...", "git", "commit -m \"Initial commit via crn\"", workingDir))
+        if (Helper.DoTask("Doing initial commit (2/2)...", "git", "commit -m \"Initial commit via crn\"", workingDir))
             return -9;
 
         ColoredConsole.WriteLine("$green^Project has been created!$r^");
@@ -200,12 +170,14 @@ public class NewProject : ICommand
         = "  <ItemGroup>\n" +
           "    <Compile Include=\".cerulean\\*.cs\" />\n" +
           "    <Compile Remove=\"Cerulean\\**\" />\n" +
+          "    <Compile Include=\"Layouts\\*.cs\" />\n" +
+          "    <Compile Include=\"Styles\\*.cs\" />\n" +
           "  </ItemGroup>\n" +
           "</Project>\n";
 
     private const string GIT_IGNORE_LIST
         = ".cerulean/\n" +
-          ".sdl2-bin/\n" +
+          ".dependencies/\n" +
           "bin/\n" +
           "obj/\n" +
           "scripts/\n" +

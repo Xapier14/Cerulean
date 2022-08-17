@@ -7,14 +7,14 @@ namespace Cerulean.CLI.Commands;
 [CommandDescription("Builds layouts and styles from CeruleanXMLs.")]
 public class BuildXml : ICommand
 {
-    public static int DoAction(string[] args)
+    public int DoAction(string[] args, IEnumerable<string> flags, IDictionary<string, string> options)
     {
         // file extension to process
         const string fileExtension = ".xml";
 
         // initialize project vars
         var projectPath = "./";
-        var outputPath = "./.cerulean";
+        var outputPath = Path.Join(projectPath, ".cerulean");
         if (args.Length > 0)
             projectPath = args[0];
         if (args.Length > 1)
@@ -30,11 +30,7 @@ public class BuildXml : ICommand
         Directory.CreateDirectory(outputPath);
 
         // ensure project exists
-        var projectPathInfo = new DirectoryInfo(projectPath);
-        var projectExists = projectPathInfo
-            .EnumerateFiles()
-            .Any(fileInfo => fileInfo.Extension.ToLower() == ".csproj");
-        if (!projectExists)
+        if (!Helper.CheckProjectExists(projectPath))
         {
             ColoredConsole.WriteLine("$red^A C# project does not exist in the current directory.$r^");
             return -2;
