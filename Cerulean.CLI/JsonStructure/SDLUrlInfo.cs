@@ -15,16 +15,16 @@ namespace Cerulean.CLI.JsonStructure
         public string? MinimumSDL { get; set; }
         public string? MinimumImage { get; set; }
         public string? MinimumTTF { get; set; }
-        
+
         public Dictionary<string, ArchedLinkEntry>? SDL { get; set; }
         public Dictionary<string, ArchedLinkEntry>? Image { get; set; }
         public Dictionary<string, ArchedLinkEntry>? TTF { get; set; }
 
         internal void Deconstruct(out string preferredSDL, out string preferredImage, out string preferredTTF)
         {
-            preferredSDL = PreferredSDL;
-            preferredImage = PreferredImage;
-            preferredTTF = PreferredTTF;
+            preferredSDL = PreferredSDL ?? "";
+            preferredImage = PreferredImage ?? "";
+            preferredTTF = PreferredTTF ?? "";
         }
     }
 }
