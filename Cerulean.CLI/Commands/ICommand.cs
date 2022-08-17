@@ -8,6 +8,6 @@ public interface ICommand
     // https://github.com/dotnet/runtime/issues/59432
     // https://github.com/dotnet/runtime/issues/63411
 #pragma warning disable S125 // Sections of code should not be commented out
-    public int DoAction(string[] args);
+    public int DoAction(string[] args, IEnumerable<string> flags, IDictionary<string, string> options);
 }
 #pragma warning restore S125 // Sections of code should not be commented out

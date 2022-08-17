@@ -27,7 +27,7 @@ public class Help : ICommand
         foreach (var (command, description) in commands) PrintCommandInfo(command, description);
     }
 
-    public int DoAction(string[] args)
+    public int DoAction(string[] args, IEnumerable<string> flags, IDictionary<string, string> options)
     {
         if (args.Length != 0)
             throw new NotImplementedException();

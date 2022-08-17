@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Text;
 using Cerulean.CLI.Attributes;
 using Cerulean.CLI.Extensions;
 
@@ -53,14 +54,54 @@ internal class Router
         }
     }
 
-    public bool ExecuteCommand(string commandName, params string[] args)
+    public bool ExecuteCommand(string commandName, params string[] argsRaw)
     {
         if (!_commands.TryGetValue(commandName, out var command))
             return false;
         var (instance, method) = command;
-        var result = method?.Invoke(instance, new object?[] { args });
+        ParseArguments(argsRaw, out var args, out var flags, out var options);
+        var result = method?.Invoke(instance, new object?[] { args, flags, options });
         if (result is int exitCode && exitCode != 0)
             Environment.Exit(exitCode);
         return true;
+    }
+    
+
+    public static void ParseArguments(string[] argsRaw, out string[] args, out List<string> flags,
+        out Dictionary<string, string> options)
+    {
+        var argsList = new List<string>();
+        flags = new List<string>();
+        options = new Dictionary<string, string>();
+        var inFlag = false;
+        var optionKey = string.Empty;
+        foreach (var substring in argsRaw)
+        {
+            if (substring.StartsWith('-'))
+            {
+                if (inFlag)
+                {
+                    flags.Add(optionKey);
+                }
+
+                optionKey = substring.TrimStart('-');
+                inFlag = true;
+                continue;
+            }
+
+            if (inFlag)
+            {
+                inFlag = false;
+                options.Add(optionKey, substring);
+                continue;
+            }
+
+            argsList.Add(substring);
+        }
+
+        if (inFlag)
+            flags.Add(optionKey);
+
+        args = argsList.ToArray();
     }
 }

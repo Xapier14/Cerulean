@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
@@ -14,6 +15,14 @@ namespace Cerulean.CLI.Commands
     [CommandDescription("Bundles needed dependencies for app runtime.")]
     internal class BundleDependencies : ICommand
     {
+        private static void ExtractZip(string zipFile, string extractPath)
+        {
+            var file = File.OpenRead(zipFile);
+            var zip = new ZipArchive(file);
+            Directory.CreateDirectory(extractPath);
+            zip.ExtractToDirectory(extractPath, true);
+        }
+
         private static void GetArchedFile(ArchedLinkEntry? entry, string targetArch, string filePath, string fileName)
         {
             if (entry is null)
@@ -52,25 +61,83 @@ namespace Cerulean.CLI.Commands
             GetArchedFile(ttf, targetArch, dependenciesPath, $"sdl2_ttf-{targetArch}.zip");
         }
 
-        private static void UnpackFromCacheToProject(string targetArch, string cachePath, string projectPath)
+        private static IEnumerable<FileInfo> UnpackFromCacheToProject(string targetArch, string targetOS, string config, string netVersion, string projectPath)
         {
+            var dependenciesPath = Path.Join(projectPath, ".dependencies");
+            var cachePath = Path.Join(dependenciesPath, "cache");
+            Directory.CreateDirectory(cachePath);
+            var buildPath = Path.Join(projectPath, "bin", config, netVersion, $"{targetOS}-{targetArch}");
+            var core = Path.Join(dependenciesPath, $"sdl2-{targetArch}.zip");
+            var image = Path.Join(dependenciesPath, $"sdl2_image-{targetArch}.zip");
+            var ttf = Path.Join(dependenciesPath, $"sdl2_ttf-{targetArch}.zip");
+            if (!Directory.Exists(buildPath))
+            {
+                Console.WriteLine($"Path {buildPath} does not exist.");
+                return Array.Empty<FileInfo>();
+            }
 
+            if (!File.Exists(core) ||
+                !File.Exists(image) ||
+                !File.Exists(ttf))
+            {
+                Console.WriteLine("One or more required dependencies is missing, please install/bundle them manually.");
+                return Array.Empty<FileInfo>();
+            }
+
+            Console.WriteLine("Extracting SDL2 Core dependency...");
+            ExtractZip(core, cachePath);
+
+            Console.WriteLine("Extracting SDL2 Image dependency...");
+            ExtractZip(image, cachePath);
+
+            Console.WriteLine("Extracting SDL2 TTF dependency...");
+            ExtractZip(ttf, cachePath);
+
+            var cacheFolder = new DirectoryInfo(cachePath);
+            return cacheFolder.GetFiles("*.*", new EnumerationOptions
+            {
+                RecurseSubdirectories = true
+            }).Where(fileInfo => fileInfo.Extension.ToLower() == ".dll");
         }
 
-        public int DoAction(string[] args)
+        private static void CopyFileInfosToTargetFolder(IEnumerable<FileInfo> files, string targetPath)
+        {
+            Directory.CreateDirectory(targetPath);
+            foreach (var file in files)
+            {
+                var destination = Path.Join(targetPath, file.Name);
+                Console.WriteLine($"Copying {file.Name}...");
+                if (File.Exists(destination))
+                    File.Delete(destination);
+                File.Copy(file.FullName, destination);
+            }
+        }
+
+        public int DoAction(string[] args, IEnumerable<string> flags, IDictionary<string, string> options)
         {
             var projectPath = "./";
             if (args.Length > 0)
                 projectPath = args[0];
-            var os = Helper.GetOSPlatform();
-            var arch = Environment.Is64BitOperatingSystem ? "x64" : "x86";
+
+            options.TryGetValue("arch", out var arch);
+            arch ??= Environment.Is64BitOperatingSystem ? "x64" : "x86";
+
+            options.TryGetValue("os", out var os);
+            os ??= Helper.GetOSPlatform();
+
+            options.TryGetValue("config", out var netConfig);
+            netConfig ??= "Debug";
+
+            options.TryGetValue("nv", out var netVersion);
+            var csproj = Helper.GetProjectFileInDirectory(projectPath);
+            netVersion ??= Helper.GetXMLNetVersion(csproj);
 
             if (os != "win")
             {
                 ColoredConsole.WriteLine("$red^This command is not available for the target operating system.\n" +
-                                         "$r^Please check with the documentation on how to bundle the needed" +
+                                         "$r^Please check with the documentation on how to bundle the needed " +
                                          "dependencies for the target runtime.");
-                Console.WriteLine($"Current target operating system: {os}");
+                Console.WriteLine($"Target operating system: {os}");
                 return 0;
             }
 
@@ -86,7 +153,16 @@ namespace Cerulean.CLI.Commands
 
             // check if local dep cache has sdl2 packages
             // then extract to target dir
-            Console.WriteLine("Extracting to build directory...");
+            Console.WriteLine("Extracting cached packages...");
+            var dlls = UnpackFromCacheToProject(arch, os, netConfig, netVersion, projectPath);
+            if (!dlls.Any())
+                return -1;
+            Console.WriteLine("Copying dependencies to target build folder...");
+            var buildPath = Path.Join(projectPath, "bin", netConfig, netVersion, $"{os}-{arch}");
+            CopyFileInfosToTargetFolder(dlls, buildPath);
+
+            Console.WriteLine();
+            ColoredConsole.WriteLine("$green^Dependencies bundled successfully!$r^");
 
             return 0;
         }

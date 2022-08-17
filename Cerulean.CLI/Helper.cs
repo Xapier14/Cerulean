@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using Cerulean.CLI.Attributes;
 using Cerulean.CLI.Extensions;
 using Cerulean.Common;
@@ -52,6 +53,21 @@ internal static class Helper
         return projectPathInfo
             .EnumerateFiles()
             .Any(fileInfo => fileInfo.Extension.ToLower() == ".csproj");
+    }
+    public static string GetProjectFileInDirectory(string directory)
+    {
+        var dirInfo = new DirectoryInfo(directory);
+
+        return dirInfo.EnumerateFiles("*.csproj").First().FullName;
+    }
+    public static string GetXMLNetVersion(string csprojFile)
+    {
+        var xml = XDocument.Load(csprojFile);
+        if (xml.Root == null)
+            throw new InvalidDataException();
+        var propGroup = xml.Root.Elements("PropertyGroup").First(x =>  x.Element("TargetFramework") != null);
+
+        return propGroup.Element("TargetFramework")!.Value;
     }
     public static IEnumerable<(string, string)> GetAllCommandInfo()
     {

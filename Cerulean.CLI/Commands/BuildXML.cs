@@ -7,7 +7,7 @@ namespace Cerulean.CLI.Commands;
 [CommandDescription("Builds layouts and styles from CeruleanXMLs.")]
 public class BuildXml : ICommand
 {
-    public int DoAction(string[] args)
+    public int DoAction(string[] args, IEnumerable<string> flags, IDictionary<string, string> options)
     {
         // file extension to process
         const string fileExtension = ".xml";

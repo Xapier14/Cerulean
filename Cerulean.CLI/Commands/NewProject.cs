@@ -65,7 +65,7 @@ public class NewProject : ICommand
         return Path.GetFullPath(workingDir);
     }
 
-    public int DoAction(string[] args)
+    public int DoAction(string[] args, IEnumerable<string> flags, IDictionary<string, string> options)
     {
         // get current configuration
         var config = Config.GetConfig();

@@ -1,4 +1,5 @@
-﻿using Cerulean.CLI;
+﻿using System.Text;
+using Cerulean.CLI;
 
 var config = Config.GetConfig();
 var router = Router.GetRouter();
@@ -20,4 +21,6 @@ if (args.Length == 0)
 /* Parse Command */
 var commandName = args[0];
 var commandArgs = args.Skip(1).ToArray();
-if (!router.ExecuteCommand(commandName, commandArgs)) Splash.DisplaySplashHelp();
+
+if (!router.ExecuteCommand(commandName, commandArgs))
+    Splash.DisplaySplashHelp();
