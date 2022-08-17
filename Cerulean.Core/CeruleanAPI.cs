@@ -233,7 +233,7 @@ namespace Cerulean.Core
             _logger?.Log($"Running on SDL {version.major}.{version.minor}.{version.patch}.");
             _initialized = true;
             _logger?.Log("Initialized SDL2.");
-            
+
             _initializerCallback?.Invoke(this);
             if (_useMainThread && _initializerCallback == null)
             {
@@ -309,6 +309,9 @@ namespace Cerulean.Core
 
                         Profiler?.EndProfilingCurrentPoint();
                     }
+
+                    if (_windows.Count < 10)
+                        SDL_Delay(5);
 
                     if (_quitIfNoWindowsOpen && !Windows.Any())
                     {
@@ -488,7 +491,7 @@ namespace Cerulean.Core
             }, initialize);
 
             if (result is Window resultWindow) return resultWindow;
-            
+
             var error2 = new GeneralAPIException("Window could not be created.");
             _logger?.Log(error2.Message, LogSeverity.Error, error2);
             throw error2;
