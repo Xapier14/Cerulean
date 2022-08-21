@@ -46,7 +46,9 @@ Bundle your needed fonts in a folder called "Fonts" in the build directory as th
 
 <h2>Important Notes</h2>
 
- - .NET 6 is **required**.
+ - .NET 6 is **required** for the CLI tool.
+ - .NET 6 or newer projects is compatible with CeruleanUI.
+ - By default, the CLI should use the latest .NET SDK and creates a project with the same version.
  - Use the appropriate SDL2 binaries for your app/system.
     - On Any CPU, use the binaries appropriate for your system's architecture.
     - On x86, use x86.
