@@ -3,6 +3,7 @@
 .idea/
 .sonarqube/
 Cerulean.Stub.*/
+Cerulean.CLI/Properties/
 bin/
 obj/
 Examples/TestBed/

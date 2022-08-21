@@ -1,9 +1,0 @@
-{
-  "profiles": {
-    "Cerulean.CLI": {
-      "commandName": "Project",
-      "commandLineArgs": "build -arch x86",
-      "workingDirectory": "E:\\Repositories\\Cerulean (C#)\\test-bed"
-    }
-  }
-}
