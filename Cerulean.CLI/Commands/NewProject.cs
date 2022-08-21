@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 using Cerulean.CLI.Attributes;
 
@@ -34,17 +35,21 @@ public class NewProject : ICommand
     private static void CreateProjectBoilerplate(string workingDir)
     {
         Console.WriteLine("Creating project boilerplate + settings...");
+        Directory.CreateDirectory(workingDir + "/Layouts");
         File.WriteAllText(workingDir + "/Usings.cs", USINGS_BOILERPLATE);
         File.WriteAllText(workingDir + "/Program.cs", PROGRAM_BOILERPLATE);
-        File.WriteAllText(workingDir + "/ExampleLayout.xml", LAYOUT_BOILERPLATE);
+        File.WriteAllText(workingDir + "/Layouts/ExampleLayout.xml", LAYOUT_BOILERPLATE);
         File.WriteAllText(workingDir + "/.gitignore", GIT_IGNORE_LIST);
+        File.WriteAllText(workingDir + "/app.manifest", APP_MANIFEST);
         // inject includes item group to project xml
         var projectDirInfo = new DirectoryInfo(workingDir);
         var projectInfo = projectDirInfo
             .EnumerateFiles()
             .First(fileInfo => fileInfo.Extension.ToLower() == ".csproj");
         var projectStream = File.OpenWrite(projectInfo.FullName);
-        var seekAmount = "</Project>".Length + 2;
+        var seekAmount = "</Project></PropertyGroup>".Length + 4;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            seekAmount += 2;
         projectStream.Seek(-seekAmount, SeekOrigin.End);
         var bytesToInject = Encoding.UTF8.GetBytes(PROJECT_XML_INJECT);
         projectStream.Write(bytesToInject);
@@ -143,14 +148,16 @@ public class NewProject : ICommand
           "global using Cerulean.Components;\n";
 
     private const string PROGRAM_BOILERPLATE
-        = "var ceruleanApi = CeruleanAPI.GetAPI()\n" +
+        = "void Callback(CeruleanAPI ceruleanApi)\n" +
+          "{\n" +
+          "    _ = ceruleanApi.CreateWindow(\"ExampleLayout\");\n" +
+          "}\n" +
+          "\n" +
+          "var ceruleanApi = CeruleanAPI.GetAPI()\n" +
           "                             .UseSDL2Graphics()\n" +
           "                             .UseConsoleLogger()\n" +
-          "                             .Initialize();\n" +
-          "\n" +
-          "var window = ceruleanApi.CreateWindow(\"ExampleLayout\");\n" +
-          "\n" +
-          "ceruleanApi.WaitForAllWindowsClosed(true);\n";
+          "                             .Initialize(Callback, quitIfNoWindowsOpen: true);\n" +
+          "\n";
 
     private const string LAYOUT_BOILERPLATE
         = "<?xml version='1.0' encoding='UTF-8'?>\n" +
@@ -167,13 +174,34 @@ public class NewProject : ICommand
           "</CeruleanXML>\n";
 
     private const string PROJECT_XML_INJECT
-        = "  <ItemGroup>\n" +
+        = "    <ApplicationManifest>app.manifest</ApplicationManifest>\n" +
+          "  </PropertyGroup>\n" +
+          "\n" +
+          "  <ItemGroup>\n" +
           "    <Compile Include=\".cerulean\\*.cs\" />\n" +
           "    <Compile Remove=\"Cerulean\\**\" />\n" +
           "    <Compile Include=\"Layouts\\*.cs\" />\n" +
           "    <Compile Include=\"Styles\\*.cs\" />\n" +
           "  </ItemGroup>\n" +
           "</Project>\n";
+
+    private const string APP_MANIFEST
+        = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+          "<assembly manifestVersion=\"1.0\" xmlns=\"urn:schemas-microsoft-com:asm.v1\">\n" +
+          "  <trustInfo xmlns=\"urn:schemas-microsoft-com:asm.v2\">\n" +
+          "    <security>\n" +
+          "      <requestedPrivileges xmlns=\"urn:schemas-microsoft-com:asm.v3\">\n" +
+          "        <requestedExecutionLevel level=\"asInvoker\" uiAccess=\"false\" />\n" +
+          "      </requestedPrivileges>\n" +
+          "    </security>\n" +
+          "  </trustInfo>\n" +
+          "  <application xmlns=\"urn:schemas-microsoft-com:asm.v3\">\n" +
+          "    <windowsSettings>\n" +
+          "      <dpiAware xmlns=\"http://schemas.microsoft.com/SMI/2005/WindowsSettings\">true</dpiAware>\n" +
+          "      <longPathAware xmlns=\"http://schemas.microsoft.com/SMI/2016/WindowsSettings\">true</longPathAware>\n" +
+          "    </windowsSettings>\n" +
+          "  </application>\n" +
+          "</assembly>\n";
 
     private const string GIT_IGNORE_LIST
         = ".cerulean/\n" +
