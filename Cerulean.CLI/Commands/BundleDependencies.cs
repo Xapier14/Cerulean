@@ -143,15 +143,15 @@ namespace Cerulean.CLI.Commands
 
             var config = Config.GetConfig();
             Console.WriteLine("Fetching SDL2 data...");
-            var jsonData = config.GetProperty<string>("SDL_BUNDLE_JSON") ??
-                           config.GetProperty<string>("SDL_BUNDLE_JSON_FALLBACK") ??
-                           string.Empty;
+            var jsonUrl1 = config.GetProperty<string>("SDL_BUNDLE_JSON") ?? string.Empty;
+            var jsonUrl2 = config.GetProperty<string>("SDL_BUNDLE_JSON_FALLBACK") ?? string.Empty;
             var sdlLinks =
-                Helper.GetJsonAsObject<SDLUrlInfo>(jsonData);
+                Helper.GetJsonAsObject<SDLUrlInfo>(jsonUrl1) ??
+                Helper.GetJsonAsObject<SDLUrlInfo>(jsonUrl2);
             if (sdlLinks is not null)
             {
                 Console.WriteLine("Retrieving SDL2 runtime libraries from web...");
-                GetSDL2FromWeb(sdlLinks, arch, projectPath);
+                GetSDL2FromWeb(sdlLinks, arch, projectPath);    
             }
 
             // check if local dep cache has sdl2 packages
