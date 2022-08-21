@@ -42,8 +42,10 @@ namespace Cerulean.CLI
 
         public void UseDefaultConfiguration()
         {
-            SetProperty("SDL_BUNDLE_JSON", @"https://raw.githubusercontent.com/Xapier14/Cerulean/.json/sdl.json");
-            SetProperty("CRN_UPDATE_JSON", @"https://raw.githubusercontent.com/Xapier14/Cerulean/.Json/crn.json");
+            SetProperty("SDL_BUNDLE_JSON", @"https://raw.githubusercontent.com/Xapier14/Cerulean/main/.json/sdl.json");
+            SetProperty("SDL_BUNDLE_JSON_FALLBACK", "https://raw.githubusercontent.com/Xapier14/Cerulean/.json/sdl.json");
+            SetProperty("CRN_UPDATE_JSON", @"https://raw.githubusercontent.com/Xapier14/Cerulean/.json/crn.json");
+            SetProperty("CRN_UPDATE_JSON_FALLBACK", @"https://raw.githubusercontent.com/Xapier14/Cerulean/main/.json/crn.json");
             SetProperty("CERULEAN_UI_GIT", @"https://github.com/Xapier14/Cerulean.git");
         }
     }
