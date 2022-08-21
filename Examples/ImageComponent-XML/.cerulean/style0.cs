@@ -7,19 +7,22 @@ using Cerulean.Components;
 // Generated with Cerulean.CLI 
 namespace Cerulean.App
 {
-    public partial class DefaultImage : Style
+    public partial class BaseLabel : Style
     {
-        public DefaultImage() : base()
+        public BaseLabel() : base()
         {
             var api = CeruleanAPI.GetAPI();
             var resources = api.EmbeddedResources;
             var styles = api.EmbeddedStyles;
-            TargetType = typeof(Image);
-            ApplyToChildren = true;
-            AddSetter("ImageSource", "Cerulean.png");
+            TargetType = typeof(Label);
+            AddSetter("FontName", "Arial");
+            AddSetter("FontSize", 28);
+            AddSetter("ForeColor", new Color("#FFF"));
+            AddSetter("X", 8);
+            AddSetter("Y", 8);
         }
     }
 }
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
-// Generated on: 8/7/2022 1:58:38 PM
+// Generated on: 8/18/2022 8:40:32 AM

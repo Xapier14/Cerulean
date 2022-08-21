@@ -143,8 +143,11 @@ namespace Cerulean.CLI.Commands
 
             var config = Config.GetConfig();
             Console.WriteLine("Fetching SDL2 data...");
+            var jsonData = config.GetProperty<string>("SDL_BUNDLE_JSON") ??
+                           config.GetProperty<string>("SDL_BUNDLE_JSON_FALLBACK") ??
+                           string.Empty;
             var sdlLinks =
-                Helper.GetJsonAsObject<SDLUrlInfo>(config.GetProperty<string>("SDL_BUNDLE_JSON") ?? string.Empty);
+                Helper.GetJsonAsObject<SDLUrlInfo>(jsonData);
             if (sdlLinks is not null)
             {
                 Console.WriteLine("Retrieving SDL2 runtime libraries from web...");
