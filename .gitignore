@@ -8,3 +8,4 @@ bin/
 obj/
 Examples/TestBed/
 Docs/
+.debug-scripts/
