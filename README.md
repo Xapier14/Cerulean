@@ -28,39 +28,25 @@ Bundle your needed fonts in a folder called "Fonts" in the build directory as th
     ```bash
     crn new <app_name>
     ```
-5. Build the XMLs.
-    > **Note**
-    > This will be subject to change in a later release.
+5. Build the project.
     ```bash
-    cd <app_name>
-    crn build-xml
+    crn build
     ```
-    Navigate to the newly created directory and build the XMLs.
-6. Build the project.
-    ```bash
-    dotnet build
-    ```
-7. [*Only For Windows Users*] Bundle the SDL2 runtime binaries.
-    - Download the SDL2 runtime binary [here](https://libsdl.org/).
-    - Download the SDL2_ttf runtime binaries [here](https://www.libsdl.org/projects/SDL_ttf/release/).
-    - Download the SDL2_image runtime binary [here](https://www.libsdl.org/projects/SDL_image/release/).
+    This should automatically build the XMLs, the dotnet project, and bundle the needed dependencies.
     
-    > See [Important Notes](https://github.com/Xapier14/Cerulean#important-notes) on what architecture to use.
-
-    After downloading, copy the binaries over to the build directory.
-    - Debug: `./bin/Debug/net*.*/`
-    - Release: `./bin/Release/net*.*/`
-
-    You'll need to bundle these too when publishing the app.
-
-8. Run the app via:
+    Currently, the bundler only works on a Windows build target for now. Support for other operating systems will come in a later update.
+    
+    See "Important Notes" below on how to bundle and install dependencies for other OSs.
+6. Run the app via:
+    > **Note**
+    > This will be subject to change on a later release.
     ```bash
     dotnet run
     ```
 
 <h2>Important Notes</h2>
 
- - .NET 6 is **required**.
+ - .NET 6+ is **required**.
  - Use the appropriate SDL2 binaries for your app/system.
     - On Any CPU, use the binaries appropriate for your system's architecture.
     - On x86, use x86.
