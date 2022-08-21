@@ -46,7 +46,7 @@ Bundle your needed fonts in a folder called "Fonts" in the build directory as th
 
 <h2>Important Notes</h2>
 
- - .NET 6 or newer is **required**.
+ - .NET 6 is **required**.
  - Use the appropriate SDL2 binaries for your app/system.
     - On Any CPU, use the binaries appropriate for your system's architecture.
     - On x86, use x86.
