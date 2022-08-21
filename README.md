@@ -7,6 +7,9 @@
 <h2>Basic Information</h2>
 Write <strong>cross-platform</strong> GUI apps using simple XML and C#.<br>
 Mainly testing on Windows and Ubuntu. Feel free to test on other platforms.<br>
+<br>
+Should also work on OSX, but you need to install SDL2 and the other libraries to your frameworks folder.<br>
+Bundle your needed fonts in a folder called "Fonts" in the build directory as the font loader is jank with OSX.
 
 <h2>Getting Started</h2>
 
