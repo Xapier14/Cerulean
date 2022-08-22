@@ -276,8 +276,8 @@ namespace Cerulean.Components
                 ForeColor.HasValue)
             {
                 var (w, h) = graphics.MeasureText(Text, FontName, FontStyle, Scaling.GetDpiScaledValue(window, FontSize), viewportSize.W);
-                var textX = Scaling.GetDpiScaledValue(window, Math.Max(0, viewportSize.W - w) / 2);
-                var textY = Scaling.GetDpiScaledValue(window, Math.Max(0, viewportSize.H - h) / 2);
+                var textX = Math.Max(0, viewportSize.W - w) / 2;
+                var textY = Math.Max(0, viewportSize.H - h) / 2;
 
                 graphics.DrawText(textX, textY, Text, FontName, FontStyle, Scaling.GetDpiScaledValue(window, FontSize), ForeColor.Value, (uint)viewportSize.W);
             }
