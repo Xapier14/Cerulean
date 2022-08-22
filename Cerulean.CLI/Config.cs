@@ -47,6 +47,7 @@ namespace Cerulean.CLI
             SetProperty("CRN_UPDATE_JSON", @"https://raw.githubusercontent.com/Xapier14/Cerulean/.json/crn.json");
             SetProperty("CRN_UPDATE_JSON_FALLBACK", @"https://raw.githubusercontent.com/Xapier14/Cerulean/main/.json/crn.json");
             SetProperty("CERULEAN_UI_GIT", @"https://github.com/Xapier14/Cerulean.git");
+            SetProperty("DOTNET_DEFAULT_BUILD_CONFIG", "Debug");
         }
     }
 }

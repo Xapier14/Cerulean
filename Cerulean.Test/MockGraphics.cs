@@ -91,6 +91,11 @@ namespace Cerulean.Test
             return (0, 0);
         }
 
+        public float GetCurrentDisplayDpi()
+        {
+            return 96f;
+        }
+
         public void Update()
         {
         }
