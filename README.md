@@ -16,19 +16,13 @@ Bundle your needed fonts in a folder called "Fonts" in the build directory as th
 > **Warning**
 > This section is heavily under-construction. Use a release build instead if available.
 
-1. Clone the repository via:
-    ```bash
-    git clone https://github.com/Xapier14/Cerulean.git --recurse-submodules
-    ```
-2. Build the Cerulean.CLI project.
-    - You can build this as normal or as a single-file app.
-    - Take note that some features might not be available as a single-file app.
-3. Add the `crn` executable to your binaries folder or `%PATH%` environment variable.
-4. Create your new app via:
+1. Download a release build [here](https://github.com/Xapier14/Cerulean/releases) and extract the archive.
+2. Add the `crn` executable to your binaries folder or add the containing folder to the `%PATH%` environment variable.
+3. Create your new app via:
     ```bash
     crn new <app_name>
     ```
-5. Build the project.
+4. Build the project.
     ```bash
     crn build
     ```
@@ -37,7 +31,7 @@ Bundle your needed fonts in a folder called "Fonts" in the build directory as th
     Currently, the bundler only works on a Windows build target for now. Support for other operating systems will come in a later update.
     
     See "Important Notes" below on how to bundle and install dependencies for other OSs.
-6. Run the app via:
+5. Run the app via:
     ```bash
     crn run
     ```
