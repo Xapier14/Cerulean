@@ -38,11 +38,10 @@ Bundle your needed fonts in a folder called "Fonts" in the build directory as th
     
     See "Important Notes" below on how to bundle and install dependencies for other OSs.
 6. Run the app via:
-    > **Note**
-    > This will be subject to change on a later release.
     ```bash
-    dotnet run
+    crn run
     ```
+    If you run into DllNotFound errors, try running `crn bundle`.
 
 <h2>Important Notes</h2>
 
