@@ -153,12 +153,14 @@ namespace Cerulean.Components
             if (!ForeColor.HasValue || Text == string.Empty)
                 return;
 
+            var window = ParentWindow as Window;
+
             var size = ClientArea.Value;
             size.W -= X;
             size.H -= Y;
             var textWrap = size.W;
             if (textWrap >= 0)
-                graphics.DrawText(0, 0, Text, FontName, FontStyle, FontSize, ForeColor.Value, WrapText ? (uint)(textWrap) : 0);
+                graphics.DrawText(0, 0, Text, FontName, FontStyle, Scaling.GetDpiScaledValue(window, FontSize), ForeColor.Value, WrapText ? (uint)(textWrap) : 0);
 
             CallHook(this, EventHook.AfterDraw, graphics, viewportX, viewportY, viewportSize);
         }

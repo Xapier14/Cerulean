@@ -10,6 +10,7 @@ namespace Cerulean.Common
     {
         private readonly List<(EventHook, Action<Component, object[]>)> _eventHooks = new();
         private readonly Dictionary<string, Component> _components = new();
+        private object? _parentWindow = null;
         protected Size? CachedViewportSize;
         protected int? CachedViewportX, CachedViewportY;
         protected bool CanBeChild { get; init; } = true;
@@ -27,6 +28,12 @@ namespace Cerulean.Common
         public virtual bool IsHoverableComponent { get; set; } = false;
         public Size? ClientArea { get; protected set; }
         public virtual bool Modified { get; protected set; }
+
+        public object? ParentWindow
+        {
+            get => _parentWindow ?? Parent?.ParentWindow;
+            set => _parentWindow = value;
+        }
 
         public object this[string attribute]
         {
