@@ -8,6 +8,7 @@
 		<Nullable>enable</Nullable>
 		<AssemblyName>crn</AssemblyName>
 		<Platforms>AnyCPU;x86;x64</Platforms>
+		<AssemblyVersion>0.1.0.0</AssemblyVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
