@@ -2,7 +2,7 @@
 
 <CeruleanAPI xmlns:a='Attribute'>
 	<Import>Cerulean.Components</Import>
-	<Style Name='BaseLabel' Target='Label'>
+	<Style Name='BaseLabel' Target='Label' ApplyToChildren='true'>
 		<Setter Property='FontName' Value='Arial' />
 		<Setter Property='FontSize' Value='28' />
 		<Setter Property='ForeColor' Value='#FFF' />
@@ -13,105 +13,22 @@
 		<Setter Property='ImageSource' Value='Cerulean.png' />
 	</Style>
 	<Style Name='DefaultImageSVG' Target='Image' ApplyToChildren='true'>
-		<Setter Property='ImageSource'
-		        Value='svg: &lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 93 107"&gt;&lt;path d="M74,74a42,42 0,1,0-57,0l28,29a42,41 0,0,0 0-57" fill="#ff0000" fill-rule="evenodd"/&gt;&lt;/svg&gt;' />
+		<Setter Property='ImageSource' Value='svg: &lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 93 107"&gt;&lt;path d="M74,74a42,42 0,1,0-57,0l28,29a42,41 0,0,0 0-57" fill="#ff0000" fill-rule="evenodd"/&gt;&lt;/svg&gt;' />
 	</Style>
-	<Layout Name='MainLayout'>
-		<Grid
-			Name='MainGrid'
-			RowCount='2'
-			ColumnCount='3'
-			Style='DefaultImageSVG'>
-			<Image
-				Name='Image1'
-				PictureMode='None'
-				GridRow='0'
-				GridColumn='0' />
-			<Label
-				Name='Label1'
-				Text='None'
-				FontName='Arial'
-				FontSize='28'
-				ForeColor='#F00'
-				X='8'
-				Y='8'
-				GridRow='0'
-				GridColumn='0' />
-			<Image
-				Name='Image2'
-				PictureMode='Stretch'
-				GridRow='0'
-				GridColumn='1' />
-			<Label
-				Name='Label2'
-				Text='Stretch'
-				FontName='Arial'
-				FontSize='28'
-				ForeColor='#F00'
-				X='8'
-				Y='8'
-				GridRow='0'
-				GridColumn='1' />
-			<Image
-				Name='Image3'
-				PictureMode='Center'
-				GridRow='0'
-				GridColumn='2' />
-			<Label
-				Name='Label3'
-				Text='Center'
-				FontName='Arial'
-				FontSize='28'
-				ForeColor='#F00'
-				X='8'
-				Y='8'
-				GridRow='0'
-				GridColumn='2' />
-			<Image
-				Name='Image4'
-				PictureMode='Tile'
-				GridRow='1'
-				GridColumn='0' />
-			<Label
-				Name='Label4'
-				Text='Tile'
-				FontName='Arial'
-				FontSize='28'
-				ForeColor='#F00'
-				X='8'
-				Y='8'
-				GridRow='1'
-				GridColumn='0' />
-			<Image
-				Name='Image5'
-				PictureMode='Fit'
-				GridRow='1'
-				GridColumn='1' />
-			<Label
-				Name='Label5'
-				Text='Fit'
-				FontName='Arial'
-				FontSize='28'
-				ForeColor='#F00'
-				X='8'
-				Y='8'
-				GridRow='1'
-				GridColumn='1' />
-			<Image
-				Name='Image6'
-				PictureMode='Cover'
-				GridRow='1'
-				GridColumn='2' />
-			<Label
-				Name='Label6'
-				Text='Cover'
-				FontName='Arial'
-				FontSize='28'
-				ForeColor='#F00'
-				X='8'
-				Y='8'
-				GridRow='1'
-				GridColumn='2' />
+	<Layout Name='MainLayout' Style='BaseLabel'>
+		<Grid Name='MainGrid' RowCount='2' ColumnCount='3' Style='DefaultImageSVG'>
+			<Image PictureMode='None' GridRow='0' GridColumn='0' />
+			<Label Text='None' GridRow='0' GridColumn='0' />
+			<Image PictureMode='Stretch' GridRow='0' GridColumn='1' />
+			<Label Text='Stretch' GridRow='0' GridColumn='1' />
+			<Image PictureMode='Center' GridRow='0' GridColumn='2' />
+			<Label Text='Center' GridRow='0' GridColumn='2' />
+			<Image PictureMode='Tile' GridRow='1' GridColumn='0' />
+			<Label Text='Tile' GridRow='1' GridColumn='0' />
+			<Image PictureMode='Fit' GridRow='1' GridColumn='1' />
+			<Label Text='Fit' GridRow='1' GridColumn='1' />
+			<Image PictureMode='Cover' GridRow='1' GridColumn='2' />
+			<Label Text='Cover' GridRow='1' GridColumn='2' />
 		</Grid>
 	</Layout>
 </CeruleanAPI>

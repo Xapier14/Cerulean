@@ -15,6 +15,7 @@ namespace Cerulean.App
             var resources = api.EmbeddedResources;
             var styles = api.EmbeddedStyles;
             TargetType = typeof(Label);
+            ApplyToChildren = true;
             AddSetter("FontName", "Arial");
             AddSetter("FontSize", 28);
             AddSetter("ForeColor", new Color("#FFF"));
@@ -25,4 +26,4 @@ namespace Cerulean.App
 }
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
-// Generated on: 8/18/2022 8:40:32 AM
+// Generated on: 8/22/2022 8:23:01 PM

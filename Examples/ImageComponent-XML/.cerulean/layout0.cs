@@ -14,98 +14,69 @@ namespace Cerulean.App
             var api = CeruleanAPI.GetAPI();
             var resources = api.EmbeddedResources;
             var styles = api.EmbeddedStyles;
+            QueueStyle(this, styles.FetchStyle("BaseLabel"));
             AddChild("MainGrid", new Grid {
                 RowCount = 2,
                 ColumnCount = 3,
             });
             QueueStyle(GetChild("MainGrid"), styles.FetchStyle("DefaultImageSVG"));
-            GetChild("MainGrid").AddChild("Image1", new Image {
+            GetChild("MainGrid").AddChild("AnonymousComponent_637967965814619004", new Image {
                 PictureMode = PictureMode.None,
                 GridRow = 0,
                 GridColumn = 0,
             });
-            GetChild("MainGrid").AddChild("Label1", new Label {
+            GetChild("MainGrid").AddChild("AnonymousComponent_637967965814628417", new Label {
                 Text = "None",
-                FontName = "Arial",
-                FontSize = 28,
-                ForeColor = new Color("#F00"),
-                X = 8,
-                Y = 8,
                 GridRow = 0,
                 GridColumn = 0,
             });
-            GetChild("MainGrid").AddChild("Image2", new Image {
+            GetChild("MainGrid").AddChild("AnonymousComponent_637967965814629075", new Image {
                 PictureMode = PictureMode.Stretch,
                 GridRow = 0,
                 GridColumn = 1,
             });
-            GetChild("MainGrid").AddChild("Label2", new Label {
+            GetChild("MainGrid").AddChild("AnonymousComponent_637967965814629266", new Label {
                 Text = "Stretch",
-                FontName = "Arial",
-                FontSize = 28,
-                ForeColor = new Color("#F00"),
-                X = 8,
-                Y = 8,
                 GridRow = 0,
                 GridColumn = 1,
             });
-            GetChild("MainGrid").AddChild("Image3", new Image {
+            GetChild("MainGrid").AddChild("AnonymousComponent_637967965814629302", new Image {
                 PictureMode = PictureMode.Center,
                 GridRow = 0,
                 GridColumn = 2,
             });
-            GetChild("MainGrid").AddChild("Label3", new Label {
+            GetChild("MainGrid").AddChild("AnonymousComponent_637967965814629332", new Label {
                 Text = "Center",
-                FontName = "Arial",
-                FontSize = 28,
-                ForeColor = new Color("#F00"),
-                X = 8,
-                Y = 8,
                 GridRow = 0,
                 GridColumn = 2,
             });
-            GetChild("MainGrid").AddChild("Image4", new Image {
+            GetChild("MainGrid").AddChild("AnonymousComponent_637967965814629404", new Image {
                 PictureMode = PictureMode.Tile,
                 GridRow = 1,
                 GridColumn = 0,
             });
-            GetChild("MainGrid").AddChild("Label4", new Label {
+            GetChild("MainGrid").AddChild("AnonymousComponent_637967965814629476", new Label {
                 Text = "Tile",
-                FontName = "Arial",
-                FontSize = 28,
-                ForeColor = new Color("#F00"),
-                X = 8,
-                Y = 8,
                 GridRow = 1,
                 GridColumn = 0,
             });
-            GetChild("MainGrid").AddChild("Image5", new Image {
+            GetChild("MainGrid").AddChild("AnonymousComponent_637967965814629505", new Image {
                 PictureMode = PictureMode.Fit,
                 GridRow = 1,
                 GridColumn = 1,
             });
-            GetChild("MainGrid").AddChild("Label5", new Label {
+            GetChild("MainGrid").AddChild("AnonymousComponent_637967965814629533", new Label {
                 Text = "Fit",
-                FontName = "Arial",
-                FontSize = 28,
-                ForeColor = new Color("#F00"),
-                X = 8,
-                Y = 8,
                 GridRow = 1,
                 GridColumn = 1,
             });
-            GetChild("MainGrid").AddChild("Image6", new Image {
+            GetChild("MainGrid").AddChild("AnonymousComponent_637967965814629599", new Image {
                 PictureMode = PictureMode.Cover,
                 GridRow = 1,
                 GridColumn = 2,
             });
-            GetChild("MainGrid").AddChild("Label6", new Label {
+            GetChild("MainGrid").AddChild("AnonymousComponent_637967965814629629", new Label {
                 Text = "Cover",
-                FontName = "Arial",
-                FontSize = 28,
-                ForeColor = new Color("#F00"),
-                X = 8,
-                Y = 8,
                 GridRow = 1,
                 GridColumn = 2,
             });
@@ -114,4 +85,4 @@ namespace Cerulean.App
 }
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
-// Generated on: 8/18/2022 8:40:32 AM
+// Generated on: 8/22/2022 8:23:01 PM
