@@ -483,5 +483,16 @@ namespace Cerulean.Core
             return (textWrap, totalRows * h);
         }
         #endregion
+        #region UTILITIES
+
+        public float GetCurrentDisplayDpi()
+        {
+            var displayIndex = SDL_GetWindowDisplayIndex(WindowPtr);
+            if (SDL_GetDisplayDPI(displayIndex, out var ddpi, out _, out _) != 0)
+                return 0;
+            return ddpi;
+        }
+
+        #endregion
     }
 }

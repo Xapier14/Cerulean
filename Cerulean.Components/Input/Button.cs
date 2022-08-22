@@ -180,9 +180,9 @@ namespace Cerulean.Components
 
             base.Update(window, clientArea);
 
-            // process events
             if (window is not Window ceruleanWindow)
                 return;
+
             var hovering = ceruleanWindow.HoveredComponent == this;
 
             // prepare event args
@@ -252,6 +252,8 @@ namespace Cerulean.Components
 
             CallHook(this, EventHook.BeforeDraw, graphics, viewportX, viewportY, viewportSize);
 
+            var window = ParentWindow as Window;
+
             // draw background
             var backgroundColor = BackColor;
             if (_hovered)
@@ -273,11 +275,11 @@ namespace Cerulean.Components
                 FontSize > 0 &&
                 ForeColor.HasValue)
             {
-                var (w, h) = graphics.MeasureText(Text, FontName, FontStyle, FontSize, viewportSize.W);
-                var textX = Math.Max(0, viewportSize.W - w) / 2;
-                var textY = Math.Max(0, viewportSize.H - h) / 2;
+                var (w, h) = graphics.MeasureText(Text, FontName, FontStyle, Scaling.GetDpiScaledValue(window, FontSize), viewportSize.W);
+                var textX = Scaling.GetDpiScaledValue(window, Math.Max(0, viewportSize.W - w) / 2);
+                var textY = Scaling.GetDpiScaledValue(window, Math.Max(0, viewportSize.H - h) / 2);
 
-                graphics.DrawText(textX, textY, Text, FontName, FontStyle, FontSize, ForeColor.Value, (uint)viewportSize.W);
+                graphics.DrawText(textX, textY, Text, FontName, FontStyle, Scaling.GetDpiScaledValue(window, FontSize), ForeColor.Value, (uint)viewportSize.W);
             }
 
             // draw border

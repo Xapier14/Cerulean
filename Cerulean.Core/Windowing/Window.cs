@@ -90,6 +90,10 @@ namespace Cerulean.Core
         /// </summary>
         public bool AlwaysRedraw { get; set; } = false;
         /// <summary>
+        /// Scales the components of this window via dpi scaling.
+        /// </summary>
+        public bool AutoScale { get; set; } = true;
+        /// <summary>
         /// The graphics context or backend that the window is using.
         /// </summary>
         public IGraphics? GraphicsContext { get; private set; }
@@ -281,6 +285,7 @@ namespace Cerulean.Core
             MinimumWindowSize = null;
             MaximumWindowSize = null;
             Layout = windowLayout;
+            windowLayout.ParentWindow = this;
             ParentWindow = parentWindow;
             _graphicsFactory = graphicsFactory;
             BackColor = new Color(230, 230, 230);
@@ -328,6 +333,31 @@ namespace Cerulean.Core
         public void FlagForRedraw()
         {
             IsFlaggedForRedraw = true;
+        }
+
+        public int GetDpiScaledValue(int value)
+        {
+            return (int)Scaling.GetDpiScaledValue(this, value);
+        }
+
+        public double GetDpiScaledValue(double value)
+        {
+            return Scaling.GetDpiScaledValue(this, value);
+        }
+
+        public float GetDpiScaledValue(float value)
+        {
+            return (float)Scaling.GetDpiScaledValue(this, value);
+        }
+
+        public Size GetDpiScaledValue(Size value)
+        {
+            var ret = new Size
+            {
+                W = GetDpiScaledValue(value.W),
+                H = GetDpiScaledValue(value.H)
+            };
+            return ret;
         }
 
         private void EnsureMainThread(string? message = null)

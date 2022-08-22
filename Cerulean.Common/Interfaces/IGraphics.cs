@@ -1,4 +1,6 @@
-﻿namespace Cerulean.Common
+﻿using System.Security.Principal;
+
+namespace Cerulean.Common
 {
     public interface IGraphics
     {
@@ -39,6 +41,12 @@
 
         public (int, int) MeasureText(string text, string fontName, string fontStyle, int fontPointSize,
             int textWrap = 0);
+        #endregion
+
+        #region Utilities
+
+        public float GetCurrentDisplayDpi();
+
         #endregion
 
         #region API FUNCTIONS
