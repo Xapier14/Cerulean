@@ -50,7 +50,7 @@ namespace Cerulean.CLI.Commands
             os ??= Helper.GetOSPlatform();
 
             options.TryGetValue("config", out var netConfig);
-            netConfig ??= config.GetProperty<string>("DOTNET_DEFAULT_BUILD_CONFIG");
+            netConfig ??= config.GetProperty<string>("DOTNET_DEFAULT_BUILD_CONFIG") ?? "Debug";
 
             if (os is null)
             {
@@ -77,7 +77,7 @@ namespace Cerulean.CLI.Commands
             // Bundle dependencies if not found
             ColoredConsole.WriteLine("$yellow^[CRN]$r^ Assessing dependencies...");
             Router.GetRouter().ExecuteCommand("bundle", projectPath, "-arch", arch, "-os", os, "-config", netConfig, "-nv", netVersion);
-            
+
             Console.WriteLine();
             ColoredConsole.WriteLine("$green^Cerulean project built successfully!$r^");
             ColoredConsole.WriteLine("Try running with '$yellow^crn run$r^'");

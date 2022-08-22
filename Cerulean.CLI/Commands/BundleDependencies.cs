@@ -128,7 +128,7 @@ namespace Cerulean.CLI.Commands
             os ??= Helper.GetOSPlatform();
 
             options.TryGetValue("config", out var netConfig);
-            netConfig ??= config.GetProperty<string>("DOTNET_DEFAULT_BUILD_CONFIG");
+            netConfig ??= config.GetProperty<string>("DOTNET_DEFAULT_BUILD_CONFIG") ?? "Debug";
 
             options.TryGetValue("nv", out var netVersion);
             var csproj = Helper.GetProjectFileInDirectory(projectPath);
@@ -151,7 +151,7 @@ namespace Cerulean.CLI.Commands
             if (sdlLinks is not null)
             {
                 Console.WriteLine("Retrieving SDL2 runtime libraries from web...");
-                GetSDL2FromWeb(sdlLinks, arch, projectPath);    
+                GetSDL2FromWeb(sdlLinks, arch, projectPath);
             }
 
             // check if local dep cache has sdl2 packages
