@@ -9,10 +9,8 @@
 		<Setter Property='X' Value='8' />
 		<Setter Property='Y' Value='8' />
 	</Style>
-	<Style Name='DefaultImage' Target='Image' ApplyToChildren='true'>
-		<Setter Property='ImageSource' Value='Cerulean.png' />
-	</Style>
 	<Style Name='DefaultImageSVG' Target='Image' ApplyToChildren='true'>
+		<!-- This is an inline SVG -->
 		<Setter Property='ImageSource' Value='svg: &lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 93 107"&gt;&lt;path d="M74,74a42,42 0,1,0-57,0l28,29a42,41 0,0,0 0-57" fill="#ff0000" fill-rule="evenodd"/&gt;&lt;/svg&gt;' />
 	</Style>
 	<Layout Name='MainLayout' Style='BaseLabel'>
