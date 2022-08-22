@@ -40,6 +40,10 @@ public class BuildXml : ICommand
         DirectoryInfo outDirInfo = new(outputPath);
         BuilderContext context = new();
 
+        // check if slient flag is raised
+        if (flags.Contains("silent"))
+            ColoredConsole.Disable();
+
         // build XMLs in project directory
         DirectoryInfo dirInfo = new(projectPath);
         var xmlFiles = dirInfo.GetAllFiles()
@@ -87,6 +91,7 @@ public class BuildXml : ICommand
             index++;
         }
 
+        ColoredConsole.Enable();
         return 0;
     }
 }

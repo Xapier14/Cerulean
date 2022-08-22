@@ -5,6 +5,7 @@ namespace Cerulean.CLI;
 public static class ColoredConsole
 {
     private static readonly object _lock = new();
+    private static bool _disabled = false;
 
     private static void ChangeColor(string color)
     {
@@ -38,6 +39,8 @@ public static class ColoredConsole
 
     public static void Write(string message)
     {
+        if (_disabled)
+            return;
         lock (_lock)
         {
             StringBuilder buffer = new();
@@ -70,6 +73,18 @@ public static class ColoredConsole
 
     public static void WriteLine(string message)
     {
+        if (_disabled)
+            return;
         Write(message + "\n");
+    }
+
+    public static void Disable()
+    {
+        _disabled = true;
+    }
+
+    public static void Enable()
+    {
+        _disabled = false;
     }
 }

@@ -40,6 +40,8 @@ namespace Cerulean.CLI.Commands
                 return -1;
             }
 
+            var config = Config.GetConfig();
+
             // determine target runtime
             options.TryGetValue("arch", out var arch);
             arch ??= Environment.Is64BitOperatingSystem ? "x64" : "x86";
@@ -47,8 +49,8 @@ namespace Cerulean.CLI.Commands
             options.TryGetValue("os", out var os);
             os ??= Helper.GetOSPlatform();
 
-            options.TryGetValue("config", out var config);
-            config ??= "Debug";
+            options.TryGetValue("config", out var netConfig);
+            netConfig ??= config.GetProperty<string>("DOTNET_DEFAULT_BUILD_CONFIG");
 
             if (os is null)
             {
@@ -65,7 +67,7 @@ namespace Cerulean.CLI.Commands
 
             // Build dotnet project
             ColoredConsole.WriteLine("$yellow^[DOTNET]$r^ Building project...");
-            if (Build(projectPath, arch, os, config))
+            if (Build(projectPath, arch, os, netConfig))
                 return -3;
 
             // get csproj info
@@ -74,7 +76,7 @@ namespace Cerulean.CLI.Commands
 
             // Bundle dependencies if not found
             ColoredConsole.WriteLine("$yellow^[CRN]$r^ Assessing dependencies...");
-            Router.GetRouter().ExecuteCommand("bundle", projectPath, "-arch", arch, "-os", os, "-config", config, "-nv", netVersion);
+            Router.GetRouter().ExecuteCommand("bundle", projectPath, "-arch", arch, "-os", os, "-config", netConfig, "-nv", netVersion);
             
             Console.WriteLine();
             ColoredConsole.WriteLine("$green^Cerulean project built successfully!$r^");

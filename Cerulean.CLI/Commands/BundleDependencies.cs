@@ -119,6 +119,8 @@ namespace Cerulean.CLI.Commands
             if (args.Length > 0)
                 projectPath = args[0];
 
+            var config = Config.GetConfig();
+
             options.TryGetValue("arch", out var arch);
             arch ??= Environment.Is64BitOperatingSystem ? "x64" : "x86";
 
@@ -126,7 +128,7 @@ namespace Cerulean.CLI.Commands
             os ??= Helper.GetOSPlatform();
 
             options.TryGetValue("config", out var netConfig);
-            netConfig ??= "Debug";
+            netConfig ??= config.GetProperty<string>("DOTNET_DEFAULT_BUILD_CONFIG");
 
             options.TryGetValue("nv", out var netVersion);
             var csproj = Helper.GetProjectFileInDirectory(projectPath);
@@ -140,8 +142,6 @@ namespace Cerulean.CLI.Commands
                 Console.WriteLine($"Target operating system: {os}");
                 return 0;
             }
-
-            var config = Config.GetConfig();
             Console.WriteLine("Fetching SDL2 data...");
             var jsonUrl1 = config.GetProperty<string>("SDL_BUNDLE_JSON") ?? string.Empty;
             var jsonUrl2 = config.GetProperty<string>("SDL_BUNDLE_JSON_FALLBACK") ?? string.Empty;
