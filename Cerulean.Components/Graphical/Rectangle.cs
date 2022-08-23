@@ -119,7 +119,13 @@ namespace Cerulean.Components
             // Draw fill
             if (FillColor.HasValue)
             {
-                graphics.DrawFilledRectangle(0, 0, ClientArea.Value, FillColor.Value);
+                graphics.DrawFilledRectangle(0, 0, ClientArea.Value, new Color
+                {
+                    R = FillColor.Value.R,
+                    G = FillColor.Value.G,
+                    B = FillColor.Value.B,
+                    A = (byte)(255 * FillOpacity)
+                });
             }
             // Draw border
             if (BorderColor.HasValue)

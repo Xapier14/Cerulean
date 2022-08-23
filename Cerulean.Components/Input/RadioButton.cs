@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using Cerulean.Common;
@@ -9,13 +8,8 @@ using Cerulean.Core;
 
 namespace Cerulean.Components
 {
-    public sealed class CheckBox : Component, ISized
+    public class RadioButton : Component, ISized
     {
-        #region SVG Strings
-
-        private const string SVG_CHECK =
-            "svg: <svg version=\"1.1\" id=\"Layer_1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" x=\"0px\" y=\"0px\" viewBox=\"0 0 406.834 406.834\" style=\"enable-background:new 0 0 406.834 406.834;\" xml:space=\"preserve\"><polygon points=\"385.621,62.507 146.225,301.901 21.213,176.891 0,198.104 146.225,344.327 406.834,83.72 \"/></svg>";
-        #endregion
 
         #region Boilerplate Props
 
@@ -67,19 +61,34 @@ namespace Cerulean.Components
             }
         }
 
-        private bool _checked = false;
-        public bool Checked
+        private Color? _selectedColor = new Color("#444");
+
+        public Color? SelectedColor
         {
-            get => _checked;
+            get => _selectedColor;
             set
             {
-                Modified = _checked != value;
-                _checked = value;
-                GetChild<Image>("Image_Check").Visible = value;
+                Modified = true;
+                _selectedColor = value;
+                GetChild<Rectangle>("Rectangle_Select").FillColor = value;
             }
         }
 
-        private string? _text = "Checkbox";
+        private bool _selected = false;
+        public bool Selected
+        {
+            get => _selected;
+            set
+            {
+                Modified = _selected != value;
+                _selected = value;
+                GetChild<Rectangle>("Rectangle_Select").FillOpacity = value ? 1.0 : 0.0;
+                if (Modified)
+                    Button_OnClick(this, new ButtonEventArgs());
+            }
+        }
+
+        private string? _text = "Radio Button";
         public string? Text
         {
             get => _text;
@@ -141,11 +150,11 @@ namespace Cerulean.Components
 
         public string InputData { get; init; } = string.Empty;
         public string InputGroup { get; init; } = string.Empty;
-
-        public CheckBox()
+        public RadioButton()
         {
             DisableTopLevelHooks = true;
-            Button boxHandle = AddChild("Button_BoxHandle", new Button
+            
+            Button radioHandle = AddChild("Button_RadioHandle", new Button
             {
                 X = 5,
                 Y = 5,
@@ -154,16 +163,21 @@ namespace Cerulean.Components
                 BackColor = new Color(150, 150, 150),
                 HighlightColor = new Color(190, 190, 190)
             });
-            AddChild("Image_Check", new Image
+            AddChild("Rectangle_Select", new Rectangle()
             {
-                X = 5,
-                Y = 1,
-                Size = new Size(16, 16),
-                PictureMode = PictureMode.Fit,
-                ImageSource = SVG_CHECK,
-                Visible = false
+                X = 8,
+                Y = 8,
+                Size = new Size(6, 6),
+                FillColor = SelectedColor,
+                FillOpacity = 0.0
             });
-            boxHandle.OnRelease += Button_OnClick;
+            radioHandle.OnRelease += (_, _) =>
+            {
+                if (Selected)
+                    return;
+
+                Selected = true;
+            };
 
             AddChild("Label_Text", new Label
             {
@@ -172,20 +186,29 @@ namespace Cerulean.Components
                 ForeColor = _foreColor,
                 Text = _text
             });
-
-            Modified = true;
         }
 
         private void Button_OnClick(object sender, ButtonEventArgs e)
         {
-            Checked = !Checked;
+            if (Parent is not InputContext inputContext)
+                return;
+            
+            inputContext.UpdateRadioGroupValue(InputGroup, InputData);
 
-            if (Parent is not InputContext inputContext) return;
+            var otherRadioButtons = inputContext.Children
+                .Where(x =>
+                    x is RadioButton rb &&
+                    rb.InputGroup == InputGroup &&
+                    rb != this)
+                .Cast<RadioButton>();
 
-            if (Checked)
-                inputContext.AddCheckboxValue(InputGroup, InputData);
-            else
-                inputContext.RemoveCheckboxValue(InputGroup, InputData);
+            foreach (var radioButton in otherRadioButtons)
+            {
+                radioButton._selected = false;
+                radioButton.GetChild<Rectangle>("Rectangle_Select").FillOpacity = 0;
+            }
+
+            Modified = true;
         }
 
         public override void Update(object? window, Size clientArea)
@@ -198,12 +221,12 @@ namespace Cerulean.Components
             if (Modified && window is Window ceruleanWindow)
             {
                 Modified = false;
-                GetChild("Button_BoxHandle").X = ceruleanWindow.GetDpiScaledValue(5);
-                GetChild("Button_BoxHandle").Y = ceruleanWindow.GetDpiScaledValue(5);
-                GetChild<ISized>("Button_BoxHandle").Size = ceruleanWindow.GetDpiScaledValue(new Size(12, 12));
-                GetChild("Image_Check").X = ceruleanWindow.GetDpiScaledValue(5);
-                GetChild("Image_Check").Y = ceruleanWindow.GetDpiScaledValue(1);
-                GetChild<ISized>("Image_Check").Size = ceruleanWindow.GetDpiScaledValue(new Size(16, 16));
+                GetChild("Button_RadioHandle").X = ceruleanWindow.GetDpiScaledValue(5);
+                GetChild("Button_RadioHandle").Y = ceruleanWindow.GetDpiScaledValue(5);
+                GetChild<ISized>("Button_RadioHandle").Size = ceruleanWindow.GetDpiScaledValue(new Size(12, 12));
+                GetChild("Rectangle_Select").X = ceruleanWindow.GetDpiScaledValue(8);
+                GetChild("Rectangle_Select").Y = ceruleanWindow.GetDpiScaledValue(8);
+                GetChild<ISized>("Rectangle_Select").Size = ceruleanWindow.GetDpiScaledValue(new Size(6, 6));
                 GetChild("Label_Text").X = ceruleanWindow.GetDpiScaledValue(22);
                 GetChild("Label_Text").Y = ceruleanWindow.GetDpiScaledValue(4);
                 ceruleanWindow.FlagForRedraw();
