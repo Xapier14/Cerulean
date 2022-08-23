@@ -152,7 +152,8 @@ namespace Cerulean.Components
                 Size = new Size(12, 12),
                 BorderColor = new Color(0, 0, 0),
                 BackColor = new Color(150, 150, 150),
-                HighlightColor = new Color(190, 190, 190)
+                HighlightColor = new Color(190, 190, 190),
+                ActivatedColor = new Color(210, 210, 210)
             });
             AddChild("Image_Check", new Image
             {
