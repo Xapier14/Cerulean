@@ -86,7 +86,7 @@ Bundle your needed fonts in a folder called "Fonts" in the build directory as th
      - [ ] MultiTextBox
      - [x] Button
      - [x] Check Box
-     - [ ] Radio Button
+     - [x] Radio Button
      - [ ] Drop Down List
  - [ ] Container Components
      - [x] Grid
