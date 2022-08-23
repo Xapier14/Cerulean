@@ -92,7 +92,7 @@ namespace Cerulean.Core
         /// <summary>
         /// Scales the components of this window via dpi scaling.
         /// </summary>
-        public bool AutoScale { get; set; } = true;
+        public bool AutoScale { get; set; } = false;
         /// <summary>
         /// The graphics context or backend that the window is using.
         /// </summary>

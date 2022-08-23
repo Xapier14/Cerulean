@@ -55,10 +55,11 @@ namespace Cerulean.Components
 
         public void UpdateRadioGroupValue(string group, object value)
         {
-            if (!_valueMap.ContainsKey(group))
-                _valueMap.Add(group, new List<object>());
-            _valueMap[group].Clear();
-            _valueMap[group].Add(value);
+            var key = $"Radio_{group}";
+            if (!_valueMap.ContainsKey(key))
+                _valueMap.Add(key, new List<object>());
+            _valueMap[key].Clear();
+            _valueMap[key].Add(value);
             OnRadioGroupUpdate?.Invoke(this, new InputGroupEventArgs
             {
                 Group = group,
