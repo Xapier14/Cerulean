@@ -138,6 +138,7 @@ namespace Cerulean.Core
 
             if (text is not null)
                 _IMEText += text;
+            window.InvokeOnTextUpdate(_IMEText);
             Log($"Input. Text: {_IMEText}");
         }
 
@@ -672,9 +673,6 @@ namespace Cerulean.Core
         {
             if (_activeIMEWindow == window)
                 return;
-
-            if (SDL_IsTextInputActive() == SDL_bool.SDL_FALSE)
-                return;
             _activeIMEWindow = window;
             _IMEText = text;
             _IMECursor = cursor;
@@ -702,7 +700,7 @@ namespace Cerulean.Core
             if (_activeIMEWindow != window)
                 return;
 
-            if (SDL_IsTextInputActive() == SDL_bool.SDL_TRUE)
+            if (SDL_IsTextInputActive() == SDL_bool.SDL_FALSE)
                 return;
             SDL_StopTextInput();
             _activeIMEWindow = null;
