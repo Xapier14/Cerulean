@@ -106,11 +106,11 @@ namespace Cerulean.Core
                     0,
                     rect.w,
                     rect.h,
-                    32,
-                    0xFF000000,
-                    0x00FF0000,
-                    0x0000FF00,
-                    0x000000FF);
+                    pixelFormat.BitsPerPixel,
+                    pixelFormat.Rmask,
+                    pixelFormat.Gmask,
+                    pixelFormat.Bmask,
+                    pixelFormat.Amask);
                 SDL_BlitSurface(surfacePtr, ref rect, newPtr, ref rect);
                 SDL_FreeSurface(surfacePtr);
                 surfacePtr = newPtr;
@@ -393,14 +393,14 @@ namespace Cerulean.Core
                 var font = _fontCache.GetFont(fontName, fontStyle, fontPointSize);
                 CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("TTF_Render");
                 var surface = textWrap < 1 ?
-                    TTF_RenderText_Blended(font.Data, text, new SDL_Color
+                    TTF_RenderUNICODE_Blended(font.Data, text, new SDL_Color
                     {
                         r = color.R,
                         g = color.G,
                         b = color.B,
                         a = color.A
                     }) :
-                    TTF_RenderText_Blended_Wrapped(font.Data, text, new SDL_Color
+                    TTF_RenderUNICODE_Blended_Wrapped(font.Data, text, new SDL_Color
                     {
                         r = color.R,
                         g = color.G,
