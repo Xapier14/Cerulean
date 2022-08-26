@@ -22,8 +22,11 @@ namespace Cerulean.Core
 
         internal bool OnCloseFromEvent;
         private string _windowTitle = "";
+        private Component? _IMEComponentOwner;
 
         #endregion
+
+        public Action<string>? TextUpdatedDelegate { get; set; }
 
         /// <summary>
         /// The default window size for windows created without size specified.
@@ -73,11 +76,8 @@ namespace Cerulean.Core
         /// Called when the window loses focus.
         /// </summary>
         public WindowEventHandler? OnFocusLost;
-        /// <summary>
-        /// Called when the window receives a text input update.
-        /// </summary>
-        public WindowEventHandler? OnTextUpdate;
         #endregion
+
         /// <summary>
         /// Returns true if the window has been initialized.
         /// </summary>
@@ -317,22 +317,27 @@ namespace Cerulean.Core
         /// <summary>
         /// Starts IME Text Input.
         /// </summary>
+        /// <param name="inputOwner">The component that owns the IME input session.</param>
         /// <param name="x">The X coordinate of where the input box is located at. This is relative to the window.</param>
         /// <param name="y">The Y coordinate of where the input box is located at. This is relative to the window.</param>
         /// <param name="area">The size of the input box.</param>
         /// <param name="text">The initial text of the IME text input.</param>
         /// <param name="index">The index of the text cursor.</param>
-        public void StartTextInput(int x, int y, Size area, string text = "", int index = 0)
+        public void StartTextInput(Component? inputOwner, int x, int y, Size area, string text = "", int index = 0,
+            int maxLength = 2048)
         {
-            CeruleanAPI.GetAPI().StartTextInput(this, x, y, area, text, index);
+            _IMEComponentOwner = inputOwner;
+            TextUpdatedDelegate = null;
+            CeruleanAPI.GetAPI().StartTextInput(this, x, y, area, text, index, maxLength);
         }
 
         /// <summary>
         /// Stops IME Text Input.
         /// </summary>
-        public void StopTextInput()
+        public void StopTextInput(Component? inputOwner = null)
         {
-            CeruleanAPI.GetAPI().StopTextInput(this);
+            if (inputOwner == null || inputOwner == _IMEComponentOwner)
+                CeruleanAPI.GetAPI().StopTextInput(this);
         }
 
         /// <summary>
@@ -544,10 +549,7 @@ namespace Cerulean.Core
         internal void InvokeOnTextUpdate(string text)
         {
             FlagForRedraw();
-            OnTextUpdate?.Invoke(this, new WindowEventArgs
-            {
-                Text = text
-            });
+            TextUpdatedDelegate?.Invoke(text);
         }
     }
 }

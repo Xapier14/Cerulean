@@ -10,6 +10,8 @@ namespace Cerulean.Core
         private int _maxCount;
         private readonly LinkedList _cache;
 
+        internal long _deletedPointers = 0;
+
         public TextureCache(int maxCount)
         {
             _cache = new();
@@ -24,6 +26,7 @@ namespace Cerulean.Core
                 {
                     var ptr = _cache.Tail.Data.SDLTexture;
                     SDL_DestroyTexture(ptr);
+                    _deletedPointers--;
                     _cache.DeleteNode(_cache.Tail);
                 }
                 _cache.AddLast(texture);
@@ -58,7 +61,11 @@ namespace Cerulean.Core
         public void Clear()
         {
             foreach (var texture in _cache)
+            {
                 SDL_DestroyTexture(texture.SDLTexture);
+                _deletedPointers--;
+            }
+
             _cache.Clear();
         }
 
@@ -69,6 +76,7 @@ namespace Cerulean.Core
                 if (_cache[i].Score <= 0)
                 {
                     SDL_DestroyTexture(_cache[i].SDLTexture);
+                    _deletedPointers--;
                     _cache.DeleteNode(i);
                     i--;
                 }

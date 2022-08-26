@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Cerulean.Core.Input;
+using SDL2;
 using static SDL2.SDL;
 
 namespace Cerulean.Core
@@ -47,6 +48,7 @@ namespace Cerulean.Core
         private string? _IMECompositionText;
         private int? _IMECursor;
         private int? _IMESelectionLength;
+        private int _IMEMaxTextLength = 2048;
         #endregion
 
         /// <summary>
@@ -138,8 +140,13 @@ namespace Cerulean.Core
 
             if (text is not null)
                 _IMEText += text;
+
+            if (_IMEText.Length > _IMEMaxTextLength)
+            {
+                _IMEText = _IMEText[.._IMEMaxTextLength];
+            }
+
             window.InvokeOnTextUpdate(_IMEText);
-            Log($"Input. Text: {_IMEText}");
         }
 
         /// <summary>
@@ -165,7 +172,50 @@ namespace Cerulean.Core
             _IMECompositionText = composition;
             _IMECursor = cursor;
             _IMESelectionLength = selectionLength;
-            Log($"Editing. Composition: {composition}");
+        }
+
+        private void HandleKeyDownEvent(SDL_Event sdlEvent)
+        {
+            if (_activeIMEWindow != null)
+            {
+                HandleIMEKeyDownEvent(sdlEvent);
+                return;
+            }
+        }
+
+        private void HandleIMEKeyDownEvent(SDL_Event sdlEvent)
+        {
+            if (_IMEText == null || _activeIMEWindow == null)
+                return;
+
+            if (((int)sdlEvent.key.keysym.mod & (int)SDL_Keymod.KMOD_CTRL) != 0)
+            {
+                // ctrl shortcuts
+                switch (sdlEvent.key.keysym.sym)
+                {
+                    case SDL_Keycode.SDLK_v:
+                        _IMEText += SDL_GetClipboardText();
+
+                        if (_IMEText.Length > _IMEMaxTextLength)
+                        {
+                            _IMEText = _IMEText[.._IMEMaxTextLength];
+                        }
+
+                        break;
+                }
+            }
+            else
+            {
+                if (sdlEvent.key.keysym.sym == SDL_Keycode.SDLK_BACKSPACE && _IMEText.Length > 0)
+                    _IMEText = _IMEText[..^1];
+            }
+
+            _activeIMEWindow.InvokeOnTextUpdate(_IMEText);
+        }
+
+        private void HandleKeyUpEvent(SDL_Event sdlEvent)
+        {
+
         }
         #endregion
 
@@ -277,6 +327,12 @@ namespace Cerulean.Core
                             case SDL_EventType.SDL_TEXTEDITING:
                                 HandleTextEditingEvent(sdlEvent);
                                 break;
+                            case SDL_EventType.SDL_KEYDOWN:
+                                HandleKeyDownEvent(sdlEvent);
+                                break;
+                            case SDL_EventType.SDL_KEYUP:
+                                HandleKeyUpEvent(sdlEvent);
+                                break;
                         }
                     }
                     Profiler?.EndProfilingCurrentPoint();
@@ -312,7 +368,7 @@ namespace Cerulean.Core
                     }
 
                     if (_windows.Count < 10)
-                        SDL_Delay(5);
+                        SDL_Delay(1);
 
                     if (_quitIfNoWindowsOpen && !Windows.Any())
                     {
@@ -669,14 +725,13 @@ namespace Cerulean.Core
         /// <param name="area">The size of the input box.</param>
         /// <param name="text">The value of the input box.</param>
         /// <param name="cursor">The index position of the cursor of the input box.</param>
-        public void StartTextInput(Window window, int x, int y, Size area, string text = "", int cursor = 0)
+        public void StartTextInput(Window window, int x, int y, Size area, string text = "", int cursor = 0, int maxLength = 2048)
         {
-            if (_activeIMEWindow == window)
-                return;
             _activeIMEWindow = window;
             _IMEText = text;
             _IMECursor = cursor;
             _IMECompositionText = "";
+            _IMEMaxTextLength = maxLength is < 1 or > 2048 ? 2048 : maxLength;
             SDL_StartTextInput();
             var rect = new SDL_Rect
             {

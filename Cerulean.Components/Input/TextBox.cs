@@ -95,6 +95,13 @@ namespace Cerulean.Components
             }
         }
 
+        private int _maxLength = 2048;
+        public int MaxLength
+        {
+            get => _maxLength;
+            set => _maxLength = value < 2048 ? value : 2048;
+        }
+
         #endregion
 
         #region Text Area Passthrough
@@ -190,24 +197,22 @@ namespace Cerulean.Components
 
                 if (withinBounds && CachedViewportSize.HasValue)
                 {
-                    ceruleanWindow.OnTextUpdate += OnTextUpdate;
-                    ceruleanWindow.StartTextInput(CachedViewportX ?? 0, CachedViewportY ?? 0, CachedViewportSize.Value,
-                        Text);
+                    ceruleanWindow.StartTextInput(this, CachedViewportX ?? 0, CachedViewportY ?? 0,
+                        CachedViewportSize.Value,
+                        Text,
+                        MaxLength);
+                    ceruleanWindow.TextUpdatedDelegate = (text) =>
+                    {
+                        Text = text;
+                    };
                 }
                 else
                 {
-                    ceruleanWindow.OnTextUpdate -= OnTextUpdate;
-                    ceruleanWindow.StopTextInput();
+                    ceruleanWindow.StopTextInput(this);
                 }
 
                 ceruleanWindow.FlagForRedraw();
             }
-        }
-
-        private void OnTextUpdate(Window sender, WindowEventArgs e)
-        {
-            Text = e.Text;
-            sender.FlagForRedraw();
         }
 
         public override void Draw(IGraphics graphics, int viewportX, int viewportY, Size viewportSize)
