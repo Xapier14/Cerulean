@@ -233,12 +233,20 @@ namespace Cerulean.Core
             EmbeddedStyles = new EmbeddedStyles();
             Profiler = null;
 
+            var libPath = Path.Join(Environment.CurrentDirectory, "libs");
+
             // check if platform is osx
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 Log("OSX detected as runtime platform. Applying osx-specific configuration...");
                 _useMainThread = true;
                 _quitIfNoWindowsOpen = true;
+                AppendToEnvironmentVariable("DYLD_FALLBACK_LIBRARY_PATH", libPath);
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Log("Linux detected as runtime platform. Applying linux-specific configuration...");
+                AppendToEnvironmentVariable("LD_LIBRARY_PATH", libPath);
             }
         }
 
@@ -262,6 +270,13 @@ namespace Cerulean.Core
                     throw exception;
                 }
             }
+        }
+
+        private static void AppendToEnvironmentVariable(string env, string value)
+        {
+            var environmentVariable = Environment.GetEnvironmentVariable(env);
+            Environment.SetEnvironmentVariable(env,
+                environmentVariable is null ? value : $"{environmentVariable}; {value}");
         }
 
         /// <summary>
