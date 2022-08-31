@@ -232,14 +232,6 @@ namespace Cerulean.Core
             EmbeddedResources = new EmbeddedResources();
             EmbeddedStyles = new EmbeddedStyles();
             Profiler = null;
-
-            // check if platform is osx
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                Log("OSX detected as runtime platform. Applying osx-specific configuration...");
-                _useMainThread = true;
-                _quitIfNoWindowsOpen = true;
-            }
         }
 
         /// <summary>
@@ -262,6 +254,13 @@ namespace Cerulean.Core
                     throw exception;
                 }
             }
+        }
+
+        private static void AppendToEnvironmentVariable(string env, string value)
+        {
+            var environmentVariable = Environment.GetEnvironmentVariable(env);
+            Environment.SetEnvironmentVariable(env,
+                environmentVariable is null ? value : $"{environmentVariable}; {value}");
         }
 
         /// <summary>
@@ -415,6 +414,23 @@ namespace Cerulean.Core
             EmbeddedLayouts.RetrieveLayouts();
             EmbeddedResources.RetrieveResources();
             EmbeddedStyles.RetrieveStyles();
+
+            var libPath = Path.Join(Environment.CurrentDirectory, "libs");
+
+            // check if platform is osx
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                Log("OSX detected as runtime platform. Applying osx-specific configuration...");
+                _useMainThread = true;
+                _quitIfNoWindowsOpen = true;
+                AppendToEnvironmentVariable("DYLD_FALLBACK_LIBRARY_PATH", libPath);
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Log("Linux detected as runtime platform. Applying linux-specific configuration...");
+                AppendToEnvironmentVariable("LD_LIBRARY_PATH", libPath);
+            }
+
             if (_useMainThread)
             {
                 WorkerThread();
