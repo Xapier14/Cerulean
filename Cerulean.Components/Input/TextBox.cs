@@ -241,6 +241,14 @@ namespace Cerulean.Components
 
             textArea.Draw(graphics, textX, textY, textViewport);
 
+            if (_hasFocus && FocusedColor.HasValue)
+            {
+                var xPos = measuredTextWidth >= textViewport.W
+                    ? textX + textViewport.W - 1
+                    : textX + measuredTextWidth;
+                graphics.DrawLine(xPos, textY, xPos, textY + textViewport.H, FocusedColor.Value);
+            }
+
             graphics.SetRenderArea(oldArea, oldX, oldY);
             graphics.SetGlobalPosition(globalX, globalY);
 

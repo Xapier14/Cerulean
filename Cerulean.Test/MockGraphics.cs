@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Win32.SafeHandles;
+using SDL2;
 
 #pragma warning disable S1186 // Methods should not be empty
 namespace Cerulean.Test
@@ -18,10 +19,10 @@ namespace Cerulean.Test
     internal class MockGraphics : IGraphics
     {
         private Size _renderSize = new();
-        private int _renderX = 0;
-        private int _renderY = 0;
-        private int _globalX = 0;
-        private int _globalY = 0;
+        private int _renderX;
+        private int _renderY;
+        private int _globalX;
+        private int _globalY;
         public Size GetRenderArea(out int x, out int y)
         {
             x = _renderX;
@@ -61,6 +62,14 @@ namespace Cerulean.Test
         }
 
         public void DrawRectangle(int x, int y, Size size, Color color)
+        {
+        }
+
+        public void DrawLine(int x1, int y1, int x2, int y2)
+        {
+        }
+
+        public void DrawLine(int x1, int y1, int x2, int y2, Color color)
         {
         }
         

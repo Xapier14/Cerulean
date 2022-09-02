@@ -17,6 +17,8 @@ namespace Cerulean.Common
         #endregion
 
         #region PRIMITIVES
+        public void DrawLine(int x1, int y1, int x2, int y2);
+        public void DrawLine(int x1, int y1, int x2, int y2, Color color);
         public void DrawRectangle(int x, int y, Size size);
         public void DrawRectangle(int x, int y, Size size, Color color);
         public void DrawFilledRectangle(int x, int y, Size size);
