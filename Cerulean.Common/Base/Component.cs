@@ -15,7 +15,7 @@ namespace Cerulean.Common
         protected int? CachedViewportX, CachedViewportY;
         protected bool CanBeChild { get; init; } = true;
         protected bool CanBeParent { get; init; } = true;
-        protected bool DisableTopLevelHooks { get; init; } = true;
+        protected bool DisableTopLevelHooks { get; init; } = false;
         public Component? Parent { get; set; }
         public IEnumerable<Component> Children => _components.Values;
         public IDictionary<string, object> Attributes { get; init; } = new Dictionary<string, object>();
@@ -25,9 +25,11 @@ namespace Cerulean.Common
         public virtual int GridColumnSpan { get; set; } = 1;
         public virtual int X { get; set; }
         public virtual int Y { get; set; }
-        public virtual bool IsHoverableComponent { get; set; } = false;
+        public virtual bool IsHoverableComponent { get; init; } = false;
         public Size? ClientArea { get; protected set; }
         public virtual bool Modified { get; protected set; }
+
+        protected string SeedId { get; } = Guid.NewGuid().ToString();
 
         public object? ParentWindow
         {
@@ -52,12 +54,10 @@ namespace Cerulean.Common
 
         protected void CallHook(Component caller, EventHook eventType, params object[] arguments)
         {
-            var delegates = _eventHooks.Where(x => x.Item1 == eventType).ToArray();
-            if (!delegates.Any())
-                return;
-            _ = delegates.All(x =>
+            _ = _eventHooks.All(x =>
             {
-                x.Item2(caller, arguments);
+                if (x.Item1 == eventType)
+                    x.Item2(caller, arguments);
                 return true;
             });
         }
@@ -264,7 +264,8 @@ namespace Cerulean.Common
                 return null;
             var hoveredComponent = IsHoverableComponent ? this : null;
 
-            return Children.Aggregate(hoveredComponent, (current, child) => child.CheckHoveredComponent(x, y) ?? current);
+            return Children.Aggregate(hoveredComponent,
+                (current, child) => child.CheckHoveredComponent(x, y) ?? current);
         }
 
         /// <summary>
@@ -294,7 +295,6 @@ namespace Cerulean.Common
             // for all child components that has a non-null client area
             var children = Children.Where(x => x.ClientArea.HasValue);
             var components = children as Component[] ?? children.ToArray();
-            if (!components.Any()) return;
             foreach (var component in components)
             {
                 var aX = viewportX + Math.Max(0, component.X);

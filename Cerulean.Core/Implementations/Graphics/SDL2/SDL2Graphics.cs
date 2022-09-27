@@ -14,14 +14,20 @@ namespace Cerulean.Core
         private readonly Window _window;
         private readonly TextureCache _textureCache;
         private readonly FontCache _fontCache;
+        private readonly SHA256 _hash;
 
         // global TTF Init
         private static bool _initializedSubmodules = false;
         private int _globalX;
         private int _globalY;
-        private SHA256 _hash;
-        internal IntPtr WindowPtr => _window.WindowPtr;
-        internal IntPtr RendererPtr { get; }
+
+        public long ActiveTextureAllocations { private set; get; }
+
+        private long _createdPointers = 0;
+        private IntPtr WindowPtr => _window.WindowPtr;
+        private IntPtr RendererPtr { get; }
+
+        private List<IntPtr> _activeAllocations = new();
 
         public SDL2Graphics(Window window)
         {
@@ -47,6 +53,8 @@ namespace Cerulean.Core
         public void Update()
         {
             _textureCache.DevalueTextures();
+
+            ActiveTextureAllocations = _textureCache.ActiveAllocatedPtrs.Count;
         }
 
         public void Cleanup()
@@ -59,16 +67,29 @@ namespace Cerulean.Core
         private static dynamic Min(dynamic i1, dynamic i2)
             => i1 < i2 ? i1 : i2;
 
-        private static (IntPtr, IntPtr) SDL_RWfromBytes(byte[] bytes)
+        private static (GCHandle, IntPtr) SDL_RWfromBytes(byte[] bytes)
         {
-            var pointer = Marshal.AllocHGlobal(bytes.Length);
-            Marshal.Copy(bytes, 0, pointer, bytes.Length);
-            return (pointer, SDL_RWFromMem(pointer, bytes.Length));
+            var handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+            var pointer = handle.AddrOfPinnedObject();
+            var rwops = SDL_RWFromMem(pointer, bytes.Length);
+            return (handle, rwops);
         }
 
         private string HashBytes(byte[] bytes)
         {
             var hash = _hash.ComputeHash(bytes);
+
+            var stringBuilder = new StringBuilder();
+            foreach (var b in hash)
+            {
+                stringBuilder.Append(b.ToString("x2"));
+            }
+            return stringBuilder.ToString();
+        }
+
+        private string HashString(string value)
+        {
+            var hash = _hash.ComputeHash(Encoding.UTF8.GetBytes(value));
 
             var stringBuilder = new StringBuilder();
             foreach (var b in hash)
@@ -87,34 +108,39 @@ namespace Cerulean.Core
             }
             var surface = Marshal.PtrToStructure<SDL_Surface>(surfacePtr);
             _ = SDL_GetRendererInfo(RendererPtr, out var rendererInfo);
+
             if (surface.w <= 0 || surface.h <= 0)
                 return true;
 
-            if (surface.w > rendererInfo.max_texture_width ||
-                surface.h > rendererInfo.max_texture_height)
+            if (rendererInfo.max_texture_height == 0 ||
+                rendererInfo.max_texture_width == 0)
+                return false;
+
+            if (surface.w <= rendererInfo.max_texture_width &&
+                surface.h <= rendererInfo.max_texture_height)
+                return false;
+
+            // resize surface
+            var pixelFormat = Marshal.PtrToStructure<SDL_PixelFormat>(surface.format);
+            SDL_Rect rect = new()
             {
-                // resize surface
-                var pixelFormat = Marshal.PtrToStructure<SDL_PixelFormat>(surface.format);
-                SDL_Rect rect = new()
-                {
-                    x = 0,
-                    y = 0,
-                    w = Min(surface.w, rendererInfo.max_texture_width),
-                    h = Min(surface.h, rendererInfo.max_texture_height)
-                };
-                var newPtr = SDL_CreateRGBSurface(
-                    0,
-                    rect.w,
-                    rect.h,
-                    32,
-                    0xFF000000,
-                    0x00FF0000,
-                    0x0000FF00,
-                    0x000000FF);
-                SDL_BlitSurface(surfacePtr, ref rect, newPtr, ref rect);
-                SDL_FreeSurface(surfacePtr);
-                surfacePtr = newPtr;
-            }
+                x = 0,
+                y = 0,
+                w = Min(surface.w, rendererInfo.max_texture_width),
+                h = Min(surface.h, rendererInfo.max_texture_height)
+            };
+            var newPtr = SDL_CreateRGBSurface(
+                0,
+                rect.w,
+                rect.h,
+                pixelFormat.BitsPerPixel,
+                pixelFormat.Rmask,
+                pixelFormat.Gmask,
+                pixelFormat.Bmask,
+                pixelFormat.Amask);
+            SDL_BlitSurface(surfacePtr, ref rect, newPtr, ref rect);
+            SDL_FreeSurface(surfacePtr);
+            surfacePtr = newPtr;
             return false;
         }
         #endregion
@@ -165,6 +191,32 @@ namespace Cerulean.Core
         }
         #endregion
         #region PRIMITIVES
+        public void DrawLine(int x1, int y1, int x2, int y2)
+        {
+            _ = SDL_RenderDrawLine(RendererPtr, x1, y1, x2, y2);
+        }
+        public void DrawLine(int x1, int y1, int x2, int y2, Color color)
+        {
+            _ = SDL_GetRenderDrawColor(
+                RendererPtr,
+                out var r,
+                out var g,
+                out var b,
+                out var a);
+            _ = SDL_SetRenderDrawColor(
+                RendererPtr,
+                color.R,
+                color.G,
+                color.B,
+                color.A);
+            DrawLine(x1, y1, x2, y2);
+            _ = SDL_SetRenderDrawColor(
+                RendererPtr,
+                r,
+                g,
+                b,
+                a);
+        }
         public void DrawRectangle(int x, int y, Size size)
         {
             SDL_Rect rect = new()
@@ -242,11 +294,11 @@ namespace Cerulean.Core
         public void DrawImageFromBytes(int x, int y, Size size, byte[] bytes, PictureMode pictureMode, double opacity)
         {
             var hash = HashBytes(bytes);
-            var fingerprint = $"{hash}_{pictureMode.ToString()}_{opacity}";
+            var fingerprint = HashString($"{hash}_{pictureMode.ToString()}_{opacity}");
             Texture? texture;
             if (!_textureCache.TryGetTexture(fingerprint, out texture))
             {
-                var (pointer, rwops) = SDL_RWfromBytes(bytes);
+                var (handle, rwops) = SDL_RWfromBytes(bytes);
                 var sdlSurface = IntPtr.Zero;
                 if (IMG_isSVG(rwops) != 0)
                 {
@@ -264,7 +316,10 @@ namespace Cerulean.Core
                     CeruleanAPI.GetAPI().Log($"Could not load image file via SDL_image. Reason: {error}");
                     throw new GeneralAPIException(error);
                 }
+
+                _createdPointers++;
                 var sdlTexture = SDL_CreateTextureFromSurface(RendererPtr, sdlSurface);
+                _textureCache.ActiveAllocatedPtrs.Add(sdlTexture);
                 if (sdlTexture == IntPtr.Zero)
                 {
                     var error = SDL_GetError();
@@ -279,11 +334,12 @@ namespace Cerulean.Core
                     SDLTexture = sdlTexture,
                     UserData = surfaceSize,
                     Type = TextureType.Texture,
-                    Score = 5
+                    Score = 10000
                 };
                 SDL_FreeSurface(sdlSurface);
+                _createdPointers--;
                 SDL_RWclose(rwops);
-                Marshal.FreeHGlobal(pointer);
+                handle.Free();
                 _textureCache.AddTexture(texture.Value);
             }
             if (texture?.UserData is Size imageSize)
@@ -365,7 +421,7 @@ namespace Cerulean.Core
         }
         #endregion
         #region TEXT
-        public void DrawText(int x, int y, string text, string fontName, string fontStyle, int fontPointSize, Color color, uint textWrap = 0, double angle = 0)
+        public void DrawText(int x, int y, string text, string fontName, string fontStyle, int fontPointSize, Color color, uint textWrap = 0, double angle = 0, string seedId = "")
         {
             CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("DrawText");
             _ = SDL_GetRenderDrawColor(
@@ -383,7 +439,7 @@ namespace Cerulean.Core
 
             // define font and text to check in caches
             var fontIdentity = FontCache.GetID(fontName, fontStyle, fontPointSize);
-            var textFingerprint = $"{fontIdentity}@{color} \"{text}\" {textWrap}px {angle}deg";
+            var textFingerprint = HashString($"{fontIdentity}@{color} \"{text}\" {textWrap}px {angle}deg {seedId}");
 
             // check if specific text + font + color combo is NOT in texture cache
             if (!_textureCache.TryGetTexture(textFingerprint, out var textTexture))
@@ -393,14 +449,14 @@ namespace Cerulean.Core
                 var font = _fontCache.GetFont(fontName, fontStyle, fontPointSize);
                 CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("TTF_Render");
                 var surface = textWrap < 1 ?
-                    TTF_RenderText_Blended(font.Data, text, new SDL_Color
+                    TTF_RenderUNICODE_Blended(font.Data, text, new SDL_Color
                     {
                         r = color.R,
                         g = color.G,
                         b = color.B,
                         a = color.A
                     }) :
-                    TTF_RenderText_Blended_Wrapped(font.Data, text, new SDL_Color
+                    TTF_RenderUNICODE_Blended_Wrapped(font.Data, text, new SDL_Color
                     {
                         r = color.R,
                         g = color.G,
@@ -412,20 +468,27 @@ namespace Cerulean.Core
                     CeruleanAPI.GetAPI().Log($"Could not render text: {TTF_GetError()}", LogSeverity.Error);
                     return;
                 }
+
+                _createdPointers++;
                 CeruleanAPI.GetAPI().Profiler?.EndProfilingCurrentPoint();
                 CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("EnsureSize");
                 if (EnsureSurfaceSize(ref surface))
                 {
                     // size error
                     SDL_FreeSurface(surface);
+                    _createdPointers--;
                     return;
                 }
+
                 CeruleanAPI.GetAPI().Profiler?.EndProfilingCurrentPoint();
                 CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("ConvertToTexture");
                 var sdlTexture = SDL_CreateTextureFromSurface(RendererPtr, surface);
+                _textureCache.ActiveAllocatedPtrs.Add(sdlTexture);
                 if (sdlTexture == IntPtr.Zero)
                     throw new GeneralAPIException(SDL_GetError());
                 SDL_GetClipRect(surface, out var destRect);
+                SDL_FreeSurface(surface);
+                _createdPointers--;
                 destRect.x = x + _globalX;
                 destRect.y = y + _globalY;
                 textTexture = new Texture
@@ -438,8 +501,7 @@ namespace Cerulean.Core
                 };
                 _textureCache.AddTexture(textTexture.Value);
                 CeruleanAPI.GetAPI().Profiler?.EndProfilingCurrentPoint();
-
-                SDL_FreeSurface(surface);
+                
                 CeruleanAPI.GetAPI().Profiler?.EndProfilingCurrentPoint();
             }
             CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("DrawTexture");

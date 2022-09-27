@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Cerulean.Core.Input;
+using SDL2;
 using static SDL2.SDL;
 
 namespace Cerulean.Core
@@ -47,6 +48,7 @@ namespace Cerulean.Core
         private string? _IMECompositionText;
         private int? _IMECursor;
         private int? _IMESelectionLength;
+        private int _IMEMaxTextLength = 2048;
         #endregion
 
         /// <summary>
@@ -72,7 +74,7 @@ namespace Cerulean.Core
         /// <summary>
         /// The global profiler used for logging execution time.
         /// </summary>
-        public Profiler? Profiler { get; }
+        public Profiler Profiler { get; }
 
         #region Event Handling Methods
         /// <summary>
@@ -136,9 +138,20 @@ namespace Cerulean.Core
             }
             _IMEText ??= "";
 
-            if (text is not null)
-                _IMEText += text;
-            Log($"Input. Text: {_IMEText}");
+            if (text is not null && _IMECursor is not null)
+            {
+                _IMEText = _IMEText[.._IMECursor.Value] + text + _IMEText[_IMECursor.Value..];
+                _IMECursor += text.Length;
+            }
+
+            if (_IMEText.Length > _IMEMaxTextLength)
+            {
+                _IMEText = _IMEText[.._IMEMaxTextLength];
+                if (_IMECursor > _IMEText.Length)
+                    _IMECursor = _IMEText.Length;
+            }
+
+            window.InvokeOnTextUpdate(_IMEText);
         }
 
         /// <summary>
@@ -164,7 +177,70 @@ namespace Cerulean.Core
             _IMECompositionText = composition;
             _IMECursor = cursor;
             _IMESelectionLength = selectionLength;
-            Log($"Editing. Composition: {composition}");
+        }
+
+        private void HandleKeyDownEvent(SDL_Event sdlEvent)
+        {
+            if (_activeIMEWindow != null)
+            {
+                HandleIMEKeyDownEvent(sdlEvent);
+                return;
+            }
+        }
+
+        private void HandleIMEKeyDownEvent(SDL_Event sdlEvent)
+        {
+            if (_IMEText == null || _activeIMEWindow == null)
+                return;
+
+            if (((int)sdlEvent.key.keysym.mod & (int)SDL_Keymod.KMOD_CTRL) != 0)
+            {
+                // ctrl shortcuts
+                switch (sdlEvent.key.keysym.sym)
+                {
+                    case SDL_Keycode.SDLK_v:
+                        var clipboardText = SDL_GetClipboardText();
+                        _IMEText = _IMEText[..(_IMECursor ?? 0)] + clipboardText + _IMEText[(_IMECursor ?? 0)..];
+                        _IMECursor += clipboardText.Length;
+
+                        if (_IMEText.Length > _IMEMaxTextLength)
+                        {
+                            _IMEText = _IMEText[.._IMEMaxTextLength];
+                            if (_IMECursor > _IMEText.Length)
+                                _IMECursor = _IMEText.Length;
+                        }
+                        break;
+                }
+            }
+            else
+            {
+                switch (sdlEvent.key.keysym.sym)
+                {
+                    case SDL_Keycode.SDLK_BACKSPACE:
+                        if (_IMEText[..(_IMECursor ?? 0)].Length > 0)
+                        {
+                            _IMEText = _IMEText[..((_IMECursor ?? 0) - 1)] + _IMEText[(_IMECursor ?? 0)..];
+                            if (_IMECursor > 0)
+                                _IMECursor--;
+                        }
+                        break;
+                    case SDL_Keycode.SDLK_LEFT:
+                        if (_IMECursor > 0)
+                            _IMECursor--;
+                        break;
+                    case SDL_Keycode.SDLK_RIGHT:
+                        if (_IMECursor < _IMEText.Length)
+                            _IMECursor++;
+                        break;
+                }
+            }
+
+            _activeIMEWindow.InvokeOnTextUpdate(_IMEText);
+        }
+
+        private void HandleKeyUpEvent(SDL_Event sdlEvent)
+        {
+
         }
         #endregion
 
@@ -180,15 +256,7 @@ namespace Cerulean.Core
             EmbeddedLayouts = new EmbeddedLayouts();
             EmbeddedResources = new EmbeddedResources();
             EmbeddedStyles = new EmbeddedStyles();
-            Profiler = null;
-
-            // check if platform is osx
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                Log("OSX detected as runtime platform. Applying osx-specific configuration...");
-                _useMainThread = true;
-                _quitIfNoWindowsOpen = true;
-            }
+            Profiler = new Profiler();
         }
 
         /// <summary>
@@ -213,6 +281,13 @@ namespace Cerulean.Core
             }
         }
 
+        private static void AppendToEnvironmentVariable(string env, string value)
+        {
+            var environmentVariable = Environment.GetEnvironmentVariable(env);
+            Environment.SetEnvironmentVariable(env,
+                environmentVariable is null ? value : $"{environmentVariable}; {value}");
+        }
+
         /// <summary>
         /// The main CeruleanAPI thread.
         /// </summary>
@@ -226,7 +301,8 @@ namespace Cerulean.Core
 
             // initialize SDL2 and set needed hints
             SDL_SetHint("SDL_HINT_VIDEO_HIGHDPI_ENABLED", "1");
-            SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
+            SDL_SetHint("SDL_HINT_WINDOWS_DPI_AWARENESS", "permonitorv2");
+            SDL_SetHint(SDL_HINT_RENDER_DRIVER, "software");
             if (SDL_InitSubSystem(SDL_INIT_EVERYTHING) != 0)
                 throw new FatalAPIException($"Could not initialize SDL2. Reason: {SDL_GetError()}");
             SDL_VERSION(out var version);
@@ -276,6 +352,12 @@ namespace Cerulean.Core
                             case SDL_EventType.SDL_TEXTEDITING:
                                 HandleTextEditingEvent(sdlEvent);
                                 break;
+                            case SDL_EventType.SDL_KEYDOWN:
+                                HandleKeyDownEvent(sdlEvent);
+                                break;
+                            case SDL_EventType.SDL_KEYUP:
+                                HandleKeyUpEvent(sdlEvent);
+                                break;
                         }
                     }
                     Profiler?.EndProfilingCurrentPoint();
@@ -311,7 +393,7 @@ namespace Cerulean.Core
                     }
 
                     if (_windows.Count < 10)
-                        SDL_Delay(5);
+                        SDL_Delay(1);
 
                     if (_quitIfNoWindowsOpen && !Windows.Any())
                     {
@@ -358,6 +440,23 @@ namespace Cerulean.Core
             EmbeddedLayouts.RetrieveLayouts();
             EmbeddedResources.RetrieveResources();
             EmbeddedStyles.RetrieveStyles();
+
+            var libPath = Path.Join(Environment.CurrentDirectory, "libs");
+
+            // check if platform is osx
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                Log("OSX detected as runtime platform. Applying osx-specific configuration...");
+                _useMainThread = true;
+                _quitIfNoWindowsOpen = true;
+                AppendToEnvironmentVariable("DYLD_FALLBACK_LIBRARY_PATH", libPath);
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Log("Linux detected as runtime platform. Applying linux-specific configuration...");
+                AppendToEnvironmentVariable("LD_LIBRARY_PATH", libPath);
+            }
+
             if (_useMainThread)
             {
                 WorkerThread();
@@ -668,17 +767,13 @@ namespace Cerulean.Core
         /// <param name="area">The size of the input box.</param>
         /// <param name="text">The value of the input box.</param>
         /// <param name="cursor">The index position of the cursor of the input box.</param>
-        public void StartTextInput(Window window, int x, int y, Size area, string text = "", int cursor = 0)
+        public void StartTextInput(Window window, int x, int y, Size area, string text = "", int cursor = 0, int maxLength = 2048)
         {
-            if (_activeIMEWindow == window)
-                return;
-
-            if (SDL_IsTextInputActive() == SDL_bool.SDL_FALSE)
-                return;
             _activeIMEWindow = window;
             _IMEText = text;
             _IMECursor = cursor;
             _IMECompositionText = "";
+            _IMEMaxTextLength = maxLength is < 1 or > 2048 ? 2048 : maxLength;
             SDL_StartTextInput();
             var rect = new SDL_Rect
             {
@@ -702,7 +797,7 @@ namespace Cerulean.Core
             if (_activeIMEWindow != window)
                 return;
 
-            if (SDL_IsTextInputActive() == SDL_bool.SDL_TRUE)
+            if (SDL_IsTextInputActive() == SDL_bool.SDL_FALSE)
                 return;
             SDL_StopTextInput();
             _activeIMEWindow = null;

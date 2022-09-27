@@ -1,4 +1,5 @@
-﻿using Cerulean.Common;
+﻿using System.Reflection.Metadata;
+using Cerulean.Common;
 using static SDL2.SDL;
 
 namespace Cerulean.Core
@@ -9,6 +10,7 @@ namespace Cerulean.Core
         public int WindowHeight { get; init; }
         public int WindowX { get; init; }
         public int WindowY { get; init; }
+        public string Text { get; set; }
         public bool Cancel { get; set; }
     }
     public sealed class Window
@@ -20,8 +22,11 @@ namespace Cerulean.Core
 
         internal bool OnCloseFromEvent;
         private string _windowTitle = "";
+        private Component? _IMEComponentOwner;
 
         #endregion
+
+        public Action<string>? TextUpdatedDelegate { get; set; }
 
         /// <summary>
         /// The default window size for windows created without size specified.
@@ -72,6 +77,7 @@ namespace Cerulean.Core
         /// </summary>
         public WindowEventHandler? OnFocusLost;
         #endregion
+
         /// <summary>
         /// Returns true if the window has been initialized.
         /// </summary>
@@ -311,20 +317,27 @@ namespace Cerulean.Core
         /// <summary>
         /// Starts IME Text Input.
         /// </summary>
+        /// <param name="inputOwner">The component that owns the IME input session.</param>
         /// <param name="x">The X coordinate of where the input box is located at. This is relative to the window.</param>
         /// <param name="y">The Y coordinate of where the input box is located at. This is relative to the window.</param>
         /// <param name="area">The size of the input box.</param>
-        public void StartTextInput(int x, int y, Size area)
+        /// <param name="text">The initial text of the IME text input.</param>
+        /// <param name="index">The index of the text cursor.</param>
+        public void StartTextInput(Component? inputOwner, int x, int y, Size area, string text = "", int index = 0,
+            int maxLength = 2048)
         {
-            CeruleanAPI.GetAPI().StartTextInput(this, x, y, area);
+            _IMEComponentOwner = inputOwner;
+            TextUpdatedDelegate = null;
+            CeruleanAPI.GetAPI().StartTextInput(this, x, y, area, text, index, maxLength);
         }
 
         /// <summary>
         /// Stops IME Text Input.
         /// </summary>
-        public void StopTextInput()
+        public void StopTextInput(Component? inputOwner = null)
         {
-            CeruleanAPI.GetAPI().StopTextInput(this);
+            if (inputOwner == null || inputOwner == _IMEComponentOwner)
+                CeruleanAPI.GetAPI().StopTextInput(this);
         }
 
         /// <summary>
@@ -348,6 +361,27 @@ namespace Cerulean.Core
         public float GetDpiScaledValue(float value)
         {
             return (float)Scaling.GetDpiScaledValue(this, value);
+        }
+
+        public void SetComponentScaledX(Component component, int x)
+        {
+            component.X = GetDpiScaledValue(x);
+        }
+
+        public void SetComponentScaledY(Component component, int y)
+        {
+            component.Y = GetDpiScaledValue(y);
+        }
+
+        public void SetComponentScaledPosition(Component component, int x, int y)
+        {
+            component.X = GetDpiScaledValue(x);
+            component.Y = GetDpiScaledValue(y);
+        }
+
+        public void SetComponentScaledSize(ISized component, Size size)
+        {
+            component.Size = Scaling.GetDpiScaledValue(this, size);
         }
 
         public Size GetDpiScaledValue(Size value)
@@ -510,6 +544,12 @@ namespace Cerulean.Core
         {
             FlagForRedraw();
             OnFocusLost?.Invoke(this, new WindowEventArgs());
+        }
+
+        internal void InvokeOnTextUpdate(string text)
+        {
+            FlagForRedraw();
+            TextUpdatedDelegate?.Invoke(text);
         }
     }
 }

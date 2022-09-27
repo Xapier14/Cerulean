@@ -159,8 +159,11 @@ namespace Cerulean.Components
             size.W -= X;
             size.H -= Y;
             var textWrap = size.W;
+
+            // only draw a part of the text!
+
             if (textWrap >= 0)
-                graphics.DrawText(0, 0, Text, FontName, FontStyle, Scaling.GetDpiScaledValue(window, FontSize), ForeColor.Value, WrapText ? (uint)(textWrap) : 0);
+                graphics.DrawText(0, 0, Text, FontName, FontStyle, Scaling.GetDpiScaledValue(window, FontSize), ForeColor.Value, WrapText ? (uint)(textWrap) : 0, 0, SeedId);
 
             CallHook(this, EventHook.AfterDraw, graphics, viewportX, viewportY, viewportSize);
         }

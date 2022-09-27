@@ -17,6 +17,8 @@ namespace Cerulean.Common
         #endregion
 
         #region PRIMITIVES
+        public void DrawLine(int x1, int y1, int x2, int y2);
+        public void DrawLine(int x1, int y1, int x2, int y2, Color color);
         public void DrawRectangle(int x, int y, Size size);
         public void DrawRectangle(int x, int y, Size size, Color color);
         public void DrawFilledRectangle(int x, int y, Size size);
@@ -37,7 +39,7 @@ namespace Cerulean.Common
         #region TEXT
 
         public void DrawText(int x, int y, string text, string fontName, string fontStyle, int fontPointSize,
-            Color color, uint textWrap = 0, double angle = 0.0);
+            Color color, uint textWrap = 0, double angle = 0.0, string seedId = "");
 
         public (int, int) MeasureText(string text, string fontName, string fontStyle, int fontPointSize,
             int textWrap = 0);
