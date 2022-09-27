@@ -37,13 +37,20 @@ internal class GeneralElementHandler : IElementHandler
             let propName = attribute.Name.LocalName
             let propValue = attribute.Value
             select (propName, propValue);
+
+        // get props
+        var lateBoundProps = new List<(string, string)>();
         var formattedProps = properties.Select(prop =>
         {
             var propName = prop.propName;
             var propValue = prop.propValue;
-            var recommendedDataType = Helper.GetRecommendedDataType(propName, out var enumFamily);
-            var finalPropValue = Helper.ParseHintedString(propValue, parent, enumFamily, recommendedDataType);
-            return $"{propName} = {finalPropValue},";
+            var recommendedDataType = Helper.GetRecommendedDataType(propName, out var enumFamily, out var lateBound);
+            var finalPropValue = Helper.ParseHintedString(propValue, parent, enumFamily, recommendedDataType, lateBound ? $"{elementName}." : string.Empty);
+            if (!lateBound)
+                return $"{propName} = {finalPropValue},";
+
+            lateBoundProps.Add((propName, finalPropValue));
+            return string.Empty;
         });
 
         // write component
@@ -51,7 +58,11 @@ internal class GeneralElementHandler : IElementHandler
         stringBuilder.AppendIndented(indentDepth, header);
 
         foreach (var formattedProp in formattedProps)
+        {
+            if (formattedProp == string.Empty)
+                continue;
             stringBuilder.AppendIndented(indentDepth + 1, formattedProp + "\n");
+        }
 
         const string footer = "});\n";
         stringBuilder.AppendIndented(indentDepth, footer);
@@ -80,6 +91,13 @@ internal class GeneralElementHandler : IElementHandler
         {
             var childString = $"{parent}{(parent != string.Empty ? '.' : parent)}GetChild(\"{elementName}\")";
             builder.ProcessXElement(stringBuilder, indentDepth, child, childString);
+        }
+
+        // write late bound props
+        var propString = $"{parentPrefix}GetChild<{elementType}>(\"{elementName}\")";
+        foreach (var (propName, propValue) in lateBoundProps)
+        {
+            stringBuilder.AppendIndented(indentDepth, $"{propString}.{propName} = {propValue};\n");
         }
 
         return true;

@@ -164,12 +164,7 @@ public class NewProject : ICommand
           "<CeruleanXML xmlns:a='Attribute'>\n" +
           "  <Import>Cerulean.Components</Import>\n" +
           "  <Layout Name='ExampleLayout'>\n" +
-          "    <Label\n" +
-          "      Name='Label_Test'\n" +
-          "      ForeColor='#000'\n" +
-          "      X='16'\n" +
-          "      Y='16'\n" +
-          "      Text='Hello World!' />\n" +
+          "    <Label Name='Label_Test' ForeColor='#000' X='16' Y='16' Text='Hello World!' />\n" +
           "  </Layout>\n" +
           "</CeruleanXML>\n";
 
@@ -180,8 +175,6 @@ public class NewProject : ICommand
           "  <ItemGroup>\n" +
           "    <Compile Include=\".cerulean\\*.cs\" />\n" +
           "    <Compile Remove=\"Cerulean\\**\" />\n" +
-          "    <Compile Include=\"Layouts\\*.cs\" />\n" +
-          "    <Compile Include=\"Styles\\*.cs\" />\n" +
           "  </ItemGroup>\n" +
           "</Project>\n";
 

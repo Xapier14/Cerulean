@@ -99,7 +99,7 @@ public class Builder
         }
 
         var rawValue = element.Attribute("Value")?.Value ?? element.Value;
-        var type = Helper.GetRecommendedDataType(property, out var enumFamily);
+        var type = Helper.GetRecommendedDataType(property, out var enumFamily, out _);
         var value = Helper.ParseHintedString(rawValue, string.Empty, enumFamily, type);
 
         stringBuilder.AppendIndented(depth, $"AddSetter(\"{property}\", {value});\n");
