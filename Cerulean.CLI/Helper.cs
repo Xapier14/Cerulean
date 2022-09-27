@@ -185,16 +185,23 @@ internal static class Helper
     }
 
     public static string ParseHintedString(string hintedString, string root, string? enumFamily = null,
-        string? overrideType = null)
+        string? overrideType = null, string componentPrefix = "")
     {
         // hinted value pattern ([name]="[type]: [value]")
-        var regex = Regex.Match(hintedString, @"^(\w+):\s?(.+)");
+        var regex = Regex.Match(hintedString, @"^(\w+):\s?(.+)$");
         var value = hintedString;
 
         // attribute value-part has datatype hint
         if (!regex.Success && overrideType is null) return value;
         var type = overrideType ?? regex.Groups[1].ToString().ToLower();
         var raw = overrideType is null ? regex.Groups[2].ToString() : hintedString;
+        string? specificComponent = null;
+        var componentRegex = Regex.Match(type, @"^component<(\D[\w\d]*)>$");
+        if (componentRegex.Success)
+        {
+            specificComponent = componentRegex.Groups[1].ToString();
+            type = "component";
+        }
         try
         {
             value = type switch
@@ -211,8 +218,9 @@ internal static class Helper
                 "float" => $"{float.Parse(raw)}",
                 "double" => $"{double.Parse(raw)}",
                 "string" => $"\"{EscapeString(raw)}\"",
-                "component" => ParseNestedComponentName(raw, root),
+                "component" => $"{(specificComponent != null ? $"({specificComponent})" : "")}{ParseNestedComponentName(componentPrefix + raw, root)}",
                 "color" => $"new Color(\"{raw}\")",
+                "size" => $"new Size({raw})",
                 "literal" => value,
                 "enum" => $"{enumFamily}.{raw}",
                 _ => "null"
@@ -239,10 +247,16 @@ internal static class Helper
         return value;
     }
 
-    public static string? GetRecommendedDataType(string propertyName, out string? enumFamily)
+    public static string? GetRecommendedDataType(string propertyName, out string? enumFamily, out bool needsLateBind)
     {
         var type = propertyName switch
         {
+            "GridRow" => "int",
+            "GridColumn" => "int",
+            "GridRowSpan" => "int",
+            "GridColumnSpan" => "int",
+            "Size" => "size",
+            "FillColor" => "color",
             "ForeColor" => "color",
             "BackColor" => "color",
             "BorderColor" => "color",
@@ -257,6 +271,20 @@ internal static class Helper
             "ImageSource" => "string",
             "X" => "int",
             "Y" => "int",
+            "HintW" => "int",
+            "HintH" => "int",
+            "Interval" => "int",
+            "Opacity" => "double",
+            "Visible" => "bool",
+            "WrapText" => "bool",
+            "Value" => "int",
+            "Maximum" => "int",
+            "FillOpacity" => "double",
+            "BorderOpacity" => "double",
+            "Checked" => "bool",
+            "InputData" => "string",
+            "InputGroup" => "string",
+            "SubmitButton" => "component<Button>*",
             "PictureMode" => "enum",
             "Orientation" => "enum",
             _ => null
@@ -266,6 +294,15 @@ internal static class Helper
             "TargetMouseButton" => "MouseButton",
             _ => propertyName
         };
+        Match? lateBindRegex = null;
+        if (type != null)
+        {
+            lateBindRegex = Regex.Match(type, @"^component<(\D[\w\d]*)>\*$");
+            if (lateBindRegex.Success)
+                type = $"component<{lateBindRegex.Groups[1]}>";
+        }
+        needsLateBind = lateBindRegex?.Success ?? false;
+
         return type;
     }
 
