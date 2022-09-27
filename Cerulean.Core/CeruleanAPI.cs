@@ -74,7 +74,7 @@ namespace Cerulean.Core
         /// <summary>
         /// The global profiler used for logging execution time.
         /// </summary>
-        public Profiler? Profiler { get; }
+        public Profiler Profiler { get; }
 
         #region Event Handling Methods
         /// <summary>
@@ -138,12 +138,17 @@ namespace Cerulean.Core
             }
             _IMEText ??= "";
 
-            if (text is not null)
-                _IMEText += text;
+            if (text is not null && _IMECursor is not null)
+            {
+                _IMEText = _IMEText[.._IMECursor.Value] + text + _IMEText[_IMECursor.Value..];
+                _IMECursor += text.Length;
+            }
 
             if (_IMEText.Length > _IMEMaxTextLength)
             {
                 _IMEText = _IMEText[.._IMEMaxTextLength];
+                if (_IMECursor > _IMEText.Length)
+                    _IMECursor = _IMEText.Length;
             }
 
             window.InvokeOnTextUpdate(_IMEText);
@@ -194,20 +199,40 @@ namespace Cerulean.Core
                 switch (sdlEvent.key.keysym.sym)
                 {
                     case SDL_Keycode.SDLK_v:
-                        _IMEText += SDL_GetClipboardText();
+                        var clipboardText = SDL_GetClipboardText();
+                        _IMEText = _IMEText[..(_IMECursor ?? 0)] + clipboardText + _IMEText[(_IMECursor ?? 0)..];
+                        _IMECursor += clipboardText.Length;
 
                         if (_IMEText.Length > _IMEMaxTextLength)
                         {
                             _IMEText = _IMEText[.._IMEMaxTextLength];
+                            if (_IMECursor > _IMEText.Length)
+                                _IMECursor = _IMEText.Length;
                         }
-
                         break;
                 }
             }
             else
             {
-                if (sdlEvent.key.keysym.sym == SDL_Keycode.SDLK_BACKSPACE && _IMEText.Length > 0)
-                    _IMEText = _IMEText[..^1];
+                switch (sdlEvent.key.keysym.sym)
+                {
+                    case SDL_Keycode.SDLK_BACKSPACE:
+                        if (_IMEText[..(_IMECursor ?? 0)].Length > 0)
+                        {
+                            _IMEText = _IMEText[..((_IMECursor ?? 0) - 1)] + _IMEText[(_IMECursor ?? 0)..];
+                            if (_IMECursor > 0)
+                                _IMECursor--;
+                        }
+                        break;
+                    case SDL_Keycode.SDLK_LEFT:
+                        if (_IMECursor > 0)
+                            _IMECursor--;
+                        break;
+                    case SDL_Keycode.SDLK_RIGHT:
+                        if (_IMECursor < _IMEText.Length)
+                            _IMECursor++;
+                        break;
+                }
             }
 
             _activeIMEWindow.InvokeOnTextUpdate(_IMEText);
@@ -231,7 +256,7 @@ namespace Cerulean.Core
             EmbeddedLayouts = new EmbeddedLayouts();
             EmbeddedResources = new EmbeddedResources();
             EmbeddedStyles = new EmbeddedStyles();
-            Profiler = null;
+            Profiler = new Profiler();
         }
 
         /// <summary>
@@ -276,7 +301,8 @@ namespace Cerulean.Core
 
             // initialize SDL2 and set needed hints
             SDL_SetHint("SDL_HINT_VIDEO_HIGHDPI_ENABLED", "1");
-            SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
+            SDL_SetHint("SDL_HINT_WINDOWS_DPI_AWARENESS", "permonitorv2");
+            SDL_SetHint(SDL_HINT_RENDER_DRIVER, "software");
             if (SDL_InitSubSystem(SDL_INIT_EVERYTHING) != 0)
                 throw new FatalAPIException($"Could not initialize SDL2. Reason: {SDL_GetError()}");
             SDL_VERSION(out var version);

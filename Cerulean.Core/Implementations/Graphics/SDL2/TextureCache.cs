@@ -9,8 +9,9 @@ namespace Cerulean.Core
     {
         private int _maxCount;
         private readonly LinkedList _cache;
+        internal List<IntPtr> ActiveAllocatedPtrs = new();
 
-        internal long _deletedPointers = 0;
+        internal long DeletedPointers = 0;
 
         public TextureCache(int maxCount)
         {
@@ -20,17 +21,16 @@ namespace Cerulean.Core
 
         public void AddTexture(Texture texture)
         {
-            if (!TryGetTexture(texture.Identity, out _))
+            if (TryGetTexture(texture.Identity, out _)) return;
+            if (_cache.Count >= _maxCount && _cache.Tail is not null)
             {
-                if (_cache.Count >= _maxCount && _cache.Tail is not null)
-                {
-                    var ptr = _cache.Tail.Data.SDLTexture;
-                    SDL_DestroyTexture(ptr);
-                    _deletedPointers--;
-                    _cache.DeleteNode(_cache.Tail);
-                }
-                _cache.AddLast(texture);
+                var ptr = _cache.Tail.Data.SDLTexture;
+                SDL_DestroyTexture(ptr);
+                ActiveAllocatedPtrs.Remove(ptr);
+                DeletedPointers--;
+                _cache.DeleteNode(_cache.Tail);
             }
+            _cache.AddLast(texture);
         }
 
         public bool TryGetTexture(string identifier, out Texture? texture)
@@ -50,7 +50,7 @@ namespace Cerulean.Core
             var found = texture != null;
 
             // move texture node closer to front
-            if (node is not null && node.Previous is not null)
+            if (node?.Previous != null)
             {
                 _cache.SwitchNodes(node, node.Previous);
             }
@@ -63,7 +63,9 @@ namespace Cerulean.Core
             foreach (var texture in _cache)
             {
                 SDL_DestroyTexture(texture.SDLTexture);
-                _deletedPointers--;
+                ActiveAllocatedPtrs.Remove(texture.SDLTexture);
+
+                DeletedPointers--;
             }
 
             _cache.Clear();
@@ -76,7 +78,8 @@ namespace Cerulean.Core
                 if (_cache[i].Score <= 0)
                 {
                     SDL_DestroyTexture(_cache[i].SDLTexture);
-                    _deletedPointers--;
+                    ActiveAllocatedPtrs.Remove(_cache[i].SDLTexture);
+                    DeletedPointers--;
                     _cache.DeleteNode(i);
                     i--;
                 }

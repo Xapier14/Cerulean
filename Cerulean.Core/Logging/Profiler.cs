@@ -2,17 +2,24 @@
 
 namespace Cerulean.Core.Logging
 {
+    public enum ProfilerEventType
+    {
+        Start,
+        Stop
+    }
     public sealed class ProfilerEventArgs : EventArgs
     {
-        public string CallStack { get; set; } = "";
-        public string Action { get; set; } = "";
+        public string CallStack { get; init; } = "";
+        public string Action { get; init; } = "";
+        public ProfilerEventType EventType { get; init; }
+        public double? ElapsedTime { get; init; }
     }
     public sealed class Profiler
     {
         public struct ProfilerItem
         {
-            public string Label;
-            public long StartTicks;
+            public string Label { get; init; }
+            public long StartTicks  { get; init; }
         }
 
         private readonly Stack<ProfilerItem> _callStack = new();
@@ -43,7 +50,8 @@ namespace Cerulean.Core.Logging
             OnLog?.Invoke(this, new()
             {
                 CallStack = CurrentCallStack,
-                Action = "Invoked."
+                Action = "Invoked.",
+                EventType = ProfilerEventType.Start
             });
         }
 
@@ -52,10 +60,13 @@ namespace Cerulean.Core.Logging
             var callStack = CurrentCallStack;
             var item = _callStack.Pop();
             var ticks = DateTime.Now.Ticks - item.StartTicks;
-            OnLog?.Invoke(this, new()
+            var elapsed = TimeSpan.FromTicks(ticks).TotalMilliseconds;
+            OnLog?.Invoke(this, new ProfilerEventArgs
             {
                 CallStack = callStack,
-                Action = $"Finished after {TimeSpan.FromTicks(ticks).TotalMilliseconds}ms."
+                Action = $"Finished after {elapsed}ms.",
+                EventType = ProfilerEventType.Start,
+                ElapsedTime = elapsed
             });
         }
     }

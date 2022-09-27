@@ -27,6 +27,8 @@ namespace Cerulean.Core
         private IntPtr WindowPtr => _window.WindowPtr;
         private IntPtr RendererPtr { get; }
 
+        private List<IntPtr> _activeAllocations = new();
+
         public SDL2Graphics(Window window)
         {
             if (!_initializedSubmodules)
@@ -52,7 +54,7 @@ namespace Cerulean.Core
         {
             _textureCache.DevalueTextures();
 
-            ActiveTextureAllocations = _createdPointers + _textureCache._deletedPointers;
+            ActiveTextureAllocations = _textureCache.ActiveAllocatedPtrs.Count;
         }
 
         public void Cleanup()
@@ -106,34 +108,39 @@ namespace Cerulean.Core
             }
             var surface = Marshal.PtrToStructure<SDL_Surface>(surfacePtr);
             _ = SDL_GetRendererInfo(RendererPtr, out var rendererInfo);
+
             if (surface.w <= 0 || surface.h <= 0)
                 return true;
 
-            if (surface.w > rendererInfo.max_texture_width ||
-                surface.h > rendererInfo.max_texture_height)
+            if (rendererInfo.max_texture_height == 0 ||
+                rendererInfo.max_texture_width == 0)
+                return false;
+
+            if (surface.w <= rendererInfo.max_texture_width &&
+                surface.h <= rendererInfo.max_texture_height)
+                return false;
+
+            // resize surface
+            var pixelFormat = Marshal.PtrToStructure<SDL_PixelFormat>(surface.format);
+            SDL_Rect rect = new()
             {
-                // resize surface
-                var pixelFormat = Marshal.PtrToStructure<SDL_PixelFormat>(surface.format);
-                SDL_Rect rect = new()
-                {
-                    x = 0,
-                    y = 0,
-                    w = Min(surface.w, rendererInfo.max_texture_width),
-                    h = Min(surface.h, rendererInfo.max_texture_height)
-                };
-                var newPtr = SDL_CreateRGBSurface(
-                    0,
-                    rect.w,
-                    rect.h,
-                    pixelFormat.BitsPerPixel,
-                    pixelFormat.Rmask,
-                    pixelFormat.Gmask,
-                    pixelFormat.Bmask,
-                    pixelFormat.Amask);
-                SDL_BlitSurface(surfacePtr, ref rect, newPtr, ref rect);
-                SDL_FreeSurface(surfacePtr);
-                surfacePtr = newPtr;
-            }
+                x = 0,
+                y = 0,
+                w = Min(surface.w, rendererInfo.max_texture_width),
+                h = Min(surface.h, rendererInfo.max_texture_height)
+            };
+            var newPtr = SDL_CreateRGBSurface(
+                0,
+                rect.w,
+                rect.h,
+                pixelFormat.BitsPerPixel,
+                pixelFormat.Rmask,
+                pixelFormat.Gmask,
+                pixelFormat.Bmask,
+                pixelFormat.Amask);
+            SDL_BlitSurface(surfacePtr, ref rect, newPtr, ref rect);
+            SDL_FreeSurface(surfacePtr);
+            surfacePtr = newPtr;
             return false;
         }
         #endregion
@@ -309,8 +316,10 @@ namespace Cerulean.Core
                     CeruleanAPI.GetAPI().Log($"Could not load image file via SDL_image. Reason: {error}");
                     throw new GeneralAPIException(error);
                 }
-                var sdlTexture = SDL_CreateTextureFromSurface(RendererPtr, sdlSurface);
+
                 _createdPointers++;
+                var sdlTexture = SDL_CreateTextureFromSurface(RendererPtr, sdlSurface);
+                _textureCache.ActiveAllocatedPtrs.Add(sdlTexture);
                 if (sdlTexture == IntPtr.Zero)
                 {
                     var error = SDL_GetError();
@@ -328,6 +337,7 @@ namespace Cerulean.Core
                     Score = 10000
                 };
                 SDL_FreeSurface(sdlSurface);
+                _createdPointers--;
                 SDL_RWclose(rwops);
                 handle.Free();
                 _textureCache.AddTexture(texture.Value);
@@ -411,7 +421,7 @@ namespace Cerulean.Core
         }
         #endregion
         #region TEXT
-        public void DrawText(int x, int y, string text, string fontName, string fontStyle, int fontPointSize, Color color, uint textWrap = 0, double angle = 0)
+        public void DrawText(int x, int y, string text, string fontName, string fontStyle, int fontPointSize, Color color, uint textWrap = 0, double angle = 0, string seedId = "")
         {
             CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("DrawText");
             _ = SDL_GetRenderDrawColor(
@@ -429,7 +439,7 @@ namespace Cerulean.Core
 
             // define font and text to check in caches
             var fontIdentity = FontCache.GetID(fontName, fontStyle, fontPointSize);
-            var textFingerprint = HashString($"{fontIdentity}@{color} \"{text}\" {textWrap}px {angle}deg");
+            var textFingerprint = HashString($"{fontIdentity}@{color} \"{text}\" {textWrap}px {angle}deg {seedId}");
 
             // check if specific text + font + color combo is NOT in texture cache
             if (!_textureCache.TryGetTexture(textFingerprint, out var textTexture))
@@ -458,22 +468,27 @@ namespace Cerulean.Core
                     CeruleanAPI.GetAPI().Log($"Could not render text: {TTF_GetError()}", LogSeverity.Error);
                     return;
                 }
+
+                _createdPointers++;
                 CeruleanAPI.GetAPI().Profiler?.EndProfilingCurrentPoint();
                 CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("EnsureSize");
                 if (EnsureSurfaceSize(ref surface))
                 {
                     // size error
                     SDL_FreeSurface(surface);
+                    _createdPointers--;
                     return;
                 }
+
                 CeruleanAPI.GetAPI().Profiler?.EndProfilingCurrentPoint();
                 CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("ConvertToTexture");
                 var sdlTexture = SDL_CreateTextureFromSurface(RendererPtr, surface);
-                _createdPointers++;
+                _textureCache.ActiveAllocatedPtrs.Add(sdlTexture);
                 if (sdlTexture == IntPtr.Zero)
                     throw new GeneralAPIException(SDL_GetError());
                 SDL_GetClipRect(surface, out var destRect);
                 SDL_FreeSurface(surface);
+                _createdPointers--;
                 destRect.x = x + _globalX;
                 destRect.y = y + _globalY;
                 textTexture = new Texture

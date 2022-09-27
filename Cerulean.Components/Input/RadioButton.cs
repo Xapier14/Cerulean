@@ -212,6 +212,17 @@ namespace Cerulean.Components
             Modified = true;
         }
 
+        public override void Init()
+        {
+            base.Init();
+
+            if (Parent is not InputContext inputContext)
+                return;
+
+            if (Selected)
+                inputContext.UpdateRadioGroupValue(InputGroup, InputData);
+        }
+
         public override void Update(object? window, Size clientArea)
         {
             if (window is not null)
@@ -219,9 +230,8 @@ namespace Cerulean.Components
 
             ClientArea = Size ?? clientArea;
 
-            if (Modified && window is Window ceruleanWindow)
+            if (window is Window ceruleanWindow)
             {
-                Modified = false;
                 GetChild("Button_RadioHandle").X = ceruleanWindow.GetDpiScaledValue(5);
                 GetChild("Button_RadioHandle").Y = ceruleanWindow.GetDpiScaledValue(5);
                 GetChild<ISized>("Button_RadioHandle").Size = ceruleanWindow.GetDpiScaledValue(new Size(12, 12));
@@ -230,7 +240,11 @@ namespace Cerulean.Components
                 GetChild<ISized>("Rectangle_Select").Size = ceruleanWindow.GetDpiScaledValue(new Size(6, 6));
                 GetChild("Label_Text").X = ceruleanWindow.GetDpiScaledValue(22);
                 GetChild("Label_Text").Y = ceruleanWindow.GetDpiScaledValue(4);
-                ceruleanWindow.FlagForRedraw();
+                if (Modified)
+                {
+                    Modified = false;
+                    ceruleanWindow.FlagForRedraw();
+                }
             }
 
             base.Update(window, clientArea);

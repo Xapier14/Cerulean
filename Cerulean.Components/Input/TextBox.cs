@@ -7,6 +7,7 @@ namespace Cerulean.Components
     public sealed class TextBox : Component, ISized
     {
         private const int PADDING = 4;
+
         #region Boilerplate Props
 
         private Size? _size;
@@ -91,7 +92,6 @@ namespace Cerulean.Components
             {
                 Modified = true;
                 _foreColor = value;
-                GetChild<Label>("TextArea").ForeColor = value;
             }
         }
 
@@ -113,7 +113,6 @@ namespace Cerulean.Components
             {
                 Modified = true;
                 _text = value;
-                GetChild<Label>("TextArea").Text = value;
             }
         }
 
@@ -125,7 +124,6 @@ namespace Cerulean.Components
             {
                 Modified = true;
                 _fontName = value;
-                GetChild<Label>("TextArea").FontName = value;
             }
         }
 
@@ -137,7 +135,6 @@ namespace Cerulean.Components
             {
                 Modified = true;
                 _fontSize = value;
-                GetChild<Label>("TextArea").FontSize = value;
             }
         }
 
@@ -149,7 +146,6 @@ namespace Cerulean.Components
             {
                 Modified = true;
                 _fontStyle = value;
-                GetChild<Label>("TextArea").FontStyle = value;
             }
         }
         
@@ -165,16 +161,6 @@ namespace Cerulean.Components
         public TextBox()
         {
             IsHoverableComponent = true;
-
-            AddChild("TextArea", new Label
-            {
-                FontSize = _fontSize,
-                FontStyle = _fontStyle,
-                FontName = _fontName,
-                ForeColor = _foreColor,
-                Text = _text,
-                WrapText = false
-            });
         }
 
         public override void Update(object? window, Size clientArea)
@@ -200,7 +186,9 @@ namespace Cerulean.Components
                     ceruleanWindow.StartTextInput(this, CachedViewportX ?? 0, CachedViewportY ?? 0,
                         CachedViewportSize.Value,
                         Text,
+                        Text?.Length ?? 0,
                         MaxLength);
+
                     ceruleanWindow.TextUpdatedDelegate = (text) =>
                     {
                         Text = text;
@@ -222,16 +210,30 @@ namespace Cerulean.Components
 
             CacheViewportData(viewportX, viewportY, viewportSize);
 
+            // draw back rect
             if (BackColor.HasValue)
                 graphics.DrawFilledRectangle(0, 0, ClientArea.Value, BackColor.Value);
 
-            var textArea = GetChild<Label>("TextArea");
+            // text draw position data
             var textX = viewportX + PADDING;
             var textY = viewportY + PADDING;
-            var (measuredTextWidth, _) = graphics.MeasureText(Text, FontName, FontStyle, FontSize);
+            var scaledFontSize = Scaling.GetDpiScaledValue((Window)ParentWindow!, FontSize);
             var textViewport = new Size(viewportSize.W - PADDING * 2, viewportSize.H - PADDING * 2);
+            
+            // try to partition the text to make it short but not too short
+            var textPart = Text;
+            var (textWidth, _) = graphics.MeasureText(textPart, FontName, FontStyle, scaledFontSize);
 
-            var textOffset = measuredTextWidth > textViewport.W ? textViewport.W - measuredTextWidth : 0;
+            // each loop gets a partition with a length of 25% the previous text
+            while (textWidth / 1.25 > textViewport.W)
+            {
+                textPart = textPart[^(int)Math.Floor(textPart.Length / 1.25)..];
+                (textWidth, _) = graphics.MeasureText(textPart, FontName, FontStyle, scaledFontSize);
+            }
+
+            var textOffset = textWidth > textViewport.W
+                ? textViewport.W - textWidth
+                : 0;
 
             var oldArea = graphics.GetRenderArea(out var oldX, out var oldY);
             graphics.GetGlobalPosition(out var globalX, out var globalY);
@@ -239,19 +241,25 @@ namespace Cerulean.Components
             graphics.SetRenderArea(textViewport, textX, textY);
             graphics.SetGlobalPosition(textX + textOffset, textY);
 
-            textArea.Draw(graphics, textX, textY, textViewport);
+            // draw text
+            if (textPart.Length > 0 && ForeColor.HasValue)
+            {
+                graphics.DrawText(0, 0, textPart, FontName, FontStyle, scaledFontSize, ForeColor.Value, 0, 0, SeedId);
+            }
 
+            // draw cursor
             if (_hasFocus && FocusedColor.HasValue)
             {
-                var xPos = measuredTextWidth >= textViewport.W
+                var xPos = textWidth >= textViewport.W
                     ? textX + textViewport.W - 1
-                    : textX + measuredTextWidth;
+                    : textX + textWidth;
                 graphics.DrawLine(xPos, textY, xPos, textY + textViewport.H, FocusedColor.Value);
             }
 
             graphics.SetRenderArea(oldArea, oldX, oldY);
             graphics.SetGlobalPosition(globalX, globalY);
 
+            // draw border rect
             if (BorderColor.HasValue && FocusedColor.HasValue)
                 graphics.DrawRectangle(0, 0, ClientArea.Value, _hasFocus ? FocusedColor.Value : BorderColor.Value);
         }
