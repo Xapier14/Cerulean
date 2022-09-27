@@ -82,7 +82,7 @@ Bundle your needed fonts in a folder called "Fonts" in the build directory as th
      - [x] Progress Bar
      - [x] Label
  - [ ] Input Components
-     - [ ] TextBox
+     - [x] TextBox
      - [ ] MultiTextBox
      - [x] Button
      - [x] Check Box
