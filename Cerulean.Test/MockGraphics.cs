@@ -91,7 +91,7 @@ namespace Cerulean.Test
         }
 
         public void DrawText(int x, int y, string text, string fontName, string fontStyle, int fontPointSize, Color color,
-            uint textWrap = 0, double angle = 0)
+            uint textWrap = 0, double angle = 0, string seedId = "")
         {
         }
 
