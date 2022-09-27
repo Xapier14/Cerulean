@@ -29,7 +29,7 @@ internal class GeneralElementHandler : IElementHandler
             attribute => attribute.Name.NamespaceName == "Attribute"
         );
         var ctrData = constructorParams != string.Empty ? $"({constructorParams})" : "";
-        var styleName = element.Attribute("Style")?.Value;
+        var styles = element.Attribute("Style")?.Value ?? string.Empty;
 
         // get new object's properties
         var properties =
@@ -68,11 +68,25 @@ internal class GeneralElementHandler : IElementHandler
         stringBuilder.AppendIndented(indentDepth, footer);
 
         // apply style if specified
-        if (styleName is not null)
+        // local styles
+        const StringSplitOptions options = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
+        foreach (var styleName in styles.Split(';', options))
         {
             var queueStyle =
                 $"QueueStyle({parentPrefix}GetChild(\"{elementName}\"), styles.FetchStyle(\"{styleName}\"));\n";
             stringBuilder.AppendIndented(indentDepth, queueStyle);
+        }
+        // global styles
+        Console.WriteLine(builder.GlobalStyles.Count);
+        foreach (var (styleTarget, styleName) in builder.GlobalStyles)
+        {
+            Console.WriteLine(styleTarget);
+            Console.WriteLine("Applied style {0}", styleName);
+            if (styleTarget != elementType)
+                continue;
+            var queueStyle =
+                $"QueueStyle({parentPrefix}GetChild(\"{elementName}\"), styles.FetchStyle(\"{styleName}\"));\n";
+            stringBuilder.AppendIndented(3, queueStyle);
         }
 
         // write attributes

@@ -37,9 +37,12 @@ public class Builder
 {
     private readonly IDictionary<string, IElementHandler> _handlers;
 
+    public IList<(string, string)> GlobalStyles { get; init; }
+
     public Builder()
     {
         _handlers = new Dictionary<string, IElementHandler>();
+        GlobalStyles = new List<(string, string)>();
         RegisterHandlers();
     }
 
@@ -67,8 +70,8 @@ public class Builder
             var fullName = alias.Value.Replace(";", "");
             context.Aliases[aliased.Value] = fullName;
         });
-        layouts.ForEach(x => ProcessLayout(x, context));
         styles.ForEach(x => ProcessStyle(x, context));
+        layouts.ForEach(x => ProcessLayout(x, context));
 
         return true;
     }
@@ -116,17 +119,30 @@ public class Builder
         var layoutName = layoutElement.Attribute("Name")?.Value;
         if (string.IsNullOrEmpty(layoutName))
             return;
-        var styleName = layoutElement.Attribute("Style")?.Value;
+        var styles = layoutElement.Attribute("Style")?.Value ?? string.Empty;
 
         var stringBuilder = new StringBuilder();
         Snippets.WriteClassHeader(stringBuilder, layoutName, context.Imports, context.Aliases, "Layout");
         Snippets.WriteCtorHeader(stringBuilder, layoutName, true);
-        if (styleName is not null)
+
+        // local styles
+        const StringSplitOptions options = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
+        foreach (var styleName in styles.Split(';', options))
         {
             var queueStyle =
                 $"QueueStyle(this, styles.FetchStyle(\"{styleName}\"));\n";
             stringBuilder.AppendIndented(3, queueStyle);
         }
+        // global styles
+        foreach (var (styleTarget, styleName) in GlobalStyles)
+        {
+            if (styleTarget != "Layout")
+                continue;
+            var queueStyle =
+                $"QueueStyle(this, styles.FetchStyle(\"{styleName}\"));\n";
+            stringBuilder.AppendIndented(3, queueStyle);
+        }
+
         foreach (var xElement in layoutElement.Elements()) ProcessXElement(stringBuilder, 3, xElement);
         Snippets.WriteCtorFooter(stringBuilder);
         Snippets.WriteClassFooter(stringBuilder);
@@ -134,7 +150,7 @@ public class Builder
         context.Layouts.Add(layoutName, stringBuilder.ToString());
     }
 
-    private static void ProcessStyle(XElement styleElement, BuilderContext context)
+    private void ProcessStyle(XElement styleElement, BuilderContext context)
     {
         var styleName = styleElement.Attribute("Name")?.Value;
         if (string.IsNullOrEmpty(styleName))
@@ -145,6 +161,15 @@ public class Builder
         var derivedFrom = styleElement.Attribute("DerivedFrom")?.Value ?? styleElement.Attribute("From")?.Value;
 
         var stringBuilder = new StringBuilder();
+
+        if (target?.EndsWith('*') == true)
+        {
+            target = target[..^1];
+            Console.WriteLine("{0} is a global style. It targets {1}.", styleName, target);
+            GlobalStyles.Add((target, styleName));
+            Console.WriteLine("Total global styles: {0}", GlobalStyles.Count);
+        }
+
         Snippets.WriteClassHeader(stringBuilder, styleName, context.Imports, context.Aliases, "Style");
         Snippets.WriteCtorHeader(stringBuilder, styleName, true);
         if (target is not null)
