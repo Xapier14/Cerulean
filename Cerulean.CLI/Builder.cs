@@ -1,26 +1,33 @@
-﻿using System.Reflection;
+﻿using System.Diagnostics;
+using System.Reflection;
 using System.Text;
 using System.Xml.Linq;
 using Cerulean.CLI.Attributes;
 using Cerulean.CLI.Commands;
 using Cerulean.CLI.Extensions;
+using Cerulean.Common;
 
 namespace Cerulean.CLI;
 
 public class BuilderContext
 {
+    
+    public IList<string> Imports { get; }
+    public IList<string> ImportedSheets { get; }
+    public IDictionary<string, string> Aliases { get; }
+    public IList<(string, string?)> ApplyAsGlobalStyles { get; }
+    public string LocalId { get; set; }
+    public bool IsStylesheet { get; set; }
+
     public BuilderContext()
     {
-        Layouts = new Dictionary<string, string>();
-        Styles = new Dictionary<string, string>();
         Imports = new List<string>();
+        ImportedSheets = new List<string>();
         Aliases = new Dictionary<string, string>();
+        ApplyAsGlobalStyles = new List<(string?, string?)>();
+        LocalId = string.Empty;
+        IsStylesheet = false;
     }
-
-    public IDictionary<string, string> Layouts { get; init; }
-    public IDictionary<string, string> Styles { get; init; }
-    public IList<string> Imports { get; init; }
-    public IDictionary<string, string> Aliases { get; init; }
 
     public void UseDefaultImports()
     {
@@ -35,33 +42,66 @@ public class BuilderContext
 
 public class Builder
 {
-    private readonly IDictionary<string, IElementHandler> _handlers;
+    private readonly Dictionary<string, IElementHandler> _handlers;
+    private readonly List<(XElement, BuilderContext)> _layouts;
+    private readonly List<(XElement, BuilderContext)> _styles;
 
-    public IList<(string, string)> GlobalStyles { get; init; }
+    public IDictionary<string, string> ExportedLayouts { get; }
+    public IDictionary<string, string> ExportedStyles { get; }
+    public IDictionary<string, BuilderContext> Sheets { get; }
 
     public Builder()
     {
         _handlers = new Dictionary<string, IElementHandler>();
-        GlobalStyles = new List<(string, string)>();
+        _layouts = new List<(XElement, BuilderContext)>();
+        _styles = new List<(XElement, BuilderContext)>();
+        ExportedLayouts = new Dictionary<string, string>();
+        ExportedStyles = new Dictionary<string, string>();
+        Sheets = new Dictionary<string, BuilderContext>();
         RegisterHandlers();
     }
 
-    public bool BuildContextFromXml(BuilderContext context, string xmlFilePath)
+    public bool LexContentFromXml(BuilderContext context, string xmlFilePath)
     {
         var xml = XDocument.Load(xmlFilePath);
         if (xml.Root is null)
             return false;
 
-        var layouts = xml.Root.Elements("Layout").ToList();
-        var styles = xml.Root.Elements("Style").ToList();
-        var includes = xml.Root.Elements("Include").ToList();
-        var aliases = xml.Root.Elements("Alias").ToList();
+        var localId = xml.Root.Attribute("Scope")?.Value ??
+                            xml.Root.Attribute("LocalId")?.Value ??
+                            GenerateAnonymousName("XML_");
 
+        context.LocalId = localId;
+
+        ColoredConsole.WriteLine($"[$green^DEV$r^] XML: $cyan^{xmlFilePath}$r^, localId: $yellow^{localId}$r^");
+
+        var includes = xml.Root.Elements("Include").ToList();
         includes.ForEach(include =>
         {
-            if (!context.Imports.Contains(include.Value))
-                context.Imports.Add(include.Value);
+            var includeStrings = include.Value.Split('\n',
+                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            foreach (var includeValue in includeStrings)
+            {
+                Console.WriteLine("Adding? {0}", includeValue);
+                if (!context.Imports.Contains(includeValue))
+                    context.Imports.Add(includeValue);
+            }
         });
+
+        var includedStylesheets = xml.Root.Elements("UseScope").ToList();
+        includedStylesheets.ForEach(includeScope =>
+        {
+            var includeStrings = includeScope.Value.Split('\n',
+                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            foreach (var includeValue in includeStrings)
+            {
+                Console.WriteLine("Adding? {0}", includeValue);
+                if (!context.ImportedSheets.Contains(includeValue))
+                    context.ImportedSheets.Add(includeValue);
+            }
+        });
+
+        var aliases = xml.Root.Elements("Alias").ToList();
         aliases.ForEach(alias =>
         {
             var aliased = alias.Attribute("Name");
@@ -70,13 +110,37 @@ public class Builder
             var fullName = alias.Value.Replace(";", "");
             context.Aliases[aliased.Value] = fullName;
         });
-        styles.ForEach(x => ProcessStyle(x, context));
-        layouts.ForEach(x => ProcessLayout(x, context));
+
+        var localLayouts = xml.Root.Elements("Layout").ToArray();
+        var localStyles = xml.Root.Elements("Style").ToArray();
+        
+        _layouts.AddRange(localLayouts.Select( xElement => (xElement, context)));
+        _styles.AddRange(localStyles.Select( xElement => (xElement, context)));
+        
+        ColoredConsole.WriteLine($"[$green^DEV$r^] XML: $cyan^{xmlFilePath}$r^, layouts: $yellow^{localLayouts.Length}$r^, styles: $yellow^{localStyles.Length}$r^");
+        context.IsStylesheet = localLayouts.Length == 0 && localStyles.Length > 0;
+        if (context.IsStylesheet)
+        {
+            if (Sheets.ContainsKey(localId))
+            {
+                ColoredConsole.WriteLine($"[$red^Error$r^] Project already contains a stylesheet called \"{localId}\".");
+                return false;
+            }
+            Sheets.Add(localId, context);
+        }
+
+        ColoredConsole.WriteLine($"[$green^DEV$r^] XML: $cyan^{xmlFilePath}$r^, isStylesheet: $yellow^{context.IsStylesheet}$r^");
 
         return true;
     }
 
-    public void ProcessXElement(StringBuilder stringBuilder, int depth, XElement element, string parent = "")
+    public void BuildContext()
+    {
+        _styles.ForEach(style => ProcessStyle(style.Item1, style.Item2));
+        _layouts.ForEach(layout => ProcessLayout(layout.Item1, layout.Item2));
+    }
+
+    public void ProcessXElement(BuilderContext context, StringBuilder stringBuilder, int depth, XElement element, string parent = "")
     {
         var generalHandler = new GeneralElementHandler();
 
@@ -84,14 +148,14 @@ public class Builder
         if (!_handlers.TryGetValue(type, out var handler))
             handler = generalHandler;
 
-        var result = handler.EvaluateIntoCode(stringBuilder, depth, element, this, parent);
+        var result = handler.EvaluateIntoCode(stringBuilder, depth, element, this, context, parent);
 
         if (!result)
             ColoredConsole.WriteLine(
                 $"[$cyan^{handler.GetType()}$r^] Handler returned an error while parsing an XElement.");
     }
 
-    private static void ProcessSetter(StringBuilder stringBuilder, int depth, XElement element)
+    private void ProcessSetter(StringBuilder stringBuilder, int depth, XElement element)
     {
         var property = element.Attribute("Name")?.Value ?? element.Attribute("Property")?.Value;
         if (property is null)
@@ -102,16 +166,16 @@ public class Builder
         }
 
         var rawValue = element.Attribute("Value")?.Value ?? element.Value;
-        var type = Helper.GetRecommendedDataType(property, out var enumFamily, out _);
+        var type = Helper.GetRecommendedDataType(this, property, out var enumFamily, out _);
         var value = Helper.ParseHintedString(rawValue, string.Empty, enumFamily, type);
 
         stringBuilder.AppendIndented(depth, $"AddSetter(\"{property}\", {value});\n");
     }
 
-    public static string GenerateAnonymousName()
+    public static string GenerateAnonymousName(string? prefix = null)
     {
-        const string prefix = "AnonymousComponent_";
-        return $"{prefix}{DateTime.Now.Ticks}";
+        const string defaultPrefix = "AnonymousComponent_";
+        return $"{prefix ?? defaultPrefix}{DateTime.Now.Ticks}";
     }
 
     private void ProcessLayout(XElement layoutElement, BuilderContext context)
@@ -125,36 +189,43 @@ public class Builder
         Snippets.WriteClassHeader(stringBuilder, layoutName, context.Imports, context.Aliases, "Layout");
         Snippets.WriteCtorHeader(stringBuilder, layoutName, true);
 
-        // local styles
+        // global styles
+        var importedSheets = string.Join(';', context.ImportedSheets);
+        if (importedSheets != string.Empty)
+            importedSheets = ";" + importedSheets;
+
+        foreach (var (styleName, targetType) in context.ApplyAsGlobalStyles)
+        {
+            // only allow null or "Layout" type
+            if (targetType is { } or "Layout")
+                continue;
+            var queueStyle =
+                $"QueueStyle(this, styles.FetchStyle(\"{styleName}\", \"{context.LocalId}{importedSheets}\"));\n";
+            stringBuilder.AppendIndented(3, queueStyle);
+        }
+
+        // specified styles
         const StringSplitOptions options = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
         foreach (var styleName in styles.Split(';', options))
         {
             var queueStyle =
-                $"QueueStyle(this, styles.FetchStyle(\"{styleName}\"));\n";
-            stringBuilder.AppendIndented(3, queueStyle);
-        }
-        // global styles
-        foreach (var (styleTarget, styleName) in GlobalStyles)
-        {
-            if (styleTarget != "Layout")
-                continue;
-            var queueStyle =
-                $"QueueStyle(this, styles.FetchStyle(\"{styleName}\"));\n";
+                $"QueueStyle(this, styles.FetchStyle(\"{styleName}\", \"{context.LocalId}{importedSheets}\"));\n";
             stringBuilder.AppendIndented(3, queueStyle);
         }
 
-        foreach (var xElement in layoutElement.Elements()) ProcessXElement(stringBuilder, 3, xElement);
+        // process layout child elements
+        foreach (var xElement in layoutElement.Elements())
+            ProcessXElement(context, stringBuilder, 3, xElement);
+
         Snippets.WriteCtorFooter(stringBuilder);
         Snippets.WriteClassFooter(stringBuilder);
 
-        context.Layouts.Add(layoutName, stringBuilder.ToString());
+        ExportedLayouts.Add(layoutName, stringBuilder.ToString());
     }
 
     private void ProcessStyle(XElement styleElement, BuilderContext context)
     {
-        var styleName = styleElement.Attribute("Name")?.Value;
-        if (string.IsNullOrEmpty(styleName))
-            return;
+        var styleName = styleElement.Attribute("Name")?.Value ?? GenerateAnonymousName("Style_");
         var target = styleElement.Attribute("Target")?.Value;
         var hasSelfFlag = bool.TryParse(styleElement.Attribute("ApplyToSelf")?.Value, out var applyToSelf);
         var hasChildFlag = bool.TryParse(styleElement.Attribute("ApplyToChildren")?.Value, out var applyToChildren);
@@ -165,12 +236,16 @@ public class Builder
         if (target?.EndsWith('*') == true)
         {
             target = target[..^1];
-            Console.WriteLine("{0} is a global style. It targets {1}.", styleName, target);
-            GlobalStyles.Add((target, styleName));
-            Console.WriteLine("Total global styles: {0}", GlobalStyles.Count);
+            context.ApplyAsGlobalStyles.Add((styleName, target));
         }
 
-        Snippets.WriteClassHeader(stringBuilder, styleName, context.Imports, context.Aliases, "Style");
+        var attributes = new[]
+        {
+            context.IsStylesheet
+                ?  "[Scope(StyleScope.Global)]"
+                : $"[Scope(StyleScope.Local, \"{context.LocalId}\")]"
+        };
+        Snippets.WriteClassHeader(stringBuilder, styleName, context.Imports, context.Aliases, "Style", false, attributes);
         Snippets.WriteCtorHeader(stringBuilder, styleName, true);
         if (target is not null)
             stringBuilder.AppendIndented(3, $"TargetType = typeof({target});\n");
@@ -180,11 +255,11 @@ public class Builder
             stringBuilder.AppendIndented(3, $"ApplyToChildren = {applyToChildren.ToLowerString()};\n");
         if (derivedFrom is not null)
             stringBuilder.AppendIndented(3, $"DeriveFrom(styles.FetchStyle(\"{derivedFrom}\"));\n");
-        foreach (var xElement in styleElement.Elements("Setter")) ProcessSetter(stringBuilder, 3, xElement);
+        foreach (var xElement in styleElement.Elements("Setter"))
+            ProcessSetter(stringBuilder, 3, xElement);
         Snippets.WriteCtorFooter(stringBuilder);
         Snippets.WriteClassFooter(stringBuilder);
-
-        context.Styles.Add(styleName, stringBuilder.ToString());
+        ExportedStyles.Add(styleName, stringBuilder.ToString());
     }
 
     private void RegisterHandlers()

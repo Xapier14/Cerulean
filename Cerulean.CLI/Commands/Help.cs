@@ -23,8 +23,20 @@ public class Help : ICommand
 
     private static void PrintAllCommandInfo()
     {
+        Console.WriteLine("Available commands:");
         var commands = Helper.GetAllCommandInfo();
-        foreach (var (command, description) in commands) PrintCommandInfo(command, description);
+        foreach (var (command, description) in commands)
+            PrintCommandInfo(command, description);
+    }
+
+    private static void PrintAvailableComponentRefs()
+    {
+        Console.WriteLine("Registered Component References: {0}", Helper.CountInterfaceImplementations(typeof(IComponentRef)));
+    }
+
+    private static void PrintAvailableElementHandlers()
+    {
+        Console.WriteLine("Registered Element Handlers: {0}", Helper.CountInterfaceImplementations(typeof(IElementHandler)));
     }
 
     public int DoAction(string[] args, IEnumerable<string> flags, IDictionary<string, string> options)
@@ -33,6 +45,9 @@ public class Help : ICommand
             throw new NotImplementedException();
         Splash.DisplaySplash();
         PrintAllCommandInfo();
+        Console.WriteLine();
+        PrintAvailableComponentRefs();
+        PrintAvailableElementHandlers();
         return 0;
 
     }

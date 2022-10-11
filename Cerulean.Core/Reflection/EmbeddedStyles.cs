@@ -11,11 +11,11 @@ namespace Cerulean.Core
 {
     public class EmbeddedStyles
     {
-        private readonly ConcurrentDictionary<string, Style> _styles;
+        private readonly ConcurrentDictionary<(string, string?), Style> _styles;
         private ILoggingService? _logger;
         internal EmbeddedStyles(ILoggingService? loggingService = null)
         {
-            _styles = new ConcurrentDictionary<string, Style>();
+            _styles = new ConcurrentDictionary<(string, string?), Style>();
             _logger = loggingService;
         }
 
@@ -36,9 +36,12 @@ namespace Cerulean.Core
                     ?.Invoke(Array.Empty<object>());
                 if (style is null)
                     continue;
-                _styles.TryAdd(styleType.Name, (Style)style);
+                var scopeAttribute = styleType.GetCustomAttributes<ScopeAttribute>().FirstOrDefault();
+                var isLocal = scopeAttribute?.Scope == StyleScope.Local;
+                _styles.TryAdd((styleType.Name, scopeAttribute?.LocalScopeId), (Style)style);
 
-                _logger?.Log($"Loaded style '{styleType.Name}'.");
+                _logger?.Log(
+                    $"Loaded {(isLocal ? "local" : "global")} style '{styleType.Name}'{(isLocal ? " from '" + scopeAttribute!.LocalScopeId! + "'" : string.Empty)}.");
             }
 
             _logger?.Log(_styles.IsEmpty
@@ -46,11 +49,18 @@ namespace Cerulean.Core
                 : $"Loaded {_styles.Count} style(s).");
         }
 
-        public Style FetchStyle(string name)
+        public Style? FetchStyle(string name, string? localScopeId = null)
         {
-            if (!_styles.TryGetValue(name, out var style))
-                throw new GeneralAPIException("Style not found.");
-            return style;
+            foreach (var ((styleName, localId), style) in _styles)
+            {
+                if (styleName != name)
+                    continue;
+                if (localId is not null && localScopeId != localId)
+                    continue;
+                return style;
+            }
+
+            return null;
         }
     }
 }

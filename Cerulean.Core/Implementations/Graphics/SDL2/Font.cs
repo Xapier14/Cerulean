@@ -41,7 +41,6 @@ namespace Cerulean.Core
 
         private static bool TryFindTTF(string name, out string path)
         {
-            path = "";
             // find in local app directory
             var basePath = Path.Combine(
                 Environment.CurrentDirectory,
@@ -69,7 +68,14 @@ namespace Cerulean.Core
 
         public static Font LoadFont(string name, string style, int pointSize)
         {
-            if (!TryFindTTF(name, out var path))
+            var path = string.Empty;
+            foreach (var fontName in name.Split(';',
+                         StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                if (TryFindTTF(fontName, out path))
+                    break;
+            }
+            if (path == string.Empty)
                 throw new GeneralAPIException("Font file not found.");
 
             var fontPtr = TTF_OpenFont(path, pointSize);

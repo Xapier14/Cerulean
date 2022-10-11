@@ -123,12 +123,19 @@ public class NewProject : ICommand
         CreateProjectBoilerplate(workingDir);
 
         // commit as initial repo commit
-        if (Helper.DoTask("Doing initial commit (1/2)...", "git", "add .", workingDir))
+        if (Helper.DoTask("Doing initial commit (1/2)...",
+                "git",
+                "add .", workingDir))
             return -8;
-        if (Helper.DoTask("Doing initial commit (2/2)...", "git", "commit -m \"Initial commit via crn\"", workingDir))
+        if (Helper.DoTask("Doing initial commit (2/2)...",
+                "git",
+                "commit -m \"Initial commit via crn\"", workingDir))
             return -9;
 
+        var dirInfo = new DirectoryInfo(workingDir);
+
         ColoredConsole.WriteLine("$green^Project has been created!$r^");
+        ColoredConsole.WriteLine($"Change into the directory using: $cyan^cd$r^ $yellow^{dirInfo.Name}$r^");
         Console.WriteLine("Commands to use inside the directory:");
         ColoredConsole.WriteLine("  > $cyan^crn$r^ $yellow^run$r^ - builds XML files and runs the .NET project.");
         ColoredConsole.WriteLine("  > $cyan^crn$r^ $yellow^build$r^ - builds XML files and the .NET project.");
