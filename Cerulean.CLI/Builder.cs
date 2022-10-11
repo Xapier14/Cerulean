@@ -24,7 +24,7 @@ public class BuilderContext
         Imports = new List<string>();
         ImportedSheets = new List<string>();
         Aliases = new Dictionary<string, string>();
-        ApplyAsGlobalStyles = new List<(string?, string?)>();
+        ApplyAsGlobalStyles = new List<(string, string?)>();
         LocalId = string.Empty;
         IsStylesheet = false;
     }
@@ -193,8 +193,16 @@ public class Builder
         var importedSheets = string.Join(';', context.ImportedSheets);
         if (importedSheets != string.Empty)
             importedSheets = ";" + importedSheets;
+        var allGlobalStyles = context.ApplyAsGlobalStyles.ToList();
+        foreach (var externalSheet in context.ImportedSheets)
+        {
+            if (Sheets.TryGetValue(externalSheet, out var externalContext))
+            {
+                allGlobalStyles.AddRange(externalContext.ApplyAsGlobalStyles);
+            }
+        }
 
-        foreach (var (styleName, targetType) in context.ApplyAsGlobalStyles)
+        foreach (var (styleName, targetType) in allGlobalStyles)
         {
             // only allow null or "Layout" type
             if (targetType is { } or "Layout")
@@ -237,6 +245,7 @@ public class Builder
         {
             if (target?.EndsWith('*') == true)
                 target = target[..^1];
+            Console.WriteLine("Global! {0}-{1}", styleName, target);
             context.ApplyAsGlobalStyles.Add((styleName, target));
         }
 
