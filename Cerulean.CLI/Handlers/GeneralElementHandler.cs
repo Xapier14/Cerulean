@@ -87,7 +87,7 @@ internal class GeneralElementHandler : IElementHandler
         var importedSheets = string.Join(';', context.ImportedSheets);
         if (importedSheets != string.Empty)
             importedSheets = ";" + importedSheets;
-
+        
         foreach (var (styleName, targetType) in context.ApplyAsGlobalStyles)
         {
             // only allow null or "Layout" type

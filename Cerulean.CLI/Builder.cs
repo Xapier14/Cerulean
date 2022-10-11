@@ -233,7 +233,7 @@ public class Builder
 
         var stringBuilder = new StringBuilder();
 
-        if (target?.EndsWith('*') == true)
+        if (target?.EndsWith('*') == true || context.IsStylesheet)
         {
             target = target[..^1];
             context.ApplyAsGlobalStyles.Add((styleName, target));

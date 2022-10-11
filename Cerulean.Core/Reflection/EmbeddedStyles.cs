@@ -48,7 +48,7 @@ namespace Cerulean.Core
                 ? "No styles loaded."
                 : $"Loaded {_styles.Count} style(s).");
         }
-
+        
         public Style? FetchStyle(string name, string? localScopeId = null)
         {
             foreach (var ((styleName, localId), style) in _styles)
