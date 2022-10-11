@@ -233,9 +233,10 @@ public class Builder
 
         var stringBuilder = new StringBuilder();
 
-        if (target?.EndsWith('*') == true || context.IsStylesheet)
+        if (target?.EndsWith('*') == true || styleElement.Attribute("Name") == null)
         {
-            target = target[..^1];
+            if (target?.EndsWith('*') == true)
+                target = target[..^1];
             context.ApplyAsGlobalStyles.Add((styleName, target));
         }
 
