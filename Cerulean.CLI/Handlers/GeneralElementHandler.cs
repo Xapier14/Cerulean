@@ -87,19 +87,24 @@ internal class GeneralElementHandler : IElementHandler
         var importedSheets = string.Join(';', context.ImportedSheets);
         if (importedSheets != string.Empty)
             importedSheets = ";" + importedSheets;
-        var allGlobalStyles = context.ApplyAsGlobalStyles.ToList();
+        var allGlobalStyles = new List<(string, string?)>();
         foreach (var externalSheet in context.ImportedSheets)
         {
             if (builder.Sheets.TryGetValue(externalSheet, out var externalContext))
             {
+                Console.WriteLine("Injecting external stylesheet: {0} (Styles: {1})", externalSheet, externalContext.ApplyAsGlobalStyles.Count);
                 allGlobalStyles.AddRange(externalContext.ApplyAsGlobalStyles);
             }
         }
+        allGlobalStyles.AddRange(context.ApplyAsGlobalStyles);
+        foreach (var (name, ty) in allGlobalStyles)
+            Console.WriteLine("{0} type: {1}", name, ty);
 
         foreach (var (styleName, targetType) in allGlobalStyles)
         {
-            // only allow null or "Layout" type
-            if (targetType is null || targetType == elementType)
+            Console.WriteLine("GlobalStyleApply: {0} - {1} (component is {3}) : OK? {2}", styleName, targetType, !(targetType is null && targetType == elementType), elementType);
+            // only allow null or target type
+            if (targetType is not null && targetType != elementType)
                 continue;
             var queueStyle =
                 $"QueueStyle({parentPrefix}GetChild(\"{elementName}\"), styles.FetchStyle(\"{styleName}\", \"{context.LocalId}{importedSheets}\"));\n";

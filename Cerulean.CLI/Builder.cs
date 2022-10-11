@@ -193,7 +193,7 @@ public class Builder
         var importedSheets = string.Join(';', context.ImportedSheets);
         if (importedSheets != string.Empty)
             importedSheets = ";" + importedSheets;
-        var allGlobalStyles = context.ApplyAsGlobalStyles.ToList();
+        var allGlobalStyles = new List<(string, string?)>();
         foreach (var externalSheet in context.ImportedSheets)
         {
             if (Sheets.TryGetValue(externalSheet, out var externalContext))
@@ -201,6 +201,7 @@ public class Builder
                 allGlobalStyles.AddRange(externalContext.ApplyAsGlobalStyles);
             }
         }
+        allGlobalStyles.AddRange(context.ApplyAsGlobalStyles);
 
         foreach (var (styleName, targetType) in allGlobalStyles)
         {

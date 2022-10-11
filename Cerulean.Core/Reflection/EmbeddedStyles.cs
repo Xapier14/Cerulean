@@ -53,9 +53,11 @@ namespace Cerulean.Core
         {
             foreach (var ((styleName, localId), style) in _styles)
             {
+                var scopes = localScopeId?.Split(';',
+                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 if (styleName != name)
                     continue;
-                if (localId is not null && localScopeId != localId)
+                if (localId is not null && scopes?.Contains(localScopeId) == false)
                     continue;
                 return style;
             }
