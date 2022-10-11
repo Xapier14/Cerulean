@@ -12,9 +12,24 @@ namespace Cerulean.CLI;
 internal class GeneralElementHandler : IElementHandler
 {
     public bool EvaluateIntoCode(StringBuilder stringBuilder, int indentDepth, XElement element,
-        Builder builder, string parent = "")
+        Builder builder, BuilderContext context, string parent = "")
     {
-        var elementType = element.Name.LocalName;
+        var localName = element.Name.LocalName;
+        var elementType = localName.Contains('.') ? localName[localName.LastIndexOf('.')..] : localName;
+        var namespacePart = localName.Contains('.') ? localName.Remove(localName.LastIndexOf('.')-1) : string.Empty;
+
+        var namespaceCandidate = context.Imports
+            .Select(ns => $"{ns}{namespacePart}")
+            .FirstOrDefault(ns => Helper.IsComponentFromNamespace(elementType, ns));
+
+        if (namespaceCandidate == null)
+        {
+            ColoredConsole.WriteLine($"[$yellow^WARNING$r^] Component '{localName}' is not found on any ComponentRefs.");
+            return false;
+        }
+
+        ColoredConsole.WriteLine($"[$green^DEV$r^] Found namespace candidate for component '{localName}'. Namespace: {namespaceCandidate}");
+
         var elementName = element.Attribute("Name")?.Value ?? Builder.GenerateAnonymousName();
         var parentPrefix = parent != string.Empty ? parent + "." : string.Empty;
 
@@ -44,7 +59,8 @@ internal class GeneralElementHandler : IElementHandler
         {
             var propName = prop.propName;
             var propValue = prop.propValue;
-            var recommendedDataType = Helper.GetRecommendedDataType(propName, out var enumFamily, out var lateBound);
+            // TODO: Add logic for componentRefs
+            var recommendedDataType = Helper.GetRecommendedDataType(builder, propName, out var enumFamily, out var lateBound);
             var finalPropValue = Helper.ParseHintedString(propValue, parent, enumFamily, recommendedDataType, lateBound ? $"{elementName}." : string.Empty);
             if (!lateBound)
                 return $"{propName} = {finalPropValue},";
@@ -67,26 +83,16 @@ internal class GeneralElementHandler : IElementHandler
         const string footer = "});\n";
         stringBuilder.AppendIndented(indentDepth, footer);
 
-        // apply style if specified
         // local styles
         const StringSplitOptions options = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
         foreach (var styleName in styles.Split(';', options))
         {
+            var importedSheets = string.Join(';', context.ImportedSheets);
+            if (importedSheets != string.Empty)
+                importedSheets = ";" + importedSheets;
             var queueStyle =
-                $"QueueStyle({parentPrefix}GetChild(\"{elementName}\"), styles.FetchStyle(\"{styleName}\"));\n";
+                $"QueueStyle({parentPrefix}GetChild(\"{elementName}\"), styles.FetchStyle(\"{styleName}\", \"{context.LocalId}{importedSheets}\"));\n";
             stringBuilder.AppendIndented(indentDepth, queueStyle);
-        }
-        // global styles
-        Console.WriteLine(builder.GlobalStyles.Count);
-        foreach (var (styleTarget, styleName) in builder.GlobalStyles)
-        {
-            Console.WriteLine(styleTarget);
-            Console.WriteLine("Applied style {0}", styleName);
-            if (styleTarget != elementType)
-                continue;
-            var queueStyle =
-                $"QueueStyle({parentPrefix}GetChild(\"{elementName}\"), styles.FetchStyle(\"{styleName}\"));\n";
-            stringBuilder.AppendIndented(3, queueStyle);
         }
 
         // write attributes
@@ -104,7 +110,7 @@ internal class GeneralElementHandler : IElementHandler
         foreach (var child in children)
         {
             var childString = $"{parent}{(parent != string.Empty ? '.' : parent)}GetChild(\"{elementName}\")";
-            builder.ProcessXElement(stringBuilder, indentDepth, child, childString);
+            builder.ProcessXElement(context, stringBuilder, indentDepth, child, childString);
         }
 
         // write late bound props

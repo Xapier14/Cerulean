@@ -9,7 +9,7 @@ namespace Cerulean.CLI;
 internal class InvokeElementHandler : IElementHandler
 {
     public bool EvaluateIntoCode(StringBuilder stringBuilder, int indentDepth, XElement element, Builder builder,
-        string parent = "")
+        BuilderContext context, string parent = "")
     {
         var method = element.Attribute("Method")?.Value;
         var args = element.Attribute("Args")?.Value ?? string.Empty;

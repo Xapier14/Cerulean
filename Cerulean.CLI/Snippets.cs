@@ -25,7 +25,8 @@ internal static class Snippets
     }
 
     public static void WriteClassHeader(StringBuilder stringBuilder, string className,
-        IEnumerable<string> importStrings, IDictionary<string, string> aliasStrings, string? parent = null)
+        IEnumerable<string> importStrings, IDictionary<string, string> aliasStrings, string? parent = null, bool isPartial = true,
+        IEnumerable<string>? attributes = null)
     {
         foreach (var import in importStrings)
             stringBuilder.AppendLine($"using {import};");
@@ -37,8 +38,15 @@ internal static class Snippets
         stringBuilder.AppendLine("// Generated with Cerulean.CLI " + VersionString);
         stringBuilder.AppendLine("namespace Cerulean.App");
         stringBuilder.AppendLine("{");
+        if (attributes != null)
+        {
+            foreach (var attribute in attributes)
+            {
+                stringBuilder.AppendIndented(1, $"{attribute}\n");
+            }
+        }
         stringBuilder.AppendIndented(1,
-            $"public partial class {className}{(parent is not null ? " : " + parent : "")}\n");
+            $"public {(isPartial ? "partial " : string.Empty)}class {className}{(parent is not null ? " : " + parent : "")}\n");
         stringBuilder.AppendIndented(1, "{\n");
     }
 

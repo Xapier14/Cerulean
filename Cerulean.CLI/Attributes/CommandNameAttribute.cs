@@ -8,5 +8,5 @@ public class CommandNameAttribute : Attribute
         CommandName = commandName;
     }
 
-    public string CommandName { get; init; }
+    public string CommandName { get; }
 }

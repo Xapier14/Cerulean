@@ -9,7 +9,7 @@ namespace Cerulean.CLI;
 internal class EventElementHandler : IElementHandler
 {
     public bool EvaluateIntoCode(StringBuilder stringBuilder, int indentDepth, XElement element, Builder builder,
-        string parent = "")
+        BuilderContext context, string parent = "")
     {
         var eventName = element.Attribute("Name")?.Value;
         var eventHandler = element.Attribute("Handler")?.Value;
