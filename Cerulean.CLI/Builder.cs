@@ -43,22 +43,32 @@ public class BuilderContext
 public class Builder
 {
     private readonly Dictionary<string, IElementHandler> _handlers;
+    private readonly List<IComponentRef> _references;
     private readonly List<(XElement, BuilderContext)> _layouts;
     private readonly List<(XElement, BuilderContext)> _styles;
 
     public IDictionary<string, string> ExportedLayouts { get; }
     public IDictionary<string, string> ExportedStyles { get; }
     public IDictionary<string, BuilderContext> Sheets { get; }
+    public IReadOnlyList<IComponentRef> ComponentReferences => _references;
 
     public Builder()
     {
+        var config = Config.GetConfig();
         _handlers = new Dictionary<string, IElementHandler>();
+        _references = new List<IComponentRef>();
         _layouts = new List<(XElement, BuilderContext)>();
         _styles = new List<(XElement, BuilderContext)>();
         ExportedLayouts = new Dictionary<string, string>();
         ExportedStyles = new Dictionary<string, string>();
         Sheets = new Dictionary<string, BuilderContext>();
         RegisterHandlers();
+        RegisterReferences();
+        if (config.GetProperty<string>("SHOW_DEV_LOG") != string.Empty)
+        {
+            ColoredConsole.WriteLine($"[$green^DEV$r^] Loaded Special Element Handlers: $cyan^{_handlers.Count}$r^ ($cyan^+1 including GeneralElementHandler$r^).");
+            ColoredConsole.WriteLine($"[$green^DEV$r^] Loaded ComponentRefs: $cyan^{_references.Count}$r^.");
+        }
     }
 
     public bool LexContentFromXml(BuilderContext context, string xmlFilePath)
@@ -311,6 +321,25 @@ public class Builder
         });
     }
 
+    private void RegisterReferences()
+    {
+        var interfaceType = typeof(IComponentRef);
+        var references = AppDomain.CurrentDomain.GetAssemblies()
+            .SelectMany(assembly => assembly.GetLoadableTypes())
+            .Where(x => x is not null
+                        && x != interfaceType
+                        && x.IsAssignableTo(interfaceType)
+                        && x != typeof(object))
+            .ToList();
+
+        references.ForEach(handler =>
+        {
+            var constructor = handler?.GetConstructor(Array.Empty<Type>());
+
+            RegisterReference(constructor);
+        });
+    }
+
     private void RegisterHandler(string? handlerName, ConstructorInfo? handlerConstructor)
     {
         var instance = handlerConstructor?.Invoke(Array.Empty<object>());
@@ -319,5 +348,15 @@ public class Builder
         else
             ColoredConsole.WriteLine(
                 $"[$cyan^Builder.RegisterHandler()$r^] Could not load element handler \"{handlerConstructor?.Name}\".");
+    }
+
+    private void RegisterReference(ConstructorInfo? referenceConstructor)
+    {
+        var instance = referenceConstructor?.Invoke(Array.Empty<object>());
+        if (instance is not null)
+            _references.Add((IComponentRef)instance);
+        else
+            ColoredConsole.WriteLine(
+                $"[$cyan^Builder.RegisterReference()$r^] Could not load IComponentRef \"{referenceConstructor?.Name}\".");
     }
 }

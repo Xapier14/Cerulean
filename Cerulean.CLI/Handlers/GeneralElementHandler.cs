@@ -16,16 +16,17 @@ internal class GeneralElementHandler : IElementHandler
     {
         var config = Config.GetConfig();
         var localName = element.Name.LocalName;
-        var elementType = localName.Contains('.') ? localName[localName.LastIndexOf('.')..] : localName;
+        var elementType = localName.Contains('.') ? localName[(localName.LastIndexOf('.')+1)..] : localName;
         var namespacePart = localName.Contains('.') ? localName.Remove(localName.LastIndexOf('.')-1) : string.Empty;
 
         var namespaceCandidate = context.Imports
             .Select(ns => $"{ns}{namespacePart}")
+            .Concat(context.Imports)
             .FirstOrDefault(ns => Helper.IsComponentFromNamespace(elementType, ns));
 
         if (namespaceCandidate == null)
         {
-            ColoredConsole.WriteLine($"[$yellow^WARNING$r^] Component '{localName}' is not found on any ComponentRefs.");
+            ColoredConsole.WriteLine($"[$yellow^WARNING$r^] Component '{localName}' is not found on any ComponentRefs, ignoring component...");
             return false;
         }
         if (config.GetProperty<string>("SHOW_DEV_LOG") != string.Empty)
