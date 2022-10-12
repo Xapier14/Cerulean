@@ -4,7 +4,6 @@ namespace Cerulean.CLI;
 
 internal static class Splash
 {
-    public const string BUILD_BRANCH = "global-styles";
     public static void DisplaySplash()
     {
         Console.ForegroundColor = ConsoleColor.Red;
@@ -22,6 +21,9 @@ internal static class Splash
     {
         DisplaySplash();
 
+        var config = Config.GetConfig();
+        var buildBranch = config.GetProperty<string>("BUILD_BRANCH") ?? string.Empty;
+
         var name = "crn.exe";
         try
         {
@@ -35,9 +37,9 @@ internal static class Splash
             ColoredConsole.WriteLine(" Cerulean CLI: ?.?.? $red^(malformed executable?)$r^");
         }
 
-        if (BUILD_BRANCH.Length > 0)
+        if (!string.IsNullOrEmpty(buildBranch))
         {
-            ColoredConsole.WriteLine($" Build Branch: $magenta^{BUILD_BRANCH}$^");
+            ColoredConsole.WriteLine($" Build Branch: $magenta^{buildBranch}$^");
         }
 
         var cli = name.Remove(name.Length - 4, 4);
