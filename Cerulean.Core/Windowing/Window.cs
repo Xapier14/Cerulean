@@ -10,7 +10,7 @@ namespace Cerulean.Core
         public int WindowHeight { get; init; }
         public int WindowX { get; init; }
         public int WindowY { get; init; }
-        public string Text { get; set; }
+        public string Text { get; set; } = string.Empty;
         public bool Cancel { get; set; }
     }
     public sealed class Window
@@ -167,7 +167,7 @@ namespace Cerulean.Core
         public Size? MinimumWindowSize
         {
             get => _minimumWindowSize;
-            set 
+            set
             {
                 if (Closed)
                     throw new GeneralAPIException("Cannot set minimum size to a closed window.");
@@ -187,7 +187,7 @@ namespace Cerulean.Core
                     else
                     {
                         SDL_SetWindowMinimumSize(WindowPtr, 1, 1);
-                        _minimumWindowSize = new Size(1,1);
+                        _minimumWindowSize = new Size(1, 1);
                     }
                 }
             }

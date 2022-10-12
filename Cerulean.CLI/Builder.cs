@@ -63,6 +63,7 @@ public class Builder
 
     public bool LexContentFromXml(BuilderContext context, string xmlFilePath)
     {
+        var config = Config.GetConfig();
         var xml = XDocument.Load(xmlFilePath);
         if (xml.Root is null)
             return false;
@@ -72,8 +73,14 @@ public class Builder
                             GenerateAnonymousName("XML_");
 
         context.LocalId = localId;
+        if (config.GetProperty<string>("SHOW_DEV_LOG") != string.Empty)
+            ColoredConsole.WriteLine($"[$green^DEV$r^] XML: $cyan^{xmlFilePath}$r^, localId: $yellow^{localId}$r^");
 
-        ColoredConsole.WriteLine($"[$green^DEV$r^] XML: $cyan^{xmlFilePath}$r^, localId: $yellow^{localId}$r^");
+        if (Sheets.ContainsKey(localId))
+        {
+            ColoredConsole.WriteLine($"[$red^ERROR$r^] Project already contains another XML sheet with the same scope id! ($yellow^{localId}$r^)");
+            return false;
+        }
 
         var includes = xml.Root.Elements("Include").ToList();
         includes.ForEach(include =>
@@ -82,7 +89,6 @@ public class Builder
                 StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             foreach (var includeValue in includeStrings)
             {
-                Console.WriteLine("Adding? {0}", includeValue);
                 if (!context.Imports.Contains(includeValue))
                     context.Imports.Add(includeValue);
             }
@@ -95,7 +101,6 @@ public class Builder
                 StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             foreach (var includeValue in includeStrings)
             {
-                Console.WriteLine("Adding? {0}", includeValue);
                 if (!context.ImportedSheets.Contains(includeValue))
                     context.ImportedSheets.Add(includeValue);
             }
@@ -117,19 +122,14 @@ public class Builder
         _layouts.AddRange(localLayouts.Select( xElement => (xElement, context)));
         _styles.AddRange(localStyles.Select( xElement => (xElement, context)));
         
-        ColoredConsole.WriteLine($"[$green^DEV$r^] XML: $cyan^{xmlFilePath}$r^, layouts: $yellow^{localLayouts.Length}$r^, styles: $yellow^{localStyles.Length}$r^");
+        if (config.GetProperty<string>("SHOW_DEV_LOG") != string.Empty)
+            ColoredConsole.WriteLine($"[$green^DEV$r^] XML: $cyan^{xmlFilePath}$r^, layouts: $yellow^{localLayouts.Length}$r^, styles: $yellow^{localStyles.Length}$r^");
+        
         context.IsStylesheet = localLayouts.Length == 0 && localStyles.Length > 0;
-        if (context.IsStylesheet)
-        {
-            if (Sheets.ContainsKey(localId))
-            {
-                ColoredConsole.WriteLine($"[$red^Error$r^] Project already contains a stylesheet called \"{localId}\".");
-                return false;
-            }
-            Sheets.Add(localId, context);
-        }
-
-        ColoredConsole.WriteLine($"[$green^DEV$r^] XML: $cyan^{xmlFilePath}$r^, isStylesheet: $yellow^{context.IsStylesheet}$r^");
+        Sheets.Add(localId, context);
+        
+        if (config.GetProperty<string>("SHOW_DEV_LOG") != string.Empty)
+            ColoredConsole.WriteLine($"[$green^DEV$r^] XML: $cyan^{xmlFilePath}$r^, isStylesheet: $yellow^{context.IsStylesheet}$r^");
 
         return true;
     }
@@ -246,7 +246,6 @@ public class Builder
         {
             if (target?.EndsWith('*') == true)
                 target = target[..^1];
-            Console.WriteLine("Global! {0}-{1}", styleName, target);
             context.ApplyAsGlobalStyles.Add((styleName, target));
         }
 

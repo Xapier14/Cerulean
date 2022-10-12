@@ -57,11 +57,11 @@ namespace Cerulean.Core
                     StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 if (styleName != name)
                     continue;
-                if (localId is not null && scopes?.Contains(localScopeId) == false)
+                if (localId is not null && scopes?.Contains(localId) == false)
                     continue;
+                
                 return style;
             }
-
             return null;
         }
     }

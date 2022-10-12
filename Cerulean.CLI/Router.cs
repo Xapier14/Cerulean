@@ -73,10 +73,25 @@ internal class Router
         var argsList = new List<string>();
         flags = new List<string>();
         options = new Dictionary<string, string>();
-        var inFlag = false;
+        bool inFlag = false, isConfig = false;
         var optionKey = string.Empty;
+        var configKey = string.Empty;
         foreach (var substring in argsRaw)
         {
+            if (substring.StartsWith("-c:"))
+            {
+                if (inFlag)
+                {
+                    flags.Add(optionKey);
+                    inFlag = false;
+                    continue;
+                }
+
+                configKey = substring.Remove(0, 3);
+                isConfig = true;
+                continue;
+            }
+
             if (substring.StartsWith('-'))
             {
                 if (inFlag)
@@ -93,6 +108,13 @@ internal class Router
             {
                 inFlag = false;
                 options.Add(optionKey, substring);
+                continue;
+            }
+
+            if (isConfig)
+            {
+                isConfig = false;
+                Config.GetConfig().SetProperty(configKey, substring);
                 continue;
             }
 

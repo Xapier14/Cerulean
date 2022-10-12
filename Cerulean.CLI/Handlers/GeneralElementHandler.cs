@@ -14,6 +14,7 @@ internal class GeneralElementHandler : IElementHandler
     public bool EvaluateIntoCode(StringBuilder stringBuilder, int indentDepth, XElement element,
         Builder builder, BuilderContext context, string parent = "")
     {
+        var config = Config.GetConfig();
         var localName = element.Name.LocalName;
         var elementType = localName.Contains('.') ? localName[localName.LastIndexOf('.')..] : localName;
         var namespacePart = localName.Contains('.') ? localName.Remove(localName.LastIndexOf('.')-1) : string.Empty;
@@ -27,8 +28,8 @@ internal class GeneralElementHandler : IElementHandler
             ColoredConsole.WriteLine($"[$yellow^WARNING$r^] Component '{localName}' is not found on any ComponentRefs.");
             return false;
         }
-
-        ColoredConsole.WriteLine($"[$green^DEV$r^] Found namespace candidate for component '{localName}'. Namespace: {namespaceCandidate}");
+        if (config.GetProperty<string>("SHOW_DEV_LOG") != string.Empty)
+            ColoredConsole.WriteLine($"[$green^DEV$r^] Found namespace candidate for component $yellow^{localName}$r^. Namespace: $yellow^{namespaceCandidate}$r^");
 
         var elementName = element.Attribute("Name")?.Value ?? Builder.GenerateAnonymousName();
         var parentPrefix = parent != string.Empty ? parent + "." : string.Empty;
@@ -92,17 +93,13 @@ internal class GeneralElementHandler : IElementHandler
         {
             if (builder.Sheets.TryGetValue(externalSheet, out var externalContext))
             {
-                Console.WriteLine("Injecting external stylesheet: {0} (Styles: {1})", externalSheet, externalContext.ApplyAsGlobalStyles.Count);
                 allGlobalStyles.AddRange(externalContext.ApplyAsGlobalStyles);
             }
         }
         allGlobalStyles.AddRange(context.ApplyAsGlobalStyles);
-        foreach (var (name, ty) in allGlobalStyles)
-            Console.WriteLine("{0} type: {1}", name, ty);
 
         foreach (var (styleName, targetType) in allGlobalStyles)
         {
-            Console.WriteLine("GlobalStyleApply: {0} - {1} (component is {3}) : OK? {2}", styleName, targetType, !(targetType is null && targetType == elementType), elementType);
             // only allow null or target type
             if (targetType is not null && targetType != elementType)
                 continue;
