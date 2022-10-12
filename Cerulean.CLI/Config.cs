@@ -49,7 +49,7 @@ namespace Cerulean.CLI
             SetProperty("CERULEAN_UI_GIT", @"https://github.com/Xapier14/Cerulean.git");
             SetProperty("DOTNET_DEFAULT_BUILD_CONFIG", "Debug");
             SetProperty("SHOW_DEV_LOG", string.Empty);
-            SetProperty("BUILD_BRANCH", "global-styles");
+            SetProperty("BUILD_BRANCH", "");
         }
     }
 }
