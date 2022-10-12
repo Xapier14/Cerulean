@@ -38,7 +38,6 @@ public class BuildXml : ICommand
 
         // create builder session context
         DirectoryInfo outDirInfo = new(outputPath);
-        BuilderContext context = new();
 
         // check if slient flag is raised
         if (flags.Contains("silent"))
@@ -51,15 +50,17 @@ public class BuildXml : ICommand
                 fileInfo => fileInfo.Name.ToLower().EndsWith(fileExtension.ToLower())
             )
             .Select(fileInfo => fileInfo.FullName);
+        var builder = new Builder();
         foreach (var file in xmlFiles)
         {
             // reset imports
-            var builder = new Builder();
+            BuilderContext context = new();
             context.UseDefaultImports();
-            ColoredConsole.WriteLine(builder.BuildContextFromXml(context, file)
+            ColoredConsole.WriteLine(builder.LexContentFromXml(context, file)
                 ? $"[$green^GOOD$r^][$yellow^XML$r^] '{file}'"
                 : $"[$red^FAIL$r^][$yellow^XML$r^] '{file}'");
         }
+        builder.BuildContext();
 
         var files = outDirInfo.GetAllFiles();
         var dirs = outDirInfo.GetDirectories();
@@ -76,7 +77,7 @@ public class BuildXml : ICommand
 
         // write all exportable files
         var index = 0;
-        foreach (var pair in context.Layouts)
+        foreach (var pair in builder.ExportedLayouts)
         {
             ColoredConsole.WriteLine($"[$cyan^EXPORT$r^] Exporting layout '{pair.Key}'...");
             File.WriteAllText(outDirInfo.FullName + $"/layout{index}.cs", pair.Value);
@@ -84,7 +85,7 @@ public class BuildXml : ICommand
         }
 
         index = 0;
-        foreach (var pair in context.Styles)
+        foreach (var pair in builder.ExportedStyles)
         {
             ColoredConsole.WriteLine($"[$cyan^EXPORT$r^] Exporting style '{pair.Key}'...");
             File.WriteAllText(outDirInfo.FullName + $"/style{index}.cs", pair.Value);

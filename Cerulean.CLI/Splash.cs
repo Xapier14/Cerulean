@@ -21,6 +21,9 @@ internal static class Splash
     {
         DisplaySplash();
 
+        var config = Config.GetConfig();
+        var buildBranch = config.GetProperty<string>("BUILD_BRANCH") ?? string.Empty;
+
         var name = "crn.exe";
         try
         {
@@ -32,6 +35,11 @@ internal static class Splash
         catch
         {
             ColoredConsole.WriteLine(" Cerulean CLI: ?.?.? $red^(malformed executable?)$r^");
+        }
+
+        if (!string.IsNullOrEmpty(buildBranch))
+        {
+            ColoredConsole.WriteLine($" Build Branch: $magenta^{buildBranch}$^");
         }
 
         var cli = name.Remove(name.Length - 4, 4);

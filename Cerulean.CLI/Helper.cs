@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Reflection;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
@@ -110,6 +111,33 @@ internal static class Helper
         results.AddRange(commandInfos);
 
         return results;
+    }
+
+    public static int CountInterfaceImplementations(Type interfaceType)
+    {
+        var implementations = AppDomain.CurrentDomain.GetAssemblies()
+            .SelectMany(assembly => assembly.GetLoadableTypes())
+            .Where(x => x is not null
+                        && x != interfaceType
+                        && x.IsAssignableTo(interfaceType)
+                        && x != typeof(object));
+        return implementations.Count();
+    }
+
+    public static bool IsComponentFromNamespace(string componentType, string namespacePart)
+    {
+        var interfaceType = typeof(IComponentRef);
+        var implementations = AppDomain.CurrentDomain
+            .GetAssemblies()
+            .SelectMany(assembly => assembly.GetLoadableTypes())
+            .Where(x => x is not null
+                                 && x != interfaceType
+                                 && x.IsAssignableTo(interfaceType)
+                                 && x != typeof(object));
+        return implementations
+            .Select(implementation => (IComponentRef?)implementation?.GetConstructor(Array.Empty<Type>())?.Invoke(null))
+            .Any(componentRef => componentRef?.ComponentName == componentType
+                                 && componentRef?.Namespace == namespacePart);
     }
 
     public static IEnumerable<string> WordWrap(string text, int lineWidth)
@@ -247,7 +275,7 @@ internal static class Helper
         return value;
     }
 
-    public static string? GetRecommendedDataType(string propertyName, out string? enumFamily, out bool needsLateBind)
+    public static string? GetRecommendedDataType(Builder builder, string propertyName, out string? enumFamily, out bool needsLateBind)
     {
         var type = propertyName switch
         {
@@ -297,9 +325,9 @@ internal static class Helper
         Match? lateBindRegex = null;
         if (type != null)
         {
-            lateBindRegex = Regex.Match(type, @"^component<(\D[\w\d]*)>\*$");
+            lateBindRegex = Regex.Match(type, @"^([\D\S].*)\*$");
             if (lateBindRegex.Success)
-                type = $"component<{lateBindRegex.Groups[1]}>";
+                type = lateBindRegex.Groups[1].ToString();
         }
         needsLateBind = lateBindRegex?.Success ?? false;
 

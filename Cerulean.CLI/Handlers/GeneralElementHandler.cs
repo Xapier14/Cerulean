@@ -12,9 +12,25 @@ namespace Cerulean.CLI;
 internal class GeneralElementHandler : IElementHandler
 {
     public bool EvaluateIntoCode(StringBuilder stringBuilder, int indentDepth, XElement element,
-        Builder builder, string parent = "")
+        Builder builder, BuilderContext context, string parent = "")
     {
-        var elementType = element.Name.LocalName;
+        var config = Config.GetConfig();
+        var localName = element.Name.LocalName;
+        var elementType = localName.Contains('.') ? localName[localName.LastIndexOf('.')..] : localName;
+        var namespacePart = localName.Contains('.') ? localName.Remove(localName.LastIndexOf('.')-1) : string.Empty;
+
+        var namespaceCandidate = context.Imports
+            .Select(ns => $"{ns}{namespacePart}")
+            .FirstOrDefault(ns => Helper.IsComponentFromNamespace(elementType, ns));
+
+        if (namespaceCandidate == null)
+        {
+            ColoredConsole.WriteLine($"[$yellow^WARNING$r^] Component '{localName}' is not found on any ComponentRefs.");
+            return false;
+        }
+        if (config.GetProperty<string>("SHOW_DEV_LOG") != string.Empty)
+            ColoredConsole.WriteLine($"[$green^DEV$r^] Found namespace candidate for component $yellow^{localName}$r^. Namespace: $yellow^{namespaceCandidate}$r^");
+
         var elementName = element.Attribute("Name")?.Value ?? Builder.GenerateAnonymousName();
         var parentPrefix = parent != string.Empty ? parent + "." : string.Empty;
 
@@ -29,7 +45,7 @@ internal class GeneralElementHandler : IElementHandler
             attribute => attribute.Name.NamespaceName == "Attribute"
         );
         var ctrData = constructorParams != string.Empty ? $"({constructorParams})" : "";
-        var styleName = element.Attribute("Style")?.Value;
+        var styles = element.Attribute("Style")?.Value ?? string.Empty;
 
         // get new object's properties
         var properties =
@@ -44,7 +60,8 @@ internal class GeneralElementHandler : IElementHandler
         {
             var propName = prop.propName;
             var propValue = prop.propValue;
-            var recommendedDataType = Helper.GetRecommendedDataType(propName, out var enumFamily, out var lateBound);
+            // TODO: Add logic for componentRefs
+            var recommendedDataType = Helper.GetRecommendedDataType(builder, propName, out var enumFamily, out var lateBound);
             var finalPropValue = Helper.ParseHintedString(propValue, parent, enumFamily, recommendedDataType, lateBound ? $"{elementName}." : string.Empty);
             if (!lateBound)
                 return $"{propName} = {finalPropValue},";
@@ -66,12 +83,36 @@ internal class GeneralElementHandler : IElementHandler
 
         const string footer = "});\n";
         stringBuilder.AppendIndented(indentDepth, footer);
+        
+        // global styles
+        var importedSheets = string.Join(';', context.ImportedSheets);
+        if (importedSheets != string.Empty)
+            importedSheets = ";" + importedSheets;
+        var allGlobalStyles = new List<(string, string?)>();
+        foreach (var externalSheet in context.ImportedSheets)
+        {
+            if (builder.Sheets.TryGetValue(externalSheet, out var externalContext))
+            {
+                allGlobalStyles.AddRange(externalContext.ApplyAsGlobalStyles);
+            }
+        }
+        allGlobalStyles.AddRange(context.ApplyAsGlobalStyles);
 
-        // apply style if specified
-        if (styleName is not null)
+        foreach (var (styleName, targetType) in allGlobalStyles)
+        {
+            // only allow null or target type
+            if (targetType is not null && targetType != elementType)
+                continue;
+            var queueStyle =
+                $"QueueStyle({parentPrefix}GetChild(\"{elementName}\"), styles.FetchStyle(\"{styleName}\", \"{context.LocalId}{importedSheets}\"));\n";
+            stringBuilder.AppendIndented(indentDepth, queueStyle);
+        }
+        // local styles
+        const StringSplitOptions options = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
+        foreach (var styleName in styles.Split(';', options))
         {
             var queueStyle =
-                $"QueueStyle({parentPrefix}GetChild(\"{elementName}\"), styles.FetchStyle(\"{styleName}\"));\n";
+                $"QueueStyle({parentPrefix}GetChild(\"{elementName}\"), styles.FetchStyle(\"{styleName}\", \"{context.LocalId}{importedSheets}\"));\n";
             stringBuilder.AppendIndented(indentDepth, queueStyle);
         }
 
@@ -90,7 +131,7 @@ internal class GeneralElementHandler : IElementHandler
         foreach (var child in children)
         {
             var childString = $"{parent}{(parent != string.Empty ? '.' : parent)}GetChild(\"{elementName}\")";
-            builder.ProcessXElement(stringBuilder, indentDepth, child, childString);
+            builder.ProcessXElement(context, stringBuilder, indentDepth, child, childString);
         }
 
         // write late bound props
