@@ -168,15 +168,23 @@ public class Builder
     private void ProcessSetter(StringBuilder stringBuilder, int depth, XElement element)
     {
         var property = element.Attribute("Name")?.Value ?? element.Attribute("Property")?.Value;
+        var target = element.Parent?.Attribute("Target")?.Value;
         if (property is null)
         {
             ColoredConsole.WriteLine(
                 $"[$cyan^Style.Setter$r^] [$red^WARN$r^] Setter does not have a 'Name' or 'Property' attribute.");
             return;
         }
+        if (target is null)
+        {
+            ColoredConsole.WriteLine(
+                $"[$cyan^Style.Setter$r^] [$red^WARN$r^] Style parent does not have a 'Target' attribute.");
+            return;
+        }
 
         var rawValue = element.Attribute("Value")?.Value ?? element.Value;
-        var type = Helper.GetRecommendedDataType(this, property, out _);
+        var componentRef = ComponentReferences.FirstOrDefault(c => c?.ComponentName == target, null);
+        var type = componentRef?.GetType(property, out _) ?? Helper.GetRecommendedDataType(this, property, out _);
         var value = Helper.ParseHintedString(rawValue, string.Empty, type);
 
         stringBuilder.AppendIndented(depth, $"AddSetter(\"{property}\", {value});\n");

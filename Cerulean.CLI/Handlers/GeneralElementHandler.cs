@@ -62,7 +62,7 @@ internal class GeneralElementHandler : IElementHandler
         {
             var propName = prop.propName;
             var propValue = prop.propValue;
-            var componentRef = builder.ComponentReferences.First(c => c.ComponentName == elementType);
+            var componentRef = builder.ComponentReferences.FirstOrDefault(c => c?.ComponentName == elementType, null);
             var recommendedDataType = componentRef?.GetType(propName, out lateBound) ?? Helper.GetRecommendedDataType(builder, propName, out lateBound);
             var finalPropValue = Helper.ParseHintedString(propValue, parent, recommendedDataType, lateBound ? $"{elementName}." : string.Empty);
             if (!lateBound)
