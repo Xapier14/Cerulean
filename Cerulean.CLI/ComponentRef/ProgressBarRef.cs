@@ -21,6 +21,7 @@ namespace Cerulean.CLI
                 ("HintH", "int"),
                 ("BackColor", "color"),
                 ("BorderColor", "color"),
+                ("Orientation", "enum<Orientation>"),
             };
             Properties = PropertyRefEntry.GenerateEntriesFromTuples(tuples);
         }

@@ -13,10 +13,19 @@ namespace Cerulean.CLI
         public string Namespace { get; init; }
         public IEnumerable<PropertyRefEntry> Properties { get; init; }
 
-        public string? GetType(string propertyName)
+        public string? GetType(string propertyName, out bool needsLateBind)
         {
             var type = Properties.FirstOrDefault((entry => entry?.PropertyName == propertyName), null);
-            return type?.PropertyType;
+            needsLateBind = false;
+            var propName = type?.PropertyType;
+
+            if (propName is null)
+                return propName;
+
+            needsLateBind = propName.EndsWith('*');
+            if (needsLateBind)
+                propName = propName.Remove(propName.Length - 1, 1);
+            return propName;
         }
     }
 }

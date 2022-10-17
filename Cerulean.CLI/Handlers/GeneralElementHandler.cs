@@ -57,13 +57,14 @@ internal class GeneralElementHandler : IElementHandler
 
         // get props
         var lateBoundProps = new List<(string, string)>();
+        bool lateBound;
         var formattedProps = properties.Select(prop =>
         {
             var propName = prop.propName;
             var propValue = prop.propValue;
-            // TODO: Add logic for componentRefs
-            var recommendedDataType = Helper.GetRecommendedDataType(builder, propName, out var enumFamily, out var lateBound);
-            var finalPropValue = Helper.ParseHintedString(propValue, parent, enumFamily, recommendedDataType, lateBound ? $"{elementName}." : string.Empty);
+            var componentRef = builder.ComponentReferences.First(c => c.ComponentName == elementType);
+            var recommendedDataType = componentRef?.GetType(propName, out lateBound) ?? Helper.GetRecommendedDataType(builder, propName, out lateBound);
+            var finalPropValue = Helper.ParseHintedString(propValue, parent, recommendedDataType, lateBound ? $"{elementName}." : string.Empty);
             if (!lateBound)
                 return $"{propName} = {finalPropValue},";
 

@@ -212,7 +212,7 @@ internal static class Helper
             .Replace("\"", "\\\"");
     }
 
-    public static string ParseHintedString(string hintedString, string root, string? enumFamily = null,
+    public static string ParseHintedString(string hintedString, string root,
         string? overrideType = null, string componentPrefix = "")
     {
         // hinted value pattern ([name]="[type]: [value]")
@@ -224,11 +224,18 @@ internal static class Helper
         var type = overrideType ?? regex.Groups[1].ToString().ToLower();
         var raw = overrideType is null ? regex.Groups[2].ToString() : hintedString;
         string? specificComponent = null;
+        string? enumFamily = null;
         var componentRegex = Regex.Match(type, @"^component<(\D[\w\d]*)>$");
+        var enumRegex = Regex.Match(type, @"^enum<(\D[\w\d]*)>$");
         if (componentRegex.Success)
         {
             specificComponent = componentRegex.Groups[1].ToString();
             type = "component";
+        }
+        if (enumRegex.Success)
+        {
+            enumFamily = enumRegex.Groups[1].ToString();
+            type = "enum";
         }
         try
         {
@@ -275,7 +282,7 @@ internal static class Helper
         return value;
     }
 
-    public static string? GetRecommendedDataType(Builder builder, string propertyName, out string? enumFamily, out bool needsLateBind)
+    public static string? GetRecommendedDataType(Builder builder, string propertyName, out bool needsLateBind)
     {
         var type = propertyName switch
         {
@@ -283,44 +290,9 @@ internal static class Helper
             "GridColumn" => "int",
             "GridRowSpan" => "int",
             "GridColumnSpan" => "int",
-            "Size" => "size",
-            "FillColor" => "color",
-            "ForeColor" => "color",
-            "BackColor" => "color",
-            "BorderColor" => "color",
-            "HighlightColor" => "color",
-            "ActivatedColor" => "color",
-            "FontName" => "string",
-            "FontSize" => "int",
-            "FontStyle" => "string",
-            "Text" => "string",
-            "FileName" => "string",
-            "Source" => "string",
-            "ImageSource" => "string",
             "X" => "int",
             "Y" => "int",
-            "HintW" => "int",
-            "HintH" => "int",
-            "Interval" => "int",
-            "Opacity" => "double",
-            "Visible" => "bool",
-            "WrapText" => "bool",
-            "Value" => "int",
-            "Maximum" => "int",
-            "FillOpacity" => "double",
-            "BorderOpacity" => "double",
-            "Checked" => "bool",
-            "InputData" => "string",
-            "InputGroup" => "string",
-            "SubmitButton" => "component<Button>*",
-            "PictureMode" => "enum",
-            "Orientation" => "enum",
             _ => null
-        };
-        enumFamily = propertyName switch
-        {
-            "TargetMouseButton" => "MouseButton",
-            _ => propertyName
         };
         Match? lateBindRegex = null;
         if (type != null)

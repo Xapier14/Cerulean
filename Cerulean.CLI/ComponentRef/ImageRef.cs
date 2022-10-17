@@ -22,7 +22,7 @@ namespace Cerulean.CLI
                 ("ImageSource", "string"),
                 ("BackColor", "color"),
                 ("BorderColor", "color"),
-                ("PictureMode", "enum"),
+                ("PictureMode", "enum<PictureMode>"),
                 ("Opacity", "double"),
                 ("Visible", "bool"),
             };
