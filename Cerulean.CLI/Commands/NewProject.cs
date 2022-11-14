@@ -106,18 +106,24 @@ public class NewProject : ICommand
             return -4;
 
         // add project references
-        if (Helper.DoTask("Adding reference to Cerulean.Common.",
+        if (Helper.DoTask("Adding reference to Cerulean.Common...",
                 "dotnet",
                 "add reference Cerulean/Cerulean.Common/Cerulean.Common.csproj", workingDir))
             return -5;
-        if (Helper.DoTask("Adding reference to Cerulean.Core.",
+        if (Helper.DoTask("Adding reference to Cerulean.Core...",
                 "dotnet",
                 "add reference Cerulean/Cerulean.Core/Cerulean.Core.csproj", workingDir))
             return -6;
-        if (Helper.DoTask("Adding reference to Cerulean.Components.",
+        if (Helper.DoTask("Adding reference to Cerulean.Components...",
                 "dotnet",
                 "add reference Cerulean/Cerulean.Components/Cerulean.Components.csproj", workingDir))
             return -7;
+        
+        // restore test dependencies
+        if (Helper.DoTask("Doing restore on Cerulean.Test...",
+                "dotnet",
+                "restore", workingDir + "/Cerulean/Cerulean.Test"))
+            return -8;
 
         // initialize project
         CreateProjectBoilerplate(workingDir);
@@ -126,11 +132,11 @@ public class NewProject : ICommand
         if (Helper.DoTask("Doing initial commit (1/2)...",
                 "git",
                 "add .", workingDir))
-            return -8;
+            return -9;
         if (Helper.DoTask("Doing initial commit (2/2)...",
                 "git",
                 "commit -m \"Initial commit via crn\"", workingDir))
-            return -9;
+            return -10;
 
         var dirInfo = new DirectoryInfo(workingDir);
 
