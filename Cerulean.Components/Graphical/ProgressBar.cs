@@ -3,6 +3,7 @@ using Cerulean.Core;
 
 namespace Cerulean.Components
 {
+    [SkipAutoRefGeneration]
     public sealed class ProgressBar : Component, ISized
     {
         private Size? _size;

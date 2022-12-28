@@ -8,6 +8,7 @@ using Cerulean.Core;
 
 namespace Cerulean.Components
 {
+    [SkipAutoRefGeneration]
     public class RadioButton : Component, ISized
     {
 

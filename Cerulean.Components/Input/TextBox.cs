@@ -4,6 +4,7 @@ using Cerulean.Core.Input;
 
 namespace Cerulean.Components
 {
+    [SkipAutoRefGeneration]
     public sealed class TextBox : Component, ISized
     {
         private const int PADDING = 4;

@@ -15,6 +15,7 @@ namespace Cerulean.Components
     /// <summary>
     /// Cerulean Timer Component
     /// </summary>
+    [SkipAutoRefGeneration]
     public sealed class Timer : Component
     {
         private long _time;

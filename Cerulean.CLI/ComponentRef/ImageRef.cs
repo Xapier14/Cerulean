@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Cerulean.Common;
 
 namespace Cerulean.CLI
 {
@@ -20,9 +21,9 @@ namespace Cerulean.CLI
                 ("HintW", "int"),
                 ("HintH", "int"),
                 ("ImageSource", "string"),
-                ("BackColor", "color"),
-                ("BorderColor", "color"),
-                ("PictureMode", "enum<PictureMode>"),
+                ("BackColor", "Cerulean.Common.Color"),
+                ("BorderColor", "Cerulean.Common.Color"),
+                ("PictureMode", "enum<Cerulean.Common.PictureMode>"),
                 ("Opacity", "double"),
                 ("Visible", "bool"),
             };

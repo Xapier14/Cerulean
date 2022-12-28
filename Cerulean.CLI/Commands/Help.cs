@@ -1,8 +1,10 @@
 ﻿using Cerulean.CLI.Attributes;
+using Cerulean.Common;
 
 namespace Cerulean.CLI.Commands;
 
 [CommandName("help")]
+[CommandAlias("h", "?")]
 [CommandDescription("Displays help information for all or specific commands.")]
 public class Help : ICommand
 {

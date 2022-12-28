@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Cerulean.Common;
 
 namespace Cerulean.CLI
 {
@@ -16,11 +17,11 @@ namespace Cerulean.CLI
         {
             var tuples = new[]
             {
-                ("Size", "size"),
+                ("Size", "Cerulean.Common.Size"),
                 ("HintW", "int"),
                 ("HintH", "int"),
-                ("FillColor", "color"),
-                ("BorderColor", "color"),
+                ("FillColor", "Cerulean.Common.Color"),
+                ("BorderColor", "Cerulean.Common.Color"),
                 ("FillOpacity", "double"),
                 ("BorderOpacity", "double"),
             };

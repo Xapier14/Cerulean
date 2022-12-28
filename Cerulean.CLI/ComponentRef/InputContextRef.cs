@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Cerulean.Common;
 
 namespace Cerulean.CLI
 {
@@ -16,7 +17,7 @@ namespace Cerulean.CLI
         {
             var tuples = new[]
             {
-                ("SubmitButton", "component<Button>*"),
+                ("SubmitButton", "component<Cerulean.Common.Button>*"),
             };
             Properties = PropertyRefEntry.GenerateEntriesFromTuples(tuples);
         }

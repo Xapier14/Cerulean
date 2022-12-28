@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Cerulean.CLI;
 
-namespace Cerulean.CLI
+namespace Cerulean.Common
 {
     public interface IComponentRef
     {
@@ -15,7 +14,7 @@ namespace Cerulean.CLI
 
         public string? GetType(string propertyName, out bool needsLateBind)
         {
-            var type = Properties.FirstOrDefault((entry => entry?.PropertyName == propertyName), null);
+            var type = Properties.FirstOrDefault(entry => entry?.PropertyName == propertyName);
             needsLateBind = false;
             var propName = type?.PropertyType;
 

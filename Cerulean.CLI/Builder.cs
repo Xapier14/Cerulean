@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Runtime.Loader;
 using System.Reflection;
 using System.Text;
 using System.Xml.Linq;
@@ -146,6 +147,10 @@ public class Builder
 
     public void BuildContext()
     {
+        // load external modules
+
+
+        // process objects
         _styles.ForEach(style => ProcessStyle(style.Item1, style.Item2));
         _layouts.ForEach(layout => ProcessLayout(layout.Item1, layout.Item2));
     }
@@ -331,8 +336,28 @@ public class Builder
 
     private void RegisterReferences()
     {
+        var asmContext = AssemblyLoadContext.Default;
+        var modulesDir = Path.Join(Environment.CurrentDirectory, ".modules");
+        var externalAssemblies = new List<Assembly>();
+
+        if (Directory.Exists(modulesDir))
+        {
+            ColoredConsole.Debug("[$green^DEV$rs^] Loading external assemblies from '.modules'...");
+            var dllFiles = new DirectoryInfo(modulesDir).EnumerateFiles("*.dll");
+            externalAssemblies.AddRange(
+                dllFiles.Select(
+                    dll =>
+                    {
+                        ColoredConsole.Debug($"[$green^DEV$rs^] Loading file {dll.FullName}...");
+                        return Assembly.Load(File.ReadAllBytes(dll.FullName));
+                    })
+            );
+        }
+        
+        ColoredConsole.Debug($"[$green^DEV$rs^] Loading IComponentRefs...");
         var interfaceType = typeof(IComponentRef);
         var references = AppDomain.CurrentDomain.GetAssemblies()
+            .Union(externalAssemblies)
             .SelectMany(assembly => assembly.GetLoadableTypes())
             .Where(x => x is not null
                         && x != interfaceType
@@ -346,6 +371,8 @@ public class Builder
 
             RegisterReference(constructor);
         });
+
+
     }
 
     private void RegisterHandler(string? handlerName, ConstructorInfo? handlerConstructor)
@@ -361,10 +388,12 @@ public class Builder
     private void RegisterReference(ConstructorInfo? referenceConstructor)
     {
         var instance = referenceConstructor?.Invoke(Array.Empty<object>());
+        var name = referenceConstructor?.ReflectedType?.FullName ?? "n/a";
+        ColoredConsole.Debug($"[$green^DEV$rs^] Loading IComponentRef \"{name}\"...");
         if (instance is not null)
             _references.Add((IComponentRef)instance);
         else
             ColoredConsole.WriteLine(
-                $"[$cyan^Builder.RegisterReference()$r^] Could not load IComponentRef \"{referenceConstructor?.Name}\".");
+                $"[$cyan^Builder.RegisterReference()$r^] Could not load IComponentRef \"{name}\".");
     }
 }

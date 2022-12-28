@@ -53,7 +53,7 @@ internal static class Helper
         var projectPathInfo = new DirectoryInfo(projectPath);
         return projectPathInfo
             .EnumerateFiles()
-            .Any(fileInfo => fileInfo.Extension.ToLower() == ".csproj");
+            .Any(fileInfo => string.Equals(fileInfo.Extension, ".csproj", StringComparison.OrdinalIgnoreCase));
     }
     public static string GetProjectFileInDirectory(string directory)
     {
@@ -66,7 +66,7 @@ internal static class Helper
         var xml = XDocument.Load(csprojFile);
         if (xml.Root == null)
             throw new InvalidDataException();
-        var propGroup = xml.Root.Elements("PropertyGroup").First(x =>  x.Element("TargetFramework") != null);
+        var propGroup = xml.Root.Elements("PropertyGroup").First(x => x.Element("TargetFramework") != null);
 
         return propGroup.Element("TargetFramework")!.Value;
     }
@@ -145,9 +145,10 @@ internal static class Helper
         var words = text.Split(' ');
         var buffer = new StringBuilder();
         foreach (var word in words)
+        {
             if (buffer.Length + word.Length <= lineWidth)
             {
-                buffer.Append(word + " ");
+                buffer.Append(word).Append(' ');
             }
             else
             {
@@ -155,6 +156,7 @@ internal static class Helper
                 buffer.Clear();
                 yield return line[..^1];
             }
+        }
 
         if (buffer.Length <= 0)
             yield break;
@@ -200,8 +202,8 @@ internal static class Helper
     {
         StringBuilder component = new();
         var nests = nestedName.Split('.');
-        component.Append($"{root}GetChild(\"{nests[0]}\")");
-        for (var i = 1; i < nests.Length; i++) component.Append($".GetChild(\"{nests[i]}\")");
+        component.Append(root).Append("GetChild(\"").Append(nests[0]).Append("\")");
+        for (var i = 1; i < nests.Length; i++) component.Append(".GetChild(\"").Append(nests[i]).Append("\")");
         return component.ToString();
     }
 
@@ -254,8 +256,8 @@ internal static class Helper
                 "double" => $"{double.Parse(raw)}",
                 "string" => $"\"{EscapeString(raw)}\"",
                 "component" => $"{(specificComponent != null ? $"({specificComponent})" : "")}{ParseNestedComponentName(componentPrefix + raw, root)}",
-                "color" => $"new Color(\"{raw}\")",
-                "size" => $"new Size({raw})",
+                "Cerulean.Common.Color" => $"new Cerulean.Common.Color(\"{raw}\")",
+                "Cerulean.Common.Size" => $"new Cerulean.Common.Size({raw})",
                 "literal" => value,
                 "enum" => $"{enumFamily}.{raw}",
                 _ => "null"

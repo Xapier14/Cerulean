@@ -22,8 +22,8 @@ namespace Cerulean.Core
 
         internal bool OnCloseFromEvent;
         private string _windowTitle = "";
-        private Component? _IMEComponentOwner;
-
+        private Component? _imeComponentOwner;
+        internal bool IsModalWindow = false;
         #endregion
 
         public Action<string>? TextUpdatedDelegate { get; set; }
@@ -281,6 +281,10 @@ namespace Cerulean.Core
         /// The top-most hovered component.
         /// </summary>
         public Component? HoveredComponent { get; internal set; }
+        /// <summary>
+        /// Tells whether the window is a modal dialog.
+        /// </summary>
+        public bool IsModal => IsModalWindow;
 
         internal Window(Layout windowLayout, string windowTitle, Size windowSize, int threadId, IGraphicsFactory graphicsFactory, Window? parentWindow = null)
         {
@@ -326,7 +330,7 @@ namespace Cerulean.Core
         public void StartTextInput(Component? inputOwner, int x, int y, Size area, string text = "", int index = 0,
             int maxLength = 2048)
         {
-            _IMEComponentOwner = inputOwner;
+            _imeComponentOwner = inputOwner;
             TextUpdatedDelegate = null;
             CeruleanAPI.GetAPI().StartTextInput(this, x, y, area, text, index, maxLength);
         }
@@ -336,7 +340,7 @@ namespace Cerulean.Core
         /// </summary>
         public void StopTextInput(Component? inputOwner = null)
         {
-            if (inputOwner == null || inputOwner == _IMEComponentOwner)
+            if (inputOwner == null || inputOwner == _imeComponentOwner)
                 CeruleanAPI.GetAPI().StopTextInput(this);
         }
 
@@ -350,7 +354,7 @@ namespace Cerulean.Core
 
         public int GetDpiScaledValue(int value)
         {
-            return (int)Scaling.GetDpiScaledValue(this, value);
+            return Scaling.GetDpiScaledValue(this, value);
         }
 
         public double GetDpiScaledValue(double value)
@@ -429,6 +433,7 @@ namespace Cerulean.Core
             CeruleanAPI.GetAPI().Log($"Maximum size {_maximumWindowSize}.");
             SDL_SetWindowMinimumSize(WindowPtr, _minimumWindowSize.W, _minimumWindowSize.H);
             SDL_SetWindowMaximumSize(WindowPtr, _maximumWindowSize.W, _maximumWindowSize.H);
+            SDL_SetWindowAlwaysOnTop(WindowPtr, IsModalWindow ? SDL_bool.SDL_TRUE : SDL_bool.SDL_FALSE);
             GraphicsContext = _graphicsFactory.CreateGraphics(this);
             Layout.Init();
             ((Layout)Layout).ApplyStyles();

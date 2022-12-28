@@ -6,6 +6,7 @@ using Cerulean.Common;
 
 namespace Cerulean.Components
 {
+    [SkipAutoRefGeneration]
     public class Image : Component, ISized, IVisible
     {
         private const string SVG_CHECK_REGEX = @"[Ss]vg:\s?(.+)";

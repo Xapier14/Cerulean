@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Cerulean.Common;
 
 namespace Cerulean.CLI
 {
@@ -18,7 +19,7 @@ namespace Cerulean.CLI
             {
                 ("ColumnCount", "int"),
                 ("RowCount", "int"),
-                ("BackColor", "color"),
+                ("BackColor", "Cerulean.Common.Color"),
             };
             Properties = PropertyRefEntry.GenerateEntriesFromTuples(tuples);
         }

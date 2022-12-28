@@ -10,6 +10,7 @@ namespace Cerulean.Components
         public int MouseX { get; set; }
         public int MouseY { get; set; }
     }
+    [SkipAutoRefGeneration]
     public sealed class Button : Component, ISized
     {
         private bool _hovered = false;

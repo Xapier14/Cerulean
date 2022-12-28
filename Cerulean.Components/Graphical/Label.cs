@@ -4,6 +4,7 @@ using Cerulean.Core;
 
 namespace Cerulean.Components
 {
+    [SkipAutoRefGeneration]
     public class Label : Component, ISized
     {
         private Size? _size;

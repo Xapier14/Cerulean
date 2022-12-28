@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Cerulean.Common;
 
 namespace Cerulean.CLI
 {
@@ -16,18 +17,18 @@ namespace Cerulean.CLI
         {
             var tuples = new[]
             {
-                ("Size", "size"),
+                ("Size", "Cerulean.Common.Size"),
                 ("HintW", "int"),
                 ("HintH", "int"),
                 ("Text", "string"),
                 ("FontName", "string"),
                 ("FontSize", "int"),
-                ("FontStyle", "string"),
-                ("BackColor", "color"),
-                ("ForeColor", "color"),
-                ("BorderColor", "color"),
-                ("HighlightColor", "color"),
-                ("ActivatedColor", "color"),
+                ("FontStyle", "Cerulean.Common.Color"),
+                ("BackColor", "Cerulean.Common.Color"),
+                ("ForeColor", "Cerulean.Common.Color"),
+                ("BorderColor", "Cerulean.Common.Color"),
+                ("HighlightColor", "Cerulean.Common.Color"),
+                ("ActivatedColor", "Cerulean.Common.Color"),
             };
             Properties = PropertyRefEntry.GenerateEntriesFromTuples(tuples);
         }

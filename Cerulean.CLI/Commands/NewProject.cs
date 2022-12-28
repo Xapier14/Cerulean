@@ -6,18 +6,12 @@ using Cerulean.CLI.Attributes;
 namespace Cerulean.CLI.Commands;
 
 [CommandName("new")]
+[CommandAlias("create", "start", "n")]
 [CommandDescription("Generates and scaffolds a new Cerulean UI project.")]
 public class NewProject : ICommand
 {
     private static void CreateProjectDirectory(string workingDir)
     {
-        // confirm if user wants to create a project in working directory
-        Console.WriteLine("A project will be created in the folder {0}.", workingDir);
-        Console.Write("Do you want to proceed? (Y/n): ");
-        if (Console.ReadLine() is { } choice
-            && choice.ToLower() == "n")
-            return;
-
         // check if directory already exists and has a project/solution already
         if (Directory.Exists(workingDir)
             && new DirectoryInfo(workingDir)
@@ -45,7 +39,7 @@ public class NewProject : ICommand
         var projectDirInfo = new DirectoryInfo(workingDir);
         var projectInfo = projectDirInfo
             .EnumerateFiles()
-            .First(fileInfo => fileInfo.Extension.ToLower() == ".csproj");
+            .First(fileInfo => string.Equals(fileInfo.Extension, ".csproj", StringComparison.OrdinalIgnoreCase));
         var projectStream = File.OpenWrite(projectInfo.FullName);
         var seekAmount = "</Project></PropertyGroup>".Length + 4;
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -78,6 +72,15 @@ public class NewProject : ICommand
         // get working directory
         var workingDir = DetermineWorkingDirectoryFromArgs(args);
 
+        // confirm if user wants to create a project in working directory
+        Console.WriteLine("A project will be created in the folder {0}.", workingDir);
+        Console.Write("Do you want to proceed? (Y/n): ");
+        if (Console.ReadLine() is { } choice
+            && string.Equals(choice, "n", StringComparison.OrdinalIgnoreCase))
+        {
+            return 0;
+        }
+
         // create project dir
         CreateProjectDirectory(workingDir);
 
@@ -85,45 +88,63 @@ public class NewProject : ICommand
         if (Helper.DoTask("Creating .NET console project...",
                 "dotnet",
                 "new console", workingDir))
+        {
             return -1;
+        }
 
         // create a git repository
         if (Helper.DoTask("Creating a git repository...",
                 "git",
                 "init", workingDir))
+        {
             return -2;
+        }
 
         // add Cerulean as git submodule
         if (Helper.DoTask("Adding CeruleanUI as a submodule...",
                 "git",
                 "submodule add " + config.GetProperty<string>("CERULEAN_UI_GIT"), workingDir))
+        {
             return -3;
+        }
 
         // pull the submodule
         if (Helper.DoTask("Pulling submodule(s)...",
                 "git",
                 "submodule update --init --recursive", workingDir))
+        {
             return -4;
+        }
 
         // add project references
         if (Helper.DoTask("Adding reference to Cerulean.Common...",
                 "dotnet",
                 "add reference Cerulean/Cerulean.Common/Cerulean.Common.csproj", workingDir))
+        {
             return -5;
+        }
+
         if (Helper.DoTask("Adding reference to Cerulean.Core...",
                 "dotnet",
                 "add reference Cerulean/Cerulean.Core/Cerulean.Core.csproj", workingDir))
+        {
             return -6;
+        }
+
         if (Helper.DoTask("Adding reference to Cerulean.Components...",
                 "dotnet",
                 "add reference Cerulean/Cerulean.Components/Cerulean.Components.csproj", workingDir))
+        {
             return -7;
-        
+        }
+
         // restore test dependencies
         if (Helper.DoTask("Doing restore on Cerulean.Test...",
                 "dotnet",
                 "restore", workingDir + "/Cerulean/Cerulean.Test"))
+        {
             return -8;
+        }
 
         // initialize project
         CreateProjectBoilerplate(workingDir);
@@ -132,11 +153,16 @@ public class NewProject : ICommand
         if (Helper.DoTask("Doing initial commit (1/2)...",
                 "git",
                 "add .", workingDir))
+        {
             return -9;
+        }
+
         if (Helper.DoTask("Doing initial commit (2/2)...",
                 "git",
                 "commit -m \"Initial commit via crn\"", workingDir))
+        {
             return -10;
+        }
 
         var dirInfo = new DirectoryInfo(workingDir);
 

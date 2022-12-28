@@ -24,17 +24,18 @@ namespace Cerulean.Core
             if (!Directory.Exists(dirPath)) return false;
             var dirInfo = new DirectoryInfo(dirPath);
             var files = dirInfo.GetFiles("*", SearchOption.AllDirectories)
-                .OrderBy(f => f.Name)
                 .Where(file =>
                 {
                     //CeruleanAPI.GetAPI().Log($"Checking {file.Name} for {name}");
-                    return Path.GetFileNameWithoutExtension(file.FullName).ToLower().Replace(new[] {'-', ' '}, '\0') == name.ToLower().Replace(new[] { '-', ' ' }, '\0') // same file name
-                           && (file.Extension.ToLower() == ".ttf" || file.Extension.ToLower() == ".otf") // is a ttf or otf file
+                    return Path.GetFileNameWithoutExtension(file.FullName).ToLower().Replace(new[] { '-', ' ' }, '\0') == name.ToLower().Replace(new[] { '-', ' ' }, '\0') // same file name
+                           && (string.Equals(file.Extension, ".ttf", StringComparison.OrdinalIgnoreCase)
+                               || string.Equals(file.Extension, ".otf", StringComparison.OrdinalIgnoreCase)) // is a ttf or otf file
                            && !file.Attributes.HasFlag(FileAttributes.ReparsePoint); // is not a symlink
-                });
-            var fileInfos = files as FileInfo[] ?? files.ToArray();
-            if (!fileInfos.Any()) return false;
-            filePath = fileInfos.First().FullName;
+                })
+                .OrderBy(f => f.Name)
+                .ToArray();
+            if (!files.Any()) return false;
+            filePath = files[0].FullName;
             CeruleanAPI.GetAPI().Log($"Found font {filePath}.");
             return true;
         }
