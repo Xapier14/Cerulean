@@ -1,63 +1,27 @@
-﻿using System.Diagnostics;
-using System.Runtime.Loader;
+﻿
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using Cerulean.CLI.Attributes;
-using Cerulean.CLI.Commands;
-using Cerulean.CLI.Extensions;
-using Cerulean.Common;
 
-namespace Cerulean.CLI;
-
-public class BuilderContext
-{
-    
-    public IList<string> Imports { get; }
-    public IList<string> ImportedSheets { get; }
-    public IDictionary<string, string> Aliases { get; }
-    public IList<(string, string?)> ApplyAsGlobalStyles { get; }
-    public string LocalId { get; set; }
-    public bool IsStylesheet { get; set; }
-
-    public BuilderContext()
-    {
-        Imports = new List<string>();
-        ImportedSheets = new List<string>();
-        Aliases = new Dictionary<string, string>();
-        ApplyAsGlobalStyles = new List<(string, string?)>();
-        LocalId = string.Empty;
-        IsStylesheet = false;
-    }
-
-    public void UseDefaultImports()
-    {
-        // Namespaces
-        Imports.Clear();
-        Imports.Add("Cerulean");
-        Imports.Add("Cerulean.Core");
-        Imports.Add("Cerulean.Common");
-        Imports.Add("Cerulean.Components");
-    }
-}
+namespace Cerulean.Common;
 
 public class Builder
 {
     private readonly Dictionary<string, IElementHandler> _handlers;
-    private readonly List<IComponentRef> _references;
+    private readonly List<ComponentRef> _references;
     private readonly List<(XElement, BuilderContext)> _layouts;
     private readonly List<(XElement, BuilderContext)> _styles;
 
     public IDictionary<string, string> ExportedLayouts { get; }
     public IDictionary<string, string> ExportedStyles { get; }
     public IDictionary<string, BuilderContext> Sheets { get; }
-    public IReadOnlyList<IComponentRef> ComponentReferences => _references;
+    public IReadOnlyList<ComponentRef> ComponentReferences => _references;
 
     public Builder()
     {
-        var config = Config.GetConfig();
         _handlers = new Dictionary<string, IElementHandler>();
-        _references = new List<IComponentRef>();
+        _references = new List<ComponentRef>();
         _layouts = new List<(XElement, BuilderContext)>();
         _styles = new List<(XElement, BuilderContext)>();
         ExportedLayouts = new Dictionary<string, string>();
@@ -65,16 +29,15 @@ public class Builder
         Sheets = new Dictionary<string, BuilderContext>();
         RegisterHandlers();
         RegisterReferences();
-        if (config.GetProperty<string>("SHOW_DEV_LOG") != string.Empty)
-        {
-            ColoredConsole.WriteLine($"[$green^DEV$r^] Loaded Special Element Handlers: $cyan^{_handlers.Count}$r^ ($cyan^+1 including GeneralElementHandler$r^).");
-            ColoredConsole.WriteLine($"[$green^DEV$r^] Loaded ComponentRefs: $cyan^{_references.Count}$r^.");
-        }
+        //if (config.GetProperty<string>("SHOW_DEV_LOG") != string.Empty)
+        //{
+        //    ColoredConsole.WriteLine($"[$green^DEV$r^] Loaded Special Element Handlers: $cyan^{_handlers.Count}$r^ ($cyan^+1 including GeneralElementHandler$r^).");
+        //    ColoredConsole.WriteLine($"[$green^DEV$r^] Loaded ComponentRefs: $cyan^{_references.Count}$r^.");
+        //}
     }
 
     public bool LexContentFromXml(BuilderContext context, string xmlFilePath)
     {
-        var config = Config.GetConfig();
         var xml = XDocument.Load(xmlFilePath);
         if (xml.Root is null)
             return false;
@@ -84,12 +47,12 @@ public class Builder
                             GenerateAnonymousName("XML_");
 
         context.LocalId = localId;
-        if (config.GetProperty<string>("SHOW_DEV_LOG") != string.Empty)
-            ColoredConsole.WriteLine($"[$green^DEV$r^] XML: $cyan^{xmlFilePath}$r^, localId: $yellow^{localId}$r^");
+        //if (config.GetProperty<string>("SHOW_DEV_LOG") != string.Empty)
+        //    ColoredConsole.WriteLine($"[$green^DEV$r^] XML: $cyan^{xmlFilePath}$r^, localId: $yellow^{localId}$r^");
 
         if (Sheets.ContainsKey(localId))
         {
-            ColoredConsole.WriteLine($"[$red^ERROR$r^] Project already contains another XML sheet with the same scope id! ($yellow^{localId}$r^)");
+            //ColoredConsole.WriteLine($"[$red^ERROR$r^] Project already contains another XML sheet with the same scope id! ($yellow^{localId}$r^)");
             return false;
         }
 
@@ -97,11 +60,11 @@ public class Builder
         includes.ForEach(include =>
         {
             var includeStrings = include.Value.Split('\n',
-                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                StringSplitOptions.RemoveEmptyEntries);
             foreach (var includeValue in includeStrings)
             {
-                if (!context.Imports.Contains(includeValue))
-                    context.Imports.Add(includeValue);
+                if (!context.Imports.Contains(includeValue.Trim()))
+                    context.Imports.Add(includeValue.Trim());
             }
         });
 
@@ -109,11 +72,11 @@ public class Builder
         includedStylesheets.ForEach(includeScope =>
         {
             var includeStrings = includeScope.Value.Split('\n',
-                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                StringSplitOptions.RemoveEmptyEntries);
             foreach (var includeValue in includeStrings)
             {
-                if (!context.ImportedSheets.Contains(includeValue))
-                    context.ImportedSheets.Add(includeValue);
+                if (!context.ImportedSheets.Contains(includeValue.Trim()))
+                    context.ImportedSheets.Add(includeValue.Trim());
             }
         });
 
@@ -133,14 +96,14 @@ public class Builder
         _layouts.AddRange(localLayouts.Select( xElement => (xElement, context)));
         _styles.AddRange(localStyles.Select( xElement => (xElement, context)));
         
-        if (config.GetProperty<string>("SHOW_DEV_LOG") != string.Empty)
-            ColoredConsole.WriteLine($"[$green^DEV$r^] XML: $cyan^{xmlFilePath}$r^, layouts: $yellow^{localLayouts.Length}$r^, styles: $yellow^{localStyles.Length}$r^");
+        //if (config.GetProperty<string>("SHOW_DEV_LOG") != string.Empty)
+        //    ColoredConsole.WriteLine($"[$green^DEV$r^] XML: $cyan^{xmlFilePath}$r^, layouts: $yellow^{localLayouts.Length}$r^, styles: $yellow^{localStyles.Length}$r^");
         
         context.IsStylesheet = localLayouts.Length == 0 && localStyles.Length > 0;
         Sheets.Add(localId, context);
         
-        if (config.GetProperty<string>("SHOW_DEV_LOG") != string.Empty)
-            ColoredConsole.WriteLine($"[$green^DEV$r^] XML: $cyan^{xmlFilePath}$r^, isStylesheet: $yellow^{context.IsStylesheet}$r^");
+        //if (config.GetProperty<string>("SHOW_DEV_LOG") != string.Empty)
+        //    ColoredConsole.WriteLine($"[$green^DEV$r^] XML: $cyan^{xmlFilePath}$r^, isStylesheet: $yellow^{context.IsStylesheet}$r^");
 
         return true;
     }
@@ -148,7 +111,6 @@ public class Builder
     public void BuildContext()
     {
         // load external modules
-
 
         // process objects
         _styles.ForEach(style => ProcessStyle(style.Item1, style.Item2));
@@ -165,9 +127,9 @@ public class Builder
 
         var result = handler.EvaluateIntoCode(stringBuilder, depth, element, this, context, parent);
 
-        if (!result)
-            ColoredConsole.WriteLine(
-                $"[$cyan^{handler.GetType()}$r^] Handler returned an error while parsing an XElement.");
+        //if (!result)
+        //    ColoredConsole.WriteLine(
+        //        $"[$cyan^{handler.GetType()}$r^] Handler returned an error while parsing an XElement.");
     }
 
     private void ProcessSetter(StringBuilder stringBuilder, int depth, XElement element)
@@ -176,21 +138,21 @@ public class Builder
         var target = element.Parent?.Attribute("Target")?.Value;
         if (property is null)
         {
-            ColoredConsole.WriteLine(
-                $"[$cyan^Style.Setter$r^] [$red^WARN$r^] Setter does not have a 'Name' or 'Property' attribute.");
+            //ColoredConsole.WriteLine(
+            //    $"[$cyan^Style.Setter$r^] [$red^WARN$r^] Setter does not have a 'Name' or 'Property' attribute.");
             return;
         }
         if (target is null)
         {
-            ColoredConsole.WriteLine(
-                $"[$cyan^Style.Setter$r^] [$red^WARN$r^] Style parent does not have a 'Target' attribute.");
+            //ColoredConsole.WriteLine(
+            //    $"[$cyan^Style.Setter$r^] [$red^WARN$r^] Style parent does not have a 'Target' attribute.");
             return;
         }
 
         var rawValue = element.Attribute("Value")?.Value ?? element.Value;
-        var componentRef = ComponentReferences.FirstOrDefault(c => c?.ComponentName == target, null);
-        var type = componentRef?.GetType(property, out _) ?? Helper.GetRecommendedDataType(this, property, out _);
-        var value = Helper.ParseHintedString(rawValue, string.Empty, type);
+        var componentRef = ComponentReferences.FirstOrDefault(c => c?.ComponentName == target);
+        var type = componentRef?.GetType(property, out _) ?? TypeHelper.GetRecommendedDataType(property, out _);
+        var value = TypeHelper.ParseHintedString(rawValue, string.Empty, type);
 
         stringBuilder.AppendIndented(depth, $"AddSetter(\"{property}\", {value});\n");
     }
@@ -199,6 +161,20 @@ public class Builder
     {
         const string defaultPrefix = "AnonymousComponent_";
         return $"{prefix ?? defaultPrefix}{DateTime.Now.Ticks}";
+    }
+
+    public bool IsComponentFromNamespace(string componentType, string namespacePart)
+    {
+        return _references.Any(
+            reference =>
+                string.Equals(componentType, reference.ComponentName) &&
+                string.Equals(namespacePart, reference.Namespace)
+            );
+    }
+
+    public int CountReferences()
+    {
+        return _references.Count;
     }
 
     private void ProcessLayout(XElement layoutElement, BuilderContext context)
@@ -237,11 +213,11 @@ public class Builder
         }
 
         // specified styles
-        const StringSplitOptions options = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
+        const StringSplitOptions options = StringSplitOptions.RemoveEmptyEntries;
         foreach (var styleName in styles.Split(';', options))
         {
             var queueStyle =
-                $"QueueStyle(this, styles.FetchStyle(\"{styleName}\", \"{context.LocalId}{importedSheets}\"));\n";
+                $"QueueStyle(this, styles.FetchStyle(\"{styleName.Trim()}\", \"{context.LocalId}{importedSheets}\"));\n";
             stringBuilder.AppendIndented(3, queueStyle);
         }
 
@@ -336,40 +312,38 @@ public class Builder
 
     private void RegisterReferences()
     {
-        var asmContext = AssemblyLoadContext.Default;
         var modulesDir = Path.Join(Environment.CurrentDirectory, ".modules");
         var externalAssemblies = new List<Assembly>();
 
         if (Directory.Exists(modulesDir))
         {
-            ColoredConsole.Debug("[$green^DEV$rs^] Loading external assemblies from '.modules'...");
+            //ColoredConsole.Debug("[$green^DEV$rs^] Loading external assemblies from '.modules'...");
             var dllFiles = new DirectoryInfo(modulesDir).EnumerateFiles("*.dll");
             externalAssemblies.AddRange(
                 dllFiles.Select(
                     dll =>
                     {
-                        ColoredConsole.Debug($"[$green^DEV$rs^] Loading file {dll.FullName}...");
+                        //ColoredConsole.Debug($"[$green^DEV$rs^] Loading file {dll.FullName}...");
                         return Assembly.Load(File.ReadAllBytes(dll.FullName));
                     })
             );
         }
         
-        ColoredConsole.Debug($"[$green^DEV$rs^] Loading IComponentRefs...");
-        var interfaceType = typeof(IComponentRef);
-        var references = AppDomain.CurrentDomain.GetAssemblies()
+        //ColoredConsole.Debug($"[$green^DEV$rs^] Loading Components...");
+        var componentType = typeof(Component);
+        var components = AppDomain.CurrentDomain.GetAssemblies()
             .Union(externalAssemblies)
             .SelectMany(assembly => assembly.GetLoadableTypes())
             .Where(x => x is not null
-                        && x != interfaceType
-                        && x.IsAssignableTo(interfaceType)
+                        && x != componentType
+                        && x.IsAssignableTo(componentType)
                         && x != typeof(object))
             .ToList();
 
-        references.ForEach(handler =>
+        components.ForEach(component =>
         {
-            var constructor = handler?.GetConstructor(Array.Empty<Type>());
-
-            RegisterReference(constructor);
+            if (component is not null)
+                _references.Add(GenerateReference(component));
         });
 
 
@@ -380,20 +354,71 @@ public class Builder
         var instance = handlerConstructor?.Invoke(Array.Empty<object>());
         if (handlerName is not null && instance is not null)
             _handlers[handlerName] = (IElementHandler)instance;
-        else
-            ColoredConsole.WriteLine(
-                $"[$cyan^Builder.RegisterHandler()$r^] Could not load element handler \"{handlerConstructor?.Name}\".");
+        //else
+        //    ColoredConsole.WriteLine(
+        //        $"[$cyan^Builder.RegisterHandler()$r^] Could not load element handler \"{handlerConstructor?.Name}\".");
     }
 
-    private void RegisterReference(ConstructorInfo? referenceConstructor)
+    private static ComponentRef GenerateReference(Type component)
     {
-        var instance = referenceConstructor?.Invoke(Array.Empty<object>());
-        var name = referenceConstructor?.ReflectedType?.FullName ?? "n/a";
-        ColoredConsole.Debug($"[$green^DEV$rs^] Loading IComponentRef \"{name}\"...");
-        if (instance is not null)
-            _references.Add((IComponentRef)instance);
-        else
-            ColoredConsole.WriteLine(
-                $"[$cyan^Builder.RegisterReference()$r^] Could not load IComponentRef \"{name}\".");
+        var properties = component.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
+
+        var componentRef = new ComponentRef
+        {
+            ComponentName = component.Name,
+            Namespace = component.Namespace ?? "Cerulean.App"
+        };
+        //ColoredConsole.Debug($"Generating reference for {component.FullName}...");
+        foreach (var property in properties)
+        {
+            var propName = property.Name;
+            var propType = RemoveNullableType(property.PropertyType.FullName);
+            if (property.PropertyType.IsEnum)
+            {
+                propType = $"enum<{propType}>";
+            }
+
+            if (property.PropertyType.IsPrimitive || propType is "System.String")
+            {
+                propType = propType switch
+                {
+                    "System.Boolean" => "bool",
+                    "System.Char" => "char",
+                    "System.Byte" => "byte",
+                    "System.Int16" => "short",
+                    "System.UInt16" => "ushort",
+                    "System.Int32" => "int",
+                    "System.UInt32" => "uint",
+                    "System.Int64" => "long",
+                    "System.UInt64" => "ulong",
+                    "System.String" => "string",
+                    "System.Single" => "float",
+                    "System.Double" => "double",
+                    "System.Decimal" => "decimal",
+                    _ => propType
+                };
+            }
+            var componentTypeAttribute = property.GetCustomAttribute<ComponentTypeAttribute>();
+            if (componentTypeAttribute is not null)
+            {
+                propType = $"component<{componentTypeAttribute.TypeHint}>" +
+                           (componentTypeAttribute.IsLateBound ? "*" : "");
+            }
+            if (propType is null)
+            {
+                //ColoredConsole.Debug($"Component {component.Name}.{propName} has no type!");
+                continue;
+            }
+            componentRef.AddType(propName, propType);
+        }
+
+        return componentRef;
+    }
+    
+    public static string? RemoveNullableType(string? nullableTypeString)
+    {
+        if (nullableTypeString == null) return null;
+        var match = Regex.Match(nullableTypeString, "^System.Nullable`1\\[\\[(.+), (.+), (.+), (.+), (.+)\\]\\]$");
+        return match.Success ? match.Groups[1].Value : nullableTypeString;
     }
 }

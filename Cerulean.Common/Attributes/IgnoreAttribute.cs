@@ -1,4 +1,4 @@
-﻿namespace Cerulean.CLI.Attributes;
+﻿namespace Cerulean.Common;
 
 [AttributeUsage(AttributeTargets.Class)]
 public class IgnoreAttribute : Attribute

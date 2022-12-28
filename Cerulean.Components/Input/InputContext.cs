@@ -24,6 +24,7 @@ namespace Cerulean.Components
 
         private Button? _submitButton;
 
+        [ComponentType("Cerulean.Component.Button")]
         public Button? SubmitButton
         {
             get => _submitButton;

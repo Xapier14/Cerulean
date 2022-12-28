@@ -1,6 +1,6 @@
-﻿using System.Diagnostics;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Text;
+using Cerulean.Common;
 using Cerulean.CLI.Attributes;
 
 namespace Cerulean.CLI.Commands;

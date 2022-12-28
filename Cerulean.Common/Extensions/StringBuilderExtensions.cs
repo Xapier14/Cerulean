@@ -1,8 +1,8 @@
 ﻿using System.Text;
 
-namespace Cerulean.CLI.Extensions;
+namespace Cerulean.Common;
 
-internal static class StringBuilderExtensions
+public static class StringBuilderExtensions
 {
     public static void AppendIndented(this StringBuilder stringBuilder, int indent, string text)
     {

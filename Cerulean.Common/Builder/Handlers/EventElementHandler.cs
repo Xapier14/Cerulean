@@ -1,9 +1,7 @@
 ﻿using System.Text;
 using System.Xml.Linq;
-using Cerulean.CLI.Attributes;
-using Cerulean.CLI.Extensions;
 
-namespace Cerulean.CLI;
+namespace Cerulean.Common;
 
 [ElementType("Event")]
 internal class EventElementHandler : IElementHandler

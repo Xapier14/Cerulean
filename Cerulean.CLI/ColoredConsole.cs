@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Cerulean.Common;
 
 namespace Cerulean.CLI;
 

@@ -1,8 +1,8 @@
 ﻿using System.Reflection;
 
-namespace Cerulean.CLI.Extensions;
+namespace Cerulean.Common;
 
-internal static class AssemblyExtensions
+public static class AssemblyExtensions
 {
     public static IEnumerable<Type?> GetLoadableTypes(this Assembly assembly)
     {

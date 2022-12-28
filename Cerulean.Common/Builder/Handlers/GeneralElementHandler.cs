@@ -1,9 +1,7 @@
 ﻿using System.Text;
 using System.Xml.Linq;
-using Cerulean.CLI.Attributes;
-using Cerulean.CLI.Extensions;
 
-namespace Cerulean.CLI;
+namespace Cerulean.Common;
 
 /// <summary>
 ///     A general component parser.
@@ -22,15 +20,15 @@ internal class GeneralElementHandler : IElementHandler
         var namespaceCandidate = context.Imports
             .Select(ns => $"{ns}{namespacePart}")
             .Concat(context.Imports)
-            .FirstOrDefault(ns => Helper.IsComponentFromNamespace(elementType, ns));
+            .FirstOrDefault(ns => builder.IsComponentFromNamespace(elementType, ns));
 
         if (namespaceCandidate == null)
         {
-            ColoredConsole.WriteLine($"[$yellow^WARNING$r^] Component '{localName}' is not found on any ComponentRefs, ignoring component...");
+            //ColoredConsole.WriteLine($"[$yellow^WARNING$r^] Component '{localName}' is not found on any ComponentRefs, ignoring component...");
             return false;
         }
-        if (config.GetProperty<string>("SHOW_DEV_LOG") != string.Empty)
-            ColoredConsole.WriteLine($"[$green^DEV$r^] Found namespace candidate for component $yellow^{localName}$r^. Namespace: $yellow^{namespaceCandidate}$r^");
+        //if (config.GetProperty<string>("SHOW_DEV_LOG") != string.Empty)
+        //    ColoredConsole.WriteLine($"[$green^DEV$r^] Found namespace candidate for component $yellow^{localName}$r^. Namespace: $yellow^{namespaceCandidate}$r^");
 
         var elementName = element.Attribute("Name")?.Value ?? Builder.GenerateAnonymousName();
         var parentPrefix = parent != string.Empty ? parent + "." : string.Empty;
@@ -62,9 +60,9 @@ internal class GeneralElementHandler : IElementHandler
         {
             var propName = prop.propName;
             var propValue = prop.propValue;
-            var componentRef = builder.ComponentReferences.FirstOrDefault(c => c?.ComponentName == elementType, null);
-            var recommendedDataType = componentRef?.GetType(propName, out lateBound) ?? Helper.GetRecommendedDataType(builder, propName, out lateBound);
-            var finalPropValue = Helper.ParseHintedString(propValue, parent != string.Empty ? $"{parent}." : "", recommendedDataType, lateBound ? $"{elementName}." : string.Empty);
+            var componentRef = builder.ComponentReferences.FirstOrDefault(c => c?.ComponentName == elementType);
+            var recommendedDataType = componentRef?.GetType(propName, out lateBound) ?? TypeHelper.GetRecommendedDataType(propName, out lateBound);
+            var finalPropValue = TypeHelper.ParseHintedString(propValue, parent != string.Empty ? $"{parent}." : "", recommendedDataType, lateBound ? $"{elementName}." : string.Empty);
             if (!lateBound)
                 return $"{propName} = {finalPropValue},";
 
@@ -110,11 +108,11 @@ internal class GeneralElementHandler : IElementHandler
             stringBuilder.AppendIndented(indentDepth, queueStyle);
         }
         // local styles
-        const StringSplitOptions options = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
+        const StringSplitOptions options = StringSplitOptions.RemoveEmptyEntries;
         foreach (var styleName in styles.Split(';', options))
         {
             var queueStyle =
-                $"QueueStyle({parentPrefix}GetChild(\"{elementName}\"), styles.FetchStyle(\"{styleName}\", \"{context.LocalId}{importedSheets}\"));\n";
+                $"QueueStyle({parentPrefix}GetChild(\"{elementName}\"), styles.FetchStyle(\"{styleName.Trim()}\", \"{context.LocalId}{importedSheets}\"));\n";
             stringBuilder.AppendIndented(indentDepth, queueStyle);
         }
 
@@ -122,7 +120,7 @@ internal class GeneralElementHandler : IElementHandler
         foreach (var attribute in elementAttributes)
         {
             var name = attribute.Name.LocalName;
-            var value = Helper.ParseHintedString(attribute.Value, parent);
+            var value = TypeHelper.ParseHintedString(attribute.Value, parent);
             var attributeString =
                 $"(({elementType}){parentPrefix}GetChild(\"{elementName}\").AddOrUpdateAttribute(\"{name}\", \"{value}\"));\n";
             stringBuilder.AppendIndented(indentDepth, attributeString);

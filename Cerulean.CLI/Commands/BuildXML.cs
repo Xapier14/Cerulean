@@ -1,4 +1,5 @@
-﻿using Cerulean.CLI.Attributes;
+﻿using Cerulean.Common;
+using Cerulean.CLI.Attributes;
 using Cerulean.CLI.Extensions;
 
 namespace Cerulean.CLI.Commands;

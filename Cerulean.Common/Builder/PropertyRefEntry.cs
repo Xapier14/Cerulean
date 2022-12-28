@@ -1,15 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Cerulean.Common
+﻿namespace Cerulean.Common
 {
     public class PropertyRefEntry
     {
-        public string PropertyName { get; private init; } = string.Empty;
-        public string PropertyType { get; private init; } = string.Empty;
+        public string PropertyName { get; private set; } = string.Empty;
+        public string PropertyType { get; private set; } = string.Empty;
+
+        public static PropertyRefEntry CreateEntry(string propertyName, string propertyType)
+        {
+            var ret = new PropertyRefEntry
+            {
+                PropertyName = propertyName.Trim(),
+                PropertyType = propertyType.Trim()
+            };
+
+            return ret;
+        }
 
         public static IEnumerable<PropertyRefEntry> GenerateEntriesFromTuples(IEnumerable<(string, string)> tuples)
         {

@@ -1,16 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Cerulean.Common
+﻿namespace Cerulean.Common
 {
-    public interface IComponentRef
+    public class ComponentRef
     {
-        public string ComponentName { get; init; }
-        public string Namespace { get; init; }
-        public IEnumerable<PropertyRefEntry> Properties { get; init; }
+        private readonly List<PropertyRefEntry> _properties = new List<PropertyRefEntry>();
+        public string ComponentName { get; init; } = "";
+        public string Namespace { get; init; } = "";
+        public IReadOnlyList<PropertyRefEntry> Properties => _properties;
+
+        internal void AddType(string propertyName, string type)
+        {
+            _properties.Add(PropertyRefEntry.CreateEntry(propertyName, type));
+        }
 
         public string? GetType(string propertyName, out bool needsLateBind)
         {

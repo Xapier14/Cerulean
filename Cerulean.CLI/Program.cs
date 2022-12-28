@@ -1,5 +1,6 @@
-﻿using System.Text;
-using Cerulean.CLI;
+﻿using Cerulean.CLI;
+using Cerulean.CLI.Extensions;
+using Cerulean.Common;
 
 var config = Config.GetConfig();
 var router = Router.GetRouter();

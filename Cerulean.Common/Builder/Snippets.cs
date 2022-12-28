@@ -1,28 +1,11 @@
 ﻿using System.Diagnostics;
 using System.Reflection;
 using System.Text;
-using Cerulean.CLI.Extensions;
 
-namespace Cerulean.CLI;
+namespace Cerulean.Common;
 
 internal static class Snippets
 {
-    public static readonly string VersionString = InitializeVersionString();
-
-    private static string InitializeVersionString()
-    {
-        try
-        {
-            var executingAssembly = Assembly.GetExecutingAssembly();
-            var fileVersionInfo = FileVersionInfo.GetVersionInfo(executingAssembly.Location);
-            return fileVersionInfo.FileVersion ?? string.Empty;
-        }
-        catch (Exception)
-        {
-            // ignore when fail, use empty string instead.
-            return string.Empty;
-        }
-    }
 
     public static void WriteClassHeader(StringBuilder stringBuilder, string className,
         IEnumerable<string> importStrings, IDictionary<string, string> aliasStrings, string? parent = null, bool isPartial = true,
@@ -35,7 +18,7 @@ internal static class Snippets
         stringBuilder.AppendLine(
             "#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.");
         stringBuilder.AppendLine("#pragma warning disable CS8602 // Dereference of a possibly null reference.");
-        stringBuilder.AppendLine("// Generated with Cerulean.CLI " + VersionString);
+        stringBuilder.AppendLine("// Generated with Cerulean.CLI");
         stringBuilder.AppendLine("namespace Cerulean.App");
         stringBuilder.AppendLine("{");
         if (attributes != null)

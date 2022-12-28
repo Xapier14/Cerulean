@@ -14,6 +14,10 @@ namespace Cerulean.Media
         [LateBound]
         public Color BackgroundColor { get; set; }
 
+        public int TestProp { get; set; }
+
+        public float TestFloat { get; set; }
+
         public override void Init()
         {
             ClearCanvas();

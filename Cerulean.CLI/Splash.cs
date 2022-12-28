@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Cerulean.Common;
 
 namespace Cerulean.CLI;
 

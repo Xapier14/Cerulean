@@ -48,6 +48,7 @@ internal static class Helper
             $"$red^Command aborted because of an error with {command}. (Exit Code: {process.ExitCode})$r^");
         return true;
     }
+
     public static bool CheckProjectExists(string projectPath)
     {
         var projectPathInfo = new DirectoryInfo(projectPath);
@@ -55,12 +56,14 @@ internal static class Helper
             .EnumerateFiles()
             .Any(fileInfo => string.Equals(fileInfo.Extension, ".csproj", StringComparison.OrdinalIgnoreCase));
     }
+
     public static string GetProjectFileInDirectory(string directory)
     {
         var dirInfo = new DirectoryInfo(directory);
 
         return dirInfo.EnumerateFiles("*.csproj").First().FullName;
     }
+
     public static string GetXMLNetVersion(string csprojFile)
     {
         var xml = XDocument.Load(csprojFile);
@@ -70,6 +73,7 @@ internal static class Helper
 
         return propGroup.Element("TargetFramework")!.Value;
     }
+
     public static IEnumerable<(string, string)> GetAllCommandInfo()
     {
         var interfaceType = typeof(ICommand);
@@ -122,22 +126,6 @@ internal static class Helper
                         && x.IsAssignableTo(interfaceType)
                         && x != typeof(object));
         return implementations.Count();
-    }
-
-    public static bool IsComponentFromNamespace(string componentType, string namespacePart)
-    {
-        var interfaceType = typeof(IComponentRef);
-        var implementations = AppDomain.CurrentDomain
-            .GetAssemblies()
-            .SelectMany(assembly => assembly.GetLoadableTypes())
-            .Where(x => x is not null
-                                 && x != interfaceType
-                                 && x.IsAssignableTo(interfaceType)
-                                 && x != typeof(object));
-        return implementations
-            .Select(implementation => (IComponentRef?)implementation?.GetConstructor(Array.Empty<Type>())?.Invoke(null))
-            .Any(componentRef => componentRef?.ComponentName == componentType
-                                 && componentRef?.Namespace == namespacePart);
     }
 
     public static IEnumerable<string> WordWrap(string text, int lineWidth)
@@ -196,116 +184,6 @@ internal static class Helper
         major = int.Parse(match.Groups[1].Value);
         minor = int.Parse(match.Groups[2].Value);
         build = int.Parse(match.Groups[3].Value);
-    }
-
-    public static string ParseNestedComponentName(string nestedName, string root)
-    {
-        StringBuilder component = new();
-        var nests = nestedName.Split('.');
-        component.Append(root).Append("GetChild(\"").Append(nests[0]).Append("\")");
-        for (var i = 1; i < nests.Length; i++) component.Append(".GetChild(\"").Append(nests[i]).Append("\")");
-        return component.ToString();
-    }
-
-    public static string EscapeString(string sourceString)
-    {
-        return sourceString
-            .Replace("\\", "\\\\")
-            .Replace("\"", "\\\"");
-    }
-
-    public static string ParseHintedString(string hintedString, string root,
-        string? overrideType = null, string componentPrefix = "")
-    {
-        // hinted value pattern ([name]="[type]: [value]")
-        var regex = Regex.Match(hintedString, @"^(\w+):\s?(.+)$");
-        var value = hintedString;
-
-        // attribute value-part has datatype hint
-        if (!regex.Success && overrideType is null) return value;
-        var type = overrideType ?? regex.Groups[1].ToString().ToLower();
-        var raw = overrideType is null ? regex.Groups[2].ToString() : hintedString;
-        string? specificComponent = null;
-        string? enumFamily = null;
-        var componentRegex = Regex.Match(type, @"^component<(\D[\w\d]*)>$");
-        var enumRegex = Regex.Match(type, @"^enum<(\D[\w\d]*)>$");
-        if (componentRegex.Success)
-        {
-            specificComponent = componentRegex.Groups[1].ToString();
-            type = "component";
-        }
-        if (enumRegex.Success)
-        {
-            enumFamily = enumRegex.Groups[1].ToString();
-            type = "enum";
-        }
-        try
-        {
-            value = type switch
-            {
-                "bool" => $"{bool.Parse(raw)}",
-                "byte" => $"{byte.Parse(raw)}",
-                "char" => $"'{(raw[0] == '\'' ? "\'" : raw[0])}'",
-                "short" => $"{short.Parse(raw)}",
-                "ushort" => $"{ushort.Parse(raw)}",
-                "int" => $"{int.Parse(raw)}",
-                "uint" => $"{uint.Parse(raw)}",
-                "long" => $"{long.Parse(raw)}",
-                "ulong" => $"{ulong.Parse(raw)}",
-                "float" => $"{float.Parse(raw)}",
-                "double" => $"{double.Parse(raw)}",
-                "string" => $"\"{EscapeString(raw)}\"",
-                "component" => $"{(specificComponent != null ? $"({specificComponent})" : "")}{ParseNestedComponentName(componentPrefix + raw, root)}",
-                "Cerulean.Common.Color" => $"new Cerulean.Common.Color(\"{raw}\")",
-                "Cerulean.Common.Size" => $"new Cerulean.Common.Size({raw})",
-                "literal" => value,
-                "enum" => $"{enumFamily}.{raw}",
-                _ => "null"
-            };
-            switch (value)
-            {
-                case "null":
-                    ColoredConsole.WriteLine(
-                        $"[$yellow^WARN$r^][$yellow^COMPONENT$r^] Type '{type}' for attribute '{hintedString}' not recognized, using null instead.");
-                    break;
-                case "Colors.None" when type == "color":
-                    ColoredConsole.WriteLine(
-                        $"[$yellow^WARN$r^][$yellow^COMPONENT$r^] Color '{hintedString}' not parsed correctly, using Colors.None instead.");
-                    break;
-            }
-        }
-        catch (Exception ex)
-        {
-            ColoredConsole.WriteLine(
-                $"[$yellow^WARN$r^][$yellow^COMPONENT$r^] Could not cast type '{type}' for attribute '{hintedString}': {raw}, using null instead. {ex.Message}");
-            value = "null";
-        }
-
-        return value;
-    }
-
-    public static string? GetRecommendedDataType(Builder builder, string propertyName, out bool needsLateBind)
-    {
-        var type = propertyName switch
-        {
-            "GridRow" => "int",
-            "GridColumn" => "int",
-            "GridRowSpan" => "int",
-            "GridColumnSpan" => "int",
-            "X" => "int",
-            "Y" => "int",
-            _ => null
-        };
-        Match? lateBindRegex = null;
-        if (type != null)
-        {
-            lateBindRegex = Regex.Match(type, @"^([\D\S].*)\*$");
-            if (lateBindRegex.Success)
-                type = lateBindRegex.Groups[1].ToString();
-        }
-        needsLateBind = lateBindRegex?.Success ?? false;
-
-        return type;
     }
 
     public static T? GetJsonAsObject<T>(string url) where T : class

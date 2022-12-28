@@ -1,7 +1,6 @@
 ﻿using System.Reflection;
-using System.Text;
+using Cerulean.Common;
 using Cerulean.CLI.Attributes;
-using Cerulean.CLI.Extensions;
 
 namespace Cerulean.CLI;
 

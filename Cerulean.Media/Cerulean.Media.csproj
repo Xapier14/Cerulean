@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Cerulean.Analyzer\Cerulean.Analyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\Cerulean.Common\Cerulean.Common.csproj" />
   </ItemGroup>
 

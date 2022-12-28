@@ -1,9 +1,7 @@
 ﻿using System.Text;
 using System.Xml.Linq;
-using Cerulean.CLI.Attributes;
-using Cerulean.CLI.Extensions;
 
-namespace Cerulean.CLI;
+namespace Cerulean.Common;
 
 [ElementType("Invoke")]
 internal class InvokeElementHandler : IElementHandler
@@ -13,7 +11,7 @@ internal class InvokeElementHandler : IElementHandler
     {
         var method = element.Attribute("Method")?.Value;
         var args = element.Attribute("Args")?.Value ?? string.Empty;
-        args = Helper.ParseHintedString(args, parent);
+        args = TypeHelper.ParseHintedString(args, parent);
         var parentType = element.Parent?.Name.LocalName;
         var targetComponent = element.Attribute("Target")?.Value;
         var componentType = element.Attribute("Type")?.Value;

@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using System.Xml.Linq;
 
-namespace Cerulean.CLI;
+namespace Cerulean.Common;
 
 public interface IElementHandler
 {
