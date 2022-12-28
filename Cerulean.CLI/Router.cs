@@ -1,7 +1,6 @@
 ﻿using System.Reflection;
-using System.Text;
+using Cerulean.Common;
 using Cerulean.CLI.Attributes;
-using Cerulean.CLI.Extensions;
 
 namespace Cerulean.CLI;
 
@@ -11,6 +10,8 @@ internal class Router
 
     private readonly IDictionary<string, (object, MethodInfo)> _commands =
         new Dictionary<string, (object, MethodInfo)>();
+
+    private readonly IDictionary<string, string> _aliases = new Dictionary<string, string>();
 
     private Router() { }
 
@@ -37,9 +38,19 @@ internal class Router
                 continue;
 
             string? commandName = null;
+            var aliases = Array.Empty<string>();
             foreach (var attribute in attributes)
-                if (attribute is CommandNameAttribute nameAttribute)
-                    commandName = nameAttribute.CommandName;
+            {
+                switch (attribute)
+                {
+                    case CommandNameAttribute nameAttribute:
+                        commandName = nameAttribute.CommandName;
+                        break;
+                    case CommandAliasAttribute aliasAttribute:
+                        aliases = aliasAttribute.Aliases;
+                        break;
+                }
+            }
             var method = command?.GetMethod("DoAction");
             var instance = command?.GetConstructor(Array.Empty<Type>())?.Invoke(null);
             if (commandName is not null
@@ -49,14 +60,23 @@ internal class Router
                 _commands[commandName] = (instance, method);
             }
             else
+            {
                 ColoredConsole.WriteLine(
                     $"[$cyan^Router.RegisterCommands()$r^] Could not load command \"{command?.Name}\".");
+                continue;
+            }
+
+            foreach (var alias in aliases)
+            {
+                _aliases.Add(alias, commandName);
+            }
         }
     }
 
     public bool ExecuteCommand(string commandName, params string[] argsRaw)
     {
-        if (!_commands.TryGetValue(commandName, out var command))
+        _aliases.TryGetValue(commandName, out var commandFromAlias);
+        if (!_commands.TryGetValue(commandFromAlias ?? commandName, out var command))
             return false;
         var (instance, method) = command;
         ParseArguments(argsRaw, out var args, out var flags, out var options);

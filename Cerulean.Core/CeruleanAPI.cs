@@ -28,6 +28,7 @@ namespace Cerulean.Core
 
         private readonly Thread _thread;
         private readonly ConcurrentDictionary<uint, Window> _windows;
+        private readonly ConcurrentBag<Window> _modals;
         private readonly ConcurrentQueue<WorkItem> _workItems;
 
         private ILoggingService? _logger;
@@ -250,8 +251,9 @@ namespace Cerulean.Core
         /// </summary>
         private CeruleanAPI()
         {
-            _thread = new Thread(new ThreadStart(WorkerThread));
+            _thread = new Thread(WorkerThread);
             _windows = new ConcurrentDictionary<uint, Window>();
+            _modals = new ConcurrentBag<Window>();
             _workItems = new ConcurrentQueue<WorkItem>();
             EmbeddedLayouts = new EmbeddedLayouts();
             EmbeddedResources = new EmbeddedResources();
@@ -374,7 +376,8 @@ namespace Cerulean.Core
                         window.GraphicsContext?.SetGlobalPosition(0, 0);
 
                         // update window
-                        window.Layout.Update(window, clientArea);
+                        if (_modals.IsEmpty || _modals.Contains(window))
+                            window.Layout.Update(window, clientArea);
 
                         // draw window
                         if (window.IsFlaggedForRedraw || window.AlwaysRedraw)
@@ -612,6 +615,23 @@ namespace Cerulean.Core
             return CreateWindow(FetchLayout(windowLayoutName), windowTitle, windowSize, initialize);
         }
 
+        
+
+        public Window CreateDialogModal(Layout layout, string windowTitle, Size? size = null)
+        {
+            var windowSize = size ?? new Size(400, 300);
+            var window = CreateWindow(layout, windowTitle, windowSize, false);
+            window.IsModalWindow = true;
+            DoOnThread((args) =>
+            {
+                var newWindow = (Window)args[0];
+                newWindow.Initialize();
+                var windowId = SDL_GetWindowID(newWindow.WindowPtr);
+                _windows.TryAdd(windowId, newWindow);
+            }, window);
+            return window;
+        }
+
         /// <summary>
         /// Closes an open window.
         /// </summary>
@@ -654,7 +674,10 @@ namespace Cerulean.Core
                     args[0] is not Window { IsInitialized: false } window)
                     return;
                 window.Initialize();
-                _windows.TryAdd(SDL_GetWindowID(window.WindowPtr), window);
+                var windowId = SDL_GetWindowID(window.WindowPtr);
+                _windows.TryAdd(windowId, window);
+                if (apiWindow.IsModal)
+                    _modals.Add(apiWindow);
             }, apiWindow);
         }
 

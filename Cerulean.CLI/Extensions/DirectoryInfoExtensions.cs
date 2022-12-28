@@ -7,7 +7,7 @@ internal static class DirectoryInfoExtensions
         List<FileInfo> files = new();
         foreach (var subDir in directoryInfo.GetDirectories())
         {
-            if (subDir.Name.ToLower() == "cerulean")
+            if (string.Equals(subDir.Name, "cerulean", StringComparison.OrdinalIgnoreCase))
                 continue;
             files.AddRange(subDir.GetAllFiles());
         }

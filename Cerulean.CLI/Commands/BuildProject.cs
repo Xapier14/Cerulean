@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
+﻿using Cerulean.Common;
 using Cerulean.CLI.Attributes;
 
 namespace Cerulean.CLI.Commands
 {
     [CommandName("build")]
+    [CommandAlias("compile", "b")]
     [CommandDescription("Build a debug configuration of the cerulean project.")]
     public class BuildProject : ICommand
     {
@@ -76,7 +71,12 @@ namespace Cerulean.CLI.Commands
 
             // Bundle dependencies if not found
             ColoredConsole.WriteLine("$yellow^[CRN]$r^ Assessing dependencies...");
-            Router.GetRouter().ExecuteCommand("bundle", projectPath, "-arch", arch, "-os", os, "-config", netConfig, "-nv", netVersion);
+            Router.GetRouter().ExecuteCommand("bundle", 
+                projectPath, 
+                "-arch", arch, 
+                "-os", os,
+                "-config", netConfig,
+                "-nv", netVersion);
 
             Console.WriteLine();
             ColoredConsole.WriteLine("$green^Cerulean project built successfully!$r^");

@@ -1,8 +1,10 @@
 ﻿using Cerulean.CLI.Attributes;
+using Cerulean.Common;
 
 namespace Cerulean.CLI.Commands;
 
 [CommandName("help")]
+[CommandAlias("h", "?")]
 [CommandDescription("Displays help information for all or specific commands.")]
 public class Help : ICommand
 {
@@ -29,11 +31,6 @@ public class Help : ICommand
             PrintCommandInfo(command, description);
     }
 
-    private static void PrintAvailableComponentRefs()
-    {
-        Console.WriteLine("Registered Component References: {0}", Helper.CountInterfaceImplementations(typeof(IComponentRef)));
-    }
-
     private static void PrintAvailableElementHandlers()
     {
         Console.WriteLine("Registered Element Handlers: {0}", Helper.CountInterfaceImplementations(typeof(IElementHandler)));
@@ -46,7 +43,6 @@ public class Help : ICommand
         Splash.DisplaySplash();
         PrintAllCommandInfo();
         Console.WriteLine();
-        PrintAvailableComponentRefs();
         PrintAvailableElementHandlers();
         return 0;
 

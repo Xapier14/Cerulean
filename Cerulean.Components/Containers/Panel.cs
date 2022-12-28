@@ -3,6 +3,7 @@ using Cerulean.Core;
 
 namespace Cerulean.Components
 {
+    [SkipAutoRefGeneration]
     public class Panel : Component, ISized
     {
         private Size? _size;

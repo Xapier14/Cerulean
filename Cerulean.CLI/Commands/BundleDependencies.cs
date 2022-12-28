@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO.Compression;
-using System.Linq;
-using System.Net;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO.Compression;
+using Cerulean.Common;
 using Cerulean.CLI.Attributes;
 using Cerulean.CLI.JsonStructure;
 
 namespace Cerulean.CLI.Commands
 {
     [CommandName("bundle")]
+    [CommandAlias("bdep", "bd")]
     [CommandDescription("Bundles needed dependencies for app runtime.")]
     internal class BundleDependencies : ICommand
     {
@@ -97,7 +92,7 @@ namespace Cerulean.CLI.Commands
             return cacheFolder.GetFiles("*.*", new EnumerationOptions
             {
                 RecurseSubdirectories = true
-            }).Where(fileInfo => fileInfo.Extension.ToLower() == ".dll");
+            }).Where(fileInfo => string.Equals(fileInfo.Extension, ".dll", StringComparison.OrdinalIgnoreCase));
         }
 
         private static void CopyFileInfosToTargetFolder(IEnumerable<FileInfo> files, string targetPath)

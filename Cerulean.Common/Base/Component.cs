@@ -232,15 +232,17 @@ namespace Cerulean.Common
             if (window is not null && !DisableTopLevelHooks)
                 CallHook(this, EventHook.BeforeUpdate, window, clientArea);
 
-            if (!CanBeParent) return;
-            foreach (var child in Children)
+            if (!CanBeParent)
             {
-                var childArea = new Size(clientArea.W - child.X, clientArea.H - child.Y);
-                if (window is not null)
-                    CallHook(child, EventHook.BeforeChildUpdate, window, childArea);
-                child.Update(window, childArea);
-                if (window is not null)
-                    CallHook(child, EventHook.AfterChildUpdate, window, childArea);
+                foreach (var child in Children)
+                {
+                    var childArea = new Size(clientArea.W - child.X, clientArea.H - child.Y);
+                    if (window is not null)
+                        CallHook(child, EventHook.BeforeChildUpdate, window, childArea);
+                    child.Update(window, childArea);
+                    if (window is not null)
+                        CallHook(child, EventHook.AfterChildUpdate, window, childArea);
+                }
             }
 
             if (window is not null && !DisableTopLevelHooks)

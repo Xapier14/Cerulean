@@ -9,6 +9,7 @@ using Cerulean.Core;
 
 namespace Cerulean.Components
 {
+    [SkipAutoRefGeneration]
     public sealed class CheckBox : Component, ISized
     {
         #region SVG Strings

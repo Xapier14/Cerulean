@@ -5,6 +5,7 @@ using Cerulean.Core.Input;
 
 namespace Cerulean.Components
 {
+    [SkipAutoRefGeneration]
     public sealed class Pointer : Component
     {
         private int _x;

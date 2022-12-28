@@ -13,17 +13,18 @@ namespace Cerulean.Components
         public IEnumerable<object> Values { get; init; } = Array.Empty<object>();
         public int Length => Values.Count();
     }
+    [SkipAutoRefGeneration]
     public class InputContext : Component
     {
         private readonly IDictionary<string, List<object>> _valueMap = new Dictionary<string, List<object>>();
 
-        public delegate void InputGroupEventHandler(object sender, InputGroupEventArgs e);
-        public event InputGroupEventHandler? OnRadioGroupUpdate;
-        public event InputGroupEventHandler? OnCheckboxGroupUpdate;
-        public event Button.ButtonEventHandler? OnSubmit;
+        public event EventHandler<InputGroupEventArgs>? OnRadioGroupUpdate;
+        public event EventHandler<InputGroupEventArgs>? OnCheckboxGroupUpdate;
+        public event EventHandler<ButtonEventArgs>? OnSubmit;
 
         private Button? _submitButton;
 
+        [ComponentType("Cerulean.Component.Button")]
         public Button? SubmitButton
         {
             get => _submitButton;
@@ -63,7 +64,7 @@ namespace Cerulean.Components
             OnRadioGroupUpdate?.Invoke(this, new InputGroupEventArgs
             {
                 Group = group,
-                Values = new []{ value }
+                Values = new[] { value }
             });
         }
 
@@ -98,7 +99,7 @@ namespace Cerulean.Components
             var key = $"Checkbox_{group}";
             if (_valueMap.ContainsKey(key))
                 _valueMap[key].Clear();
-            foreach (var child in Children.Where( c => c is CheckBox cBox && cBox.InputGroup == group))
+            foreach (var child in Children.Where(c => c is CheckBox cBox && cBox.InputGroup == group))
             {
                 var checkBox = (CheckBox)child;
                 checkBox.Checked = false;

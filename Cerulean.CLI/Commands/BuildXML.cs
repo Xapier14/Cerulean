@@ -1,9 +1,11 @@
-﻿using Cerulean.CLI.Attributes;
+﻿using Cerulean.Common;
+using Cerulean.CLI.Attributes;
 using Cerulean.CLI.Extensions;
 
 namespace Cerulean.CLI.Commands;
 
 [CommandName("build-xml")]
+[CommandAlias("bxml", "bx")]
 [CommandDescription("Builds layouts and styles from CeruleanXMLs.")]
 public class BuildXml : ICommand
 {
@@ -47,8 +49,7 @@ public class BuildXml : ICommand
         DirectoryInfo dirInfo = new(projectPath);
         var xmlFiles = dirInfo.GetAllFiles()
             .Where(
-                fileInfo => fileInfo.Name.ToLower().EndsWith(fileExtension.ToLower())
-            )
+                fileInfo => fileInfo.Name.EndsWith(fileExtension, StringComparison.OrdinalIgnoreCase))
             .Select(fileInfo => fileInfo.FullName);
         var builder = new Builder();
         foreach (var file in xmlFiles)

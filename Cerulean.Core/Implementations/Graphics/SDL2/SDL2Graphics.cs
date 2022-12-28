@@ -191,6 +191,28 @@ namespace Cerulean.Core
         }
         #endregion
         #region PRIMITIVES
+        public void DrawPixel(int x, int y, Color color)
+        {
+            _ = SDL_GetRenderDrawColor(
+                RendererPtr,
+                out var r,
+                out var g,
+                out var b,
+                out var a);
+            _ = SDL_SetRenderDrawColor(
+                RendererPtr,
+                color.R,
+                color.G,
+                color.B,
+                color.A);
+            _ = SDL_RenderDrawPoint(RendererPtr, x, y);
+            _ = SDL_SetRenderDrawColor(
+                RendererPtr,
+                r,
+                g,
+                b,
+                a);
+        }
         public void DrawLine(int x1, int y1, int x2, int y2)
         {
             _ = SDL_RenderDrawLine(RendererPtr, x1, y1, x2, y2);

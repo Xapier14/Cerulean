@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Cerulean.Common;
 
 namespace Cerulean.CLI;
 
@@ -76,6 +77,12 @@ public static class ColoredConsole
         if (_disabled)
             return;
         Write(message + "\n");
+    }
+
+    public static void Debug(string message)
+    {
+        if (Config.GetConfig().GetProperty<string>("SHOW_DEV_LOG") != string.Empty)
+            WriteLine(message);
     }
 
     public static void Disable()

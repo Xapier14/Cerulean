@@ -3,6 +3,7 @@ using Cerulean.Core;
 
 namespace Cerulean.Components
 {
+    [SkipAutoRefGeneration]
     public class Grid : Component
     {
         private int[] _columns = { 0 };

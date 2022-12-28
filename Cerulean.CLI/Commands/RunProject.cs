@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Cerulean.Common;
 using Cerulean.CLI.Attributes;
 
 namespace Cerulean.CLI.Commands
 {
     [CommandName("run")]
+    [CommandAlias("r")]
     [CommandDescription("Builds XMLs and runs the cerulean project.")]
     internal class RunProject : ICommand
     {
