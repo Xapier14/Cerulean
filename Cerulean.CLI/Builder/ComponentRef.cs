@@ -1,13 +1,15 @@
-﻿namespace Cerulean.Common
+﻿using Cerulean.Common;
+
+namespace Cerulean.CLI
 {
-    public class ComponentRef
+    public class ComponentRef : IComponentRef
     {
-        private readonly List<PropertyRefEntry> _properties = new List<PropertyRefEntry>();
+        private readonly List<IPropertyRefEntry> _properties = new();
         public string ComponentName { get; init; } = "";
         public string Namespace { get; init; } = "";
-        public IReadOnlyList<PropertyRefEntry> Properties => _properties;
+        public IReadOnlyList<IPropertyRefEntry> Properties => _properties;
 
-        internal void AddType(string propertyName, string type)
+        public void AddType(string propertyName, string type)
         {
             _properties.Add(PropertyRefEntry.CreateEntry(propertyName, type));
         }

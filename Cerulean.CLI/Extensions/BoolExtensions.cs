@@ -1,4 +1,4 @@
-﻿namespace Cerulean.Common
+﻿namespace Cerulean.CLI
 {
     public static class BoolExtensions
     {

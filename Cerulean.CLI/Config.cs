@@ -1,5 +1,5 @@
 ﻿
-namespace Cerulean.Common
+namespace Cerulean.CLI
 {
     public class Config
     {

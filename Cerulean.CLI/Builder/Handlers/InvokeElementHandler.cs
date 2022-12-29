@@ -1,13 +1,14 @@
 ﻿using System.Text;
 using System.Xml.Linq;
+using Cerulean.Common;
 
-namespace Cerulean.Common;
+namespace Cerulean.CLI;
 
 [ElementType("Invoke")]
 internal class InvokeElementHandler : IElementHandler
 {
-    public bool EvaluateIntoCode(StringBuilder stringBuilder, int indentDepth, XElement element, Builder builder,
-        BuilderContext context, string parent = "")
+    public bool EvaluateIntoCode(StringBuilder stringBuilder, int indentDepth, XElement element, IBuilder builder,
+        IBuilderContext context, string parent = "")
     {
         var method = element.Attribute("Method")?.Value;
         var args = element.Attribute("Args")?.Value ?? string.Empty;

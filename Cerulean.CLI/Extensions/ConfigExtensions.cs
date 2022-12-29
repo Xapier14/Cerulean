@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Cerulean.Common;
 
-namespace Cerulean.CLI.Extensions
+namespace Cerulean.CLI
 {
     internal static class ConfigExtensions
     {

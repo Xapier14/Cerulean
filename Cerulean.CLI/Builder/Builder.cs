@@ -3,40 +3,42 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using Cerulean.Common;
 
-namespace Cerulean.Common;
+namespace Cerulean.CLI;
 
-public class Builder
+public class Builder : IBuilder
 {
     private readonly Dictionary<string, IElementHandler> _handlers;
+    private readonly List<(XElement, IBuilderContext)> _layouts;
+    private readonly List<(XElement, IBuilderContext)> _styles;
+    private readonly Dictionary<string, string> _exportedLayouts;
+    private readonly Dictionary<string, string> _exportedStyles;
+    private readonly Dictionary<string, IBuilderContext> _sheets;
     private readonly List<ComponentRef> _references;
-    private readonly List<(XElement, BuilderContext)> _layouts;
-    private readonly List<(XElement, BuilderContext)> _styles;
 
-    public IDictionary<string, string> ExportedLayouts { get; }
-    public IDictionary<string, string> ExportedStyles { get; }
-    public IDictionary<string, BuilderContext> Sheets { get; }
-    public IReadOnlyList<ComponentRef> ComponentReferences => _references;
+    public IReadOnlyDictionary<string, string> ExportedLayouts => _exportedLayouts;
+    public IReadOnlyDictionary<string, string> ExportedStyles => _exportedStyles;
+    public IReadOnlyDictionary<string, IBuilderContext> Sheets => _sheets;
+    public IReadOnlyList<IComponentRef> ComponentReferences => _references;
 
     public Builder()
     {
+        var config = Config.GetConfig();
         _handlers = new Dictionary<string, IElementHandler>();
         _references = new List<ComponentRef>();
-        _layouts = new List<(XElement, BuilderContext)>();
-        _styles = new List<(XElement, BuilderContext)>();
-        ExportedLayouts = new Dictionary<string, string>();
-        ExportedStyles = new Dictionary<string, string>();
-        Sheets = new Dictionary<string, BuilderContext>();
+        _layouts = new List<(XElement, IBuilderContext)>();
+        _styles = new List<(XElement, IBuilderContext)>();
+        _exportedLayouts = new Dictionary<string, string>();
+        _exportedStyles = new Dictionary<string, string>();
+        _sheets = new Dictionary<string, IBuilderContext>();
         RegisterHandlers();
         RegisterReferences();
-        //if (config.GetProperty<string>("SHOW_DEV_LOG") != string.Empty)
-        //{
-        //    ColoredConsole.WriteLine($"[$green^DEV$r^] Loaded Special Element Handlers: $cyan^{_handlers.Count}$r^ ($cyan^+1 including GeneralElementHandler$r^).");
-        //    ColoredConsole.WriteLine($"[$green^DEV$r^] Loaded ComponentRefs: $cyan^{_references.Count}$r^.");
-        //}
+        ColoredConsole.Debug($"[$green^DEV$r^] Loaded Special Element Handlers: $cyan^{_handlers.Count}$r^ ($cyan^+1 including GeneralElementHandler$r^).");
+        ColoredConsole.Debug($"[$green^DEV$r^] Loaded ComponentRefs: $cyan^{_references.Count}$r^.");
     }
 
-    public bool LexContentFromXml(BuilderContext context, string xmlFilePath)
+    public bool LexContentFromXml(IBuilderContext context, string xmlFilePath)
     {
         var xml = XDocument.Load(xmlFilePath);
         if (xml.Root is null)
@@ -47,12 +49,11 @@ public class Builder
                             GenerateAnonymousName("XML_");
 
         context.LocalId = localId;
-        //if (config.GetProperty<string>("SHOW_DEV_LOG") != string.Empty)
-        //    ColoredConsole.WriteLine($"[$green^DEV$r^] XML: $cyan^{xmlFilePath}$r^, localId: $yellow^{localId}$r^");
+        ColoredConsole.Debug($"[$green^DEV$r^] XML: $cyan^{xmlFilePath}$r^, localId: $yellow^{localId}$r^");
 
         if (Sheets.ContainsKey(localId))
         {
-            //ColoredConsole.WriteLine($"[$red^ERROR$r^] Project already contains another XML sheet with the same scope id! ($yellow^{localId}$r^)");
+            ColoredConsole.WriteLine($"[$red^ERROR$r^] Project already contains another XML sheet with the same scope id! ($yellow^{localId}$r^)");
             return false;
         }
 
@@ -96,28 +97,23 @@ public class Builder
         _layouts.AddRange(localLayouts.Select( xElement => (xElement, context)));
         _styles.AddRange(localStyles.Select( xElement => (xElement, context)));
         
-        //if (config.GetProperty<string>("SHOW_DEV_LOG") != string.Empty)
-        //    ColoredConsole.WriteLine($"[$green^DEV$r^] XML: $cyan^{xmlFilePath}$r^, layouts: $yellow^{localLayouts.Length}$r^, styles: $yellow^{localStyles.Length}$r^");
-        
+        ColoredConsole.Debug($"[$green^DEV$r^] XML: $cyan^{xmlFilePath}$r^, layouts: $yellow^{localLayouts.Length}$r^, styles: $yellow^{localStyles.Length}$r^");
+
         context.IsStylesheet = localLayouts.Length == 0 && localStyles.Length > 0;
-        Sheets.Add(localId, context);
+        _sheets.Add(localId, context);
         
-        //if (config.GetProperty<string>("SHOW_DEV_LOG") != string.Empty)
-        //    ColoredConsole.WriteLine($"[$green^DEV$r^] XML: $cyan^{xmlFilePath}$r^, isStylesheet: $yellow^{context.IsStylesheet}$r^");
+        ColoredConsole.Debug($"[$green^DEV$r^] XML: $cyan^{xmlFilePath}$r^, isStylesheet: $yellow^{context.IsStylesheet}$r^");
 
         return true;
     }
 
-    public void BuildContext()
+    public void Build()
     {
-        // load external modules
-
-        // process objects
         _styles.ForEach(style => ProcessStyle(style.Item1, style.Item2));
         _layouts.ForEach(layout => ProcessLayout(layout.Item1, layout.Item2));
     }
 
-    public void ProcessXElement(BuilderContext context, StringBuilder stringBuilder, int depth, XElement element, string parent = "")
+    public void ProcessXElement(IBuilderContext context, StringBuilder stringBuilder, int depth, XElement element, string parent = "")
     {
         var generalHandler = new GeneralElementHandler();
 
@@ -127,9 +123,9 @@ public class Builder
 
         var result = handler.EvaluateIntoCode(stringBuilder, depth, element, this, context, parent);
 
-        //if (!result)
-        //    ColoredConsole.WriteLine(
-        //        $"[$cyan^{handler.GetType()}$r^] Handler returned an error while parsing an XElement.");
+        if (!result)
+            ColoredConsole.WriteLine(
+                $"[$cyan^{handler.GetType()}$r^] Handler returned an error while parsing an XElement.");
     }
 
     private void ProcessSetter(StringBuilder stringBuilder, int depth, XElement element)
@@ -138,14 +134,14 @@ public class Builder
         var target = element.Parent?.Attribute("Target")?.Value;
         if (property is null)
         {
-            //ColoredConsole.WriteLine(
-            //    $"[$cyan^Style.Setter$r^] [$red^WARN$r^] Setter does not have a 'Name' or 'Property' attribute.");
+            ColoredConsole.WriteLine(
+                $"[$cyan^Style.Setter$r^] [$red^WARN$r^] Setter does not have a 'Name' or 'Property' attribute.");
             return;
         }
         if (target is null)
         {
-            //ColoredConsole.WriteLine(
-            //    $"[$cyan^Style.Setter$r^] [$red^WARN$r^] Style parent does not have a 'Target' attribute.");
+            ColoredConsole.WriteLine(
+                $"[$cyan^Style.Setter$r^] [$red^WARN$r^] Style parent does not have a 'Target' attribute.");
             return;
         }
 
@@ -157,7 +153,7 @@ public class Builder
         stringBuilder.AppendIndented(depth, $"AddSetter(\"{property}\", {value});\n");
     }
 
-    public static string GenerateAnonymousName(string? prefix = null)
+    public string GenerateAnonymousName(string? prefix = null)
     {
         const string defaultPrefix = "AnonymousComponent_";
         return $"{prefix ?? defaultPrefix}{DateTime.Now.Ticks}";
@@ -177,7 +173,7 @@ public class Builder
         return _references.Count;
     }
 
-    private void ProcessLayout(XElement layoutElement, BuilderContext context)
+    private void ProcessLayout(XElement layoutElement, IBuilderContext context)
     {
         var layoutName = layoutElement.Attribute("Name")?.Value;
         if (string.IsNullOrEmpty(layoutName))
@@ -228,10 +224,10 @@ public class Builder
         Snippets.WriteCtorFooter(stringBuilder);
         Snippets.WriteClassFooter(stringBuilder);
 
-        ExportedLayouts.Add(layoutName, stringBuilder.ToString());
+        _exportedLayouts.Add(layoutName, stringBuilder.ToString());
     }
 
-    private void ProcessStyle(XElement styleElement, BuilderContext context)
+    private void ProcessStyle(XElement styleElement, IBuilderContext context)
     {
         var styleName = styleElement.Attribute("Name")?.Value ?? GenerateAnonymousName("Style_");
         var target = styleElement.Attribute("Target")?.Value;
@@ -268,7 +264,7 @@ public class Builder
             ProcessSetter(stringBuilder, 3, xElement);
         Snippets.WriteCtorFooter(stringBuilder);
         Snippets.WriteClassFooter(stringBuilder);
-        ExportedStyles.Add(styleName, stringBuilder.ToString());
+        _exportedStyles.Add(styleName, stringBuilder.ToString());
     }
 
     private void RegisterHandlers()
@@ -317,19 +313,19 @@ public class Builder
 
         if (Directory.Exists(modulesDir))
         {
-            //ColoredConsole.Debug("[$green^DEV$rs^] Loading external assemblies from '.modules'...");
+            ColoredConsole.Debug("[$green^DEV$rs^] Loading external assemblies from '.modules'...");
             var dllFiles = new DirectoryInfo(modulesDir).EnumerateFiles("*.dll");
             externalAssemblies.AddRange(
                 dllFiles.Select(
                     dll =>
                     {
-                        //ColoredConsole.Debug($"[$green^DEV$rs^] Loading file {dll.FullName}...");
+                        ColoredConsole.Debug($"[$green^DEV$rs^] Loading file {dll.FullName}...");
                         return Assembly.Load(File.ReadAllBytes(dll.FullName));
                     })
             );
         }
-        
-        //ColoredConsole.Debug($"[$green^DEV$rs^] Loading Components...");
+
+        ColoredConsole.Debug($"[$green^DEV$rs^] Loading Components...");
         var componentType = typeof(Component);
         var components = AppDomain.CurrentDomain.GetAssemblies()
             .Union(externalAssemblies)
@@ -354,9 +350,9 @@ public class Builder
         var instance = handlerConstructor?.Invoke(Array.Empty<object>());
         if (handlerName is not null && instance is not null)
             _handlers[handlerName] = (IElementHandler)instance;
-        //else
-        //    ColoredConsole.WriteLine(
-        //        $"[$cyan^Builder.RegisterHandler()$r^] Could not load element handler \"{handlerConstructor?.Name}\".");
+        else
+            ColoredConsole.WriteLine(
+                $"[$cyan^Builder.RegisterHandler()$r^] Could not load element handler \"{handlerConstructor?.Name}\".");
     }
 
     private static ComponentRef GenerateReference(Type component)
@@ -368,7 +364,7 @@ public class Builder
             ComponentName = component.Name,
             Namespace = component.Namespace ?? "Cerulean.App"
         };
-        //ColoredConsole.Debug($"Generating reference for {component.FullName}...");
+        ColoredConsole.Debug($"Generating reference for {component.FullName}...");
         foreach (var property in properties)
         {
             var propName = property.Name;
@@ -406,7 +402,7 @@ public class Builder
             }
             if (propType is null)
             {
-                //ColoredConsole.Debug($"Component {component.Name}.{propName} has no type!");
+                ColoredConsole.Debug($"Component {component.Name}.{propName} has no type!");
                 continue;
             }
             componentRef.AddType(propName, propType);

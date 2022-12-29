@@ -1,9 +1,8 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
-using Cerulean.Common;
 using Cerulean.CLI.Attributes;
 
-namespace Cerulean.CLI.Commands;
+namespace Cerulean.CLI;
 
 [CommandName("new")]
 [CommandAlias("create", "start", "n")]

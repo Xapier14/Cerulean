@@ -1,8 +1,6 @@
-﻿using Cerulean.Common;
-using Cerulean.CLI.Attributes;
-using Cerulean.CLI.Extensions;
+﻿using Cerulean.CLI.Attributes;
 
-namespace Cerulean.CLI.Commands;
+namespace Cerulean.CLI;
 
 [CommandName("build-xml")]
 [CommandAlias("bxml", "bx")]
@@ -61,7 +59,7 @@ public class BuildXml : ICommand
                 ? $"[$green^GOOD$r^][$yellow^XML$r^] '{file}'"
                 : $"[$red^FAIL$r^][$yellow^XML$r^] '{file}'");
         }
-        builder.BuildContext();
+        builder.Build();
 
         var files = outDirInfo.GetAllFiles();
         var dirs = outDirInfo.GetDirectories();

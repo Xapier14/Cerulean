@@ -1,4 +1,4 @@
-﻿namespace Cerulean.CLI.Extensions;
+﻿namespace Cerulean.CLI;
 
 internal static class DirectoryInfoExtensions
 {

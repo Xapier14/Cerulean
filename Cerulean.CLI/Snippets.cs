@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Text;
 
-namespace Cerulean.Common;
+namespace Cerulean.CLI;
 
 internal static class Snippets
 {

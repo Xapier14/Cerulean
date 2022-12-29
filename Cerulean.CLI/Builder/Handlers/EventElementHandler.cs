@@ -1,13 +1,14 @@
 ﻿using System.Text;
 using System.Xml.Linq;
+using Cerulean.Common;
 
-namespace Cerulean.Common;
+namespace Cerulean.CLI;
 
 [ElementType("Event")]
 internal class EventElementHandler : IElementHandler
 {
-    public bool EvaluateIntoCode(StringBuilder stringBuilder, int indentDepth, XElement element, Builder builder,
-        BuilderContext context, string parent = "")
+    public bool EvaluateIntoCode(StringBuilder stringBuilder, int indentDepth, XElement element, IBuilder builder,
+        IBuilderContext context, string parent = "")
     {
         var eventName = element.Attribute("Name")?.Value;
         var eventHandler = element.Attribute("Handler")?.Value;

@@ -1,9 +1,11 @@
-﻿namespace Cerulean.Common
+﻿using Cerulean.Common;
+
+namespace Cerulean.CLI
 {
-    public class PropertyRefEntry
+    public class PropertyRefEntry : IPropertyRefEntry
     {
-        public string PropertyName { get; private set; } = string.Empty;
-        public string PropertyType { get; private set; } = string.Empty;
+        public string PropertyName { get; private init; } = string.Empty;
+        public string PropertyType { get; private init; } = string.Empty;
 
         public static PropertyRefEntry CreateEntry(string propertyName, string propertyType)
         {

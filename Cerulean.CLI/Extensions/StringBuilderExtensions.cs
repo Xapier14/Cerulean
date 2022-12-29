@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace Cerulean.Common;
+namespace Cerulean.CLI;
 
 public static class StringBuilderExtensions
 {

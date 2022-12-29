@@ -6,5 +6,5 @@ namespace Cerulean.Common;
 public interface IElementHandler
 {
     public bool EvaluateIntoCode(StringBuilder stringBuilder, int indentDepth,
-        XElement element, Builder builder, BuilderContext context, string parent = "");
+        XElement element, IBuilder builder, IBuilderContext context, string parent = "");
 }

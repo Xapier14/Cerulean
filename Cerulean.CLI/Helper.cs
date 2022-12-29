@@ -9,7 +9,6 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Cerulean.CLI.Attributes;
-using Cerulean.CLI.Extensions;
 using Cerulean.Common;
 
 namespace Cerulean.CLI;

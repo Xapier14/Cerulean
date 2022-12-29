@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Cerulean.Common;
 
-namespace Cerulean.Common;
+namespace Cerulean.CLI;
 
-public class BuilderContext
+public class BuilderContext : IBuilderContext
 {
     
     public IList<string> Imports { get; }

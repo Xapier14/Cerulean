@@ -1,7 +1,8 @@
 ﻿using System.Text;
 using System.Xml.Linq;
+using Cerulean.Common;
 
-namespace Cerulean.Common;
+namespace Cerulean.CLI;
 
 /// <summary>
 ///     A general component parser.
@@ -10,9 +11,8 @@ namespace Cerulean.Common;
 internal class GeneralElementHandler : IElementHandler
 {
     public bool EvaluateIntoCode(StringBuilder stringBuilder, int indentDepth, XElement element,
-        Builder builder, BuilderContext context, string parent = "")
+        IBuilder builder, IBuilderContext context, string parent = "")
     {
-        var config = Config.GetConfig();
         var localName = element.Name.LocalName;
         var elementType = localName.Contains('.') ? localName[(localName.LastIndexOf('.')+1)..] : localName;
         var namespacePart = localName.Contains('.') ? localName.Remove(localName.LastIndexOf('.')-1) : string.Empty;
@@ -24,13 +24,12 @@ internal class GeneralElementHandler : IElementHandler
 
         if (namespaceCandidate == null)
         {
-            //ColoredConsole.WriteLine($"[$yellow^WARNING$r^] Component '{localName}' is not found on any ComponentRefs, ignoring component...");
+            ColoredConsole.WriteLine($"[$yellow^WARNING$r^] Component '{localName}' is not found on any ComponentRefs, ignoring component...");
             return false;
         }
-        //if (config.GetProperty<string>("SHOW_DEV_LOG") != string.Empty)
-        //    ColoredConsole.WriteLine($"[$green^DEV$r^] Found namespace candidate for component $yellow^{localName}$r^. Namespace: $yellow^{namespaceCandidate}$r^");
+        ColoredConsole.Debug($"[$green^DEV$r^] Found namespace candidate for component $yellow^{localName}$r^. Namespace: $yellow^{namespaceCandidate}$r^");
 
-        var elementName = element.Attribute("Name")?.Value ?? Builder.GenerateAnonymousName();
+        var elementName = element.Attribute("Name")?.Value ?? builder.GenerateAnonymousName();
         var parentPrefix = parent != string.Empty ? parent + "." : string.Empty;
 
         // component construction
@@ -55,13 +54,12 @@ internal class GeneralElementHandler : IElementHandler
 
         // get props
         var lateBoundProps = new List<(string, string)>();
-        bool lateBound;
         var formattedProps = properties.Select(prop =>
         {
             var propName = prop.propName;
             var propValue = prop.propValue;
             var componentRef = builder.ComponentReferences.FirstOrDefault(c => c?.ComponentName == elementType);
-            var recommendedDataType = componentRef?.GetType(propName, out lateBound) ?? TypeHelper.GetRecommendedDataType(propName, out lateBound);
+            var recommendedDataType = componentRef?.GetType(propName, out var lateBound) ?? TypeHelper.GetRecommendedDataType(propName, out lateBound);
             var finalPropValue = TypeHelper.ParseHintedString(propValue, parent != string.Empty ? $"{parent}." : "", recommendedDataType, lateBound ? $"{elementName}." : string.Empty);
             if (!lateBound)
                 return $"{propName} = {finalPropValue},";

@@ -1,7 +1,7 @@
 ﻿using Cerulean.CLI.Attributes;
 using Cerulean.Common;
 
-namespace Cerulean.CLI.Commands;
+namespace Cerulean.CLI;
 
 [CommandName("help")]
 [CommandAlias("h", "?")]
