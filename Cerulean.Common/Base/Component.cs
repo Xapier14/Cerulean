@@ -220,7 +220,7 @@ namespace Cerulean.Common
         /// </summary>
         /// <param name="window">The window that performed the update.</param>
         /// <param name="clientArea">The client area given to the component.</param>
-        public virtual void Update(object? window, Size clientArea)
+        public virtual void Update(IWindow window, Size clientArea)
         {
             // if component does not use client area
             if (ClientArea is null)
@@ -229,7 +229,7 @@ namespace Cerulean.Common
                 X = 0;
                 Y = 0;
             }
-            if (window is not null && !DisableTopLevelHooks)
+            if (!DisableTopLevelHooks)
                 CallHook(this, EventHook.BeforeUpdate, window, clientArea);
 
             if (!CanBeParent)
@@ -237,15 +237,13 @@ namespace Cerulean.Common
                 foreach (var child in Children)
                 {
                     var childArea = new Size(clientArea.W - child.X, clientArea.H - child.Y);
-                    if (window is not null)
-                        CallHook(child, EventHook.BeforeChildUpdate, window, childArea);
+                    CallHook(child, EventHook.BeforeChildUpdate, window, childArea);
                     child.Update(window, childArea);
-                    if (window is not null)
-                        CallHook(child, EventHook.AfterChildUpdate, window, childArea);
+                    CallHook(child, EventHook.AfterChildUpdate, window, childArea);
                 }
             }
 
-            if (window is not null && !DisableTopLevelHooks)
+            if (!DisableTopLevelHooks)
                 CallHook(this, EventHook.AfterUpdate, window, clientArea);
         }
 

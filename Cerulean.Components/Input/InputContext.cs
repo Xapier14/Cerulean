@@ -13,7 +13,6 @@ namespace Cerulean.Components
         public IEnumerable<object> Values { get; init; } = Array.Empty<object>();
         public int Length => Values.Count();
     }
-    [SkipAutoRefGeneration]
     public class InputContext : Component
     {
         private readonly IDictionary<string, List<object>> _valueMap = new Dictionary<string, List<object>>();
@@ -48,7 +47,7 @@ namespace Cerulean.Components
             OnSubmit?.Invoke(this, e);
         }
 
-        public override void Update(object? window, Size clientArea)
+        public override void Update(IWindow window, Size clientArea)
         {
             ClientArea = clientArea;
             base.Update(window, clientArea);

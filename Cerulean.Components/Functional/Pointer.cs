@@ -5,7 +5,6 @@ using Cerulean.Core.Input;
 
 namespace Cerulean.Components
 {
-    [SkipAutoRefGeneration]
     public sealed class Pointer : Component
     {
         private int _x;
@@ -18,27 +17,17 @@ namespace Cerulean.Components
             CanBeParent = false;
         }
 
-        public override void Update(object? window, Size clientArea)
+        public override void Update(IWindow window, Size clientArea)
         {
-            if (window is not null)
-                CallHook(this, EventHook.BeforeUpdate, window, clientArea);
+            CallHook(this, EventHook.BeforeUpdate, window, clientArea);
 
             var ( globalX, globalY) = Mouse.GetGlobalMousePosition();
             ClientArea = null;
-            if (window is Window ceruleanWindow)
-            {
-                var ( windowX, windowY) = ceruleanWindow.WindowPosition;
-                _x = globalX - windowX;
-                _y = globalY - windowY;
-            }
-            else
-            {
-                _x = globalX;
-                _y = globalY;
-            }
-
-            if (window is not null)
-                CallHook(this, EventHook.AfterUpdate, window, clientArea);
+            var ( windowX, windowY) = window.WindowPosition;
+            _x = globalX - windowX;
+            _y = globalY - windowY;
+            
+            CallHook(this, EventHook.AfterUpdate, window, clientArea);
         }
     }
 }

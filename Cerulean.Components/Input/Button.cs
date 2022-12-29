@@ -6,11 +6,10 @@ namespace Cerulean.Components
 {
     public class ButtonEventArgs : EventArgs
     {
-        public Window? CallingWindow { get; set; }
+        public IWindow? CallingWindow { get; set; }
         public int MouseX { get; set; }
         public int MouseY { get; set; }
     }
-    [SkipAutoRefGeneration]
     public sealed class Button : Component, ISized
     {
         private bool _hovered = false;
@@ -172,25 +171,21 @@ namespace Cerulean.Components
             return IsHoverableComponent ? this : null;
         }
 
-        public override void Update(object? window, Size clientArea)
+        public override void Update(IWindow window, Size clientArea)
         {
-            if (window is not null)
-                CallHook(this, EventHook.BeforeUpdate, window, clientArea);
+            CallHook(this, EventHook.BeforeUpdate, window, clientArea);
 
             ClientArea = Size ?? clientArea;
 
             base.Update(window, clientArea);
 
-            if (window is not Window ceruleanWindow)
-                return;
-
-            var hovering = ceruleanWindow.HoveredComponent == this;
+            var hovering = window.HoveredComponent == this;
 
             // prepare event args
-            var coords = Mouse.GetWindowMousePosition(ceruleanWindow);
+            var coords = Mouse.GetWindowMousePosition(window);
             var eventArgs = new ButtonEventArgs
             {
-                CallingWindow = ceruleanWindow,
+                CallingWindow = window,
                 MouseX = coords?.Item1 ?? 0,
                 MouseY = coords?.Item2 ?? 0
             };
@@ -199,7 +194,7 @@ namespace Cerulean.Components
             {
                 if (!_hovered)
                 {
-                    ceruleanWindow.FlagForRedraw();
+                    window.FlagForRedraw();
                     OnHover?.Invoke(this, eventArgs);
 
                     _hovered = true;
@@ -209,7 +204,7 @@ namespace Cerulean.Components
                 {
                     if (_clicked)
                         return;
-                    RaiseHandler(OnClick, eventArgs, ceruleanWindow);
+                    RaiseHandler(OnClick, eventArgs, window);
 
                     _clicked = true;
                 }
@@ -217,7 +212,7 @@ namespace Cerulean.Components
                 {
                     if (_clicked)
                     {
-                        RaiseHandler(OnRelease, eventArgs, ceruleanWindow);
+                        RaiseHandler(OnRelease, eventArgs, window);
                     }
 
                     _clicked = false;
@@ -227,7 +222,7 @@ namespace Cerulean.Components
             {
                 if (_hovered)
                 {
-                    RaiseHandler(OnLeave, eventArgs, ceruleanWindow);
+                    RaiseHandler(OnLeave, eventArgs, window);
                 }
 
                 _hovered = false;
@@ -237,7 +232,7 @@ namespace Cerulean.Components
             if (Modified)
             {
                 Modified = false;
-                ceruleanWindow.FlagForRedraw();
+                window.FlagForRedraw();
             }
             
             CallHook(this, EventHook.AfterUpdate, window, clientArea);
@@ -290,7 +285,7 @@ namespace Cerulean.Components
             CallHook(this, EventHook.AfterDraw, graphics, viewportX, viewportY, viewportSize);
         }
 
-        private void RaiseHandler(ButtonEventHandler? handler, ButtonEventArgs eventArgs, Window ceruleanWindow)
+        private void RaiseHandler(ButtonEventHandler? handler, ButtonEventArgs eventArgs, IWindow ceruleanWindow)
         {
             ceruleanWindow.FlagForRedraw();
             handler?.Invoke(this, eventArgs);

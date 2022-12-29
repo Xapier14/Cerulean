@@ -15,7 +15,6 @@ namespace Cerulean.Components
     /// <summary>
     /// Cerulean Timer Component
     /// </summary>
-    [SkipAutoRefGeneration]
     public sealed class Timer : Component
     {
         private long _time;
@@ -81,10 +80,9 @@ namespace Cerulean.Components
         /// </summary>
         /// <param name="window">The window that performed the update.</param>
         /// <param name="clientArea">The client area given to the component.</param>
-        public override void Update(object? window, Size clientArea)
+        public override void Update(IWindow window, Size clientArea)
         {
-            if (window is not null)
-                CallHook(this, EventHook.BeforeUpdate, window, clientArea);
+            CallHook(this, EventHook.BeforeUpdate, window, clientArea);
 
             ClientArea = clientArea;
             if (!IsRunning)
@@ -98,9 +96,8 @@ namespace Cerulean.Components
                 Interval = Interval,
                 InBetween = TimeSpan.FromTicks(deltaTicks)
             });
-
-            if (window is not null)
-                CallHook(this, EventHook.AfterDraw, window, clientArea);
+            
+            CallHook(this, EventHook.AfterDraw, window, clientArea);
         }
     }
 }

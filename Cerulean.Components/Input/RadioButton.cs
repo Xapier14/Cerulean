@@ -8,7 +8,6 @@ using Cerulean.Core;
 
 namespace Cerulean.Components
 {
-    [SkipAutoRefGeneration]
     public class RadioButton : Component, ISized
     {
 
@@ -224,34 +223,29 @@ namespace Cerulean.Components
                 inputContext.UpdateRadioGroupValue(InputGroup, InputData);
         }
 
-        public override void Update(object? window, Size clientArea)
+        public override void Update(IWindow window, Size clientArea)
         {
-            if (window is not null)
-                CallHook(this, EventHook.BeforeUpdate, window, clientArea);
+            CallHook(this, EventHook.BeforeUpdate, window, clientArea);
 
             ClientArea = Size ?? clientArea;
-
-            if (window is Window ceruleanWindow)
+            
+            GetChild("Button_RadioHandle").X = window.GetDpiScaledValue(5);
+            GetChild("Button_RadioHandle").Y = window.GetDpiScaledValue(5);
+            GetChild<ISized>("Button_RadioHandle").Size = window.GetDpiScaledValue(new Size(12, 12));
+            GetChild("Rectangle_Select").X = window.GetDpiScaledValue(8);
+            GetChild("Rectangle_Select").Y = window.GetDpiScaledValue(8);
+            GetChild<ISized>("Rectangle_Select").Size = window.GetDpiScaledValue(new Size(6, 6));
+            GetChild("Label_Text").X = window.GetDpiScaledValue(22);
+            GetChild("Label_Text").Y = window.GetDpiScaledValue(4);
+            if (Modified)
             {
-                GetChild("Button_RadioHandle").X = ceruleanWindow.GetDpiScaledValue(5);
-                GetChild("Button_RadioHandle").Y = ceruleanWindow.GetDpiScaledValue(5);
-                GetChild<ISized>("Button_RadioHandle").Size = ceruleanWindow.GetDpiScaledValue(new Size(12, 12));
-                GetChild("Rectangle_Select").X = ceruleanWindow.GetDpiScaledValue(8);
-                GetChild("Rectangle_Select").Y = ceruleanWindow.GetDpiScaledValue(8);
-                GetChild<ISized>("Rectangle_Select").Size = ceruleanWindow.GetDpiScaledValue(new Size(6, 6));
-                GetChild("Label_Text").X = ceruleanWindow.GetDpiScaledValue(22);
-                GetChild("Label_Text").Y = ceruleanWindow.GetDpiScaledValue(4);
-                if (Modified)
-                {
-                    Modified = false;
-                    ceruleanWindow.FlagForRedraw();
-                }
+                Modified = false;
+                window.FlagForRedraw();
             }
 
             base.Update(window, clientArea);
-
-            if (window is not null)
-                CallHook(this, EventHook.AfterUpdate, window, clientArea);
+            
+            CallHook(this, EventHook.AfterUpdate, window, clientArea);
         }
 
         public override void Draw(IGraphics graphics, int viewportX, int viewportY, Size viewportSize)

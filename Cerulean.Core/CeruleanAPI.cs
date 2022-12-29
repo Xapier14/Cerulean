@@ -586,7 +586,7 @@ namespace Cerulean.Core
             }
             var result = DoOnThread((args) =>
             {
-                Window window = new(windowLayout, windowTitle, windowSize ?? Window.DefaultWindowSize, _threadId, _graphicsFactory);
+                Window window = new(windowLayout, windowTitle, windowSize ?? IWindow.DefaultWindowSize, _threadId, _graphicsFactory);
                 if ((bool)args[0])
                     InitializeWindow(window);
                 return window;

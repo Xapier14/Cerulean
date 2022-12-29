@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Cerulean.Common;
+﻿using Cerulean.Common;
 using Cerulean.Core;
 
 namespace Cerulean.Components
 {
-    [SkipAutoRefGeneration]
     public sealed class CheckBox : Component, ISized
     {
         #region SVG Strings
@@ -200,34 +194,29 @@ namespace Cerulean.Components
                 inputContext.AddCheckboxValue(InputGroup, InputData);
         }
 
-        public override void Update(object? window, Size clientArea)
+        public override void Update(IWindow window, Size clientArea)
         {
-            if (window is not null)
-                CallHook(this, EventHook.BeforeUpdate, window, clientArea);
+            CallHook(this, EventHook.BeforeUpdate, window, clientArea);
 
             ClientArea = Size ?? clientArea;
-
-            if (window is Window ceruleanWindow)
+            
+            GetChild("Button_BoxHandle").X = window.GetDpiScaledValue(5);
+            GetChild("Button_BoxHandle").Y = window.GetDpiScaledValue(5);
+            GetChild<ISized>("Button_BoxHandle").Size = window.GetDpiScaledValue(new Size(12, 12));
+            GetChild("Image_Check").X = window.GetDpiScaledValue(5);
+            GetChild("Image_Check").Y = window.GetDpiScaledValue(1);
+            GetChild<ISized>("Image_Check").Size = window.GetDpiScaledValue(new Size(16, 16));
+            GetChild("Label_Text").X = window.GetDpiScaledValue(22);
+            GetChild("Label_Text").Y = window.GetDpiScaledValue(4);
+            if (Modified)
             {
-                GetChild("Button_BoxHandle").X = ceruleanWindow.GetDpiScaledValue(5);
-                GetChild("Button_BoxHandle").Y = ceruleanWindow.GetDpiScaledValue(5);
-                GetChild<ISized>("Button_BoxHandle").Size = ceruleanWindow.GetDpiScaledValue(new Size(12, 12));
-                GetChild("Image_Check").X = ceruleanWindow.GetDpiScaledValue(5);
-                GetChild("Image_Check").Y = ceruleanWindow.GetDpiScaledValue(1);
-                GetChild<ISized>("Image_Check").Size = ceruleanWindow.GetDpiScaledValue(new Size(16, 16));
-                GetChild("Label_Text").X = ceruleanWindow.GetDpiScaledValue(22);
-                GetChild("Label_Text").Y = ceruleanWindow.GetDpiScaledValue(4);
-                if (Modified)
-                {
-                    Modified = false;
-                    ceruleanWindow.FlagForRedraw();
-                }
+                Modified = false;
+                window.FlagForRedraw();
             }
 
             base.Update(window, clientArea);
-
-            if (window is not null)
-                CallHook(this, EventHook.AfterUpdate, window, clientArea);
+            
+            CallHook(this, EventHook.AfterUpdate, window, clientArea);
         }
 
         public override void Draw(IGraphics graphics, int viewportX, int viewportY, Size viewportSize)

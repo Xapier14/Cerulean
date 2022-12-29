@@ -12,7 +12,7 @@ namespace Cerulean.Core
             CanBeParent = true;
         }
 
-        public override void Update(object? window, Size clientArea)
+        public override void Update(IWindow window, Size clientArea)
         {
             CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("Layout_Update");
             // update our client area first before the child components

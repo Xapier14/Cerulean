@@ -1,9 +1,7 @@
 ﻿using Cerulean.Common;
-using Cerulean.Core;
 
 namespace Cerulean.Components
 {
-    [SkipAutoRefGeneration]
     public class Grid : Component
     {
         private int[] _columns = { 0 };
@@ -35,7 +33,7 @@ namespace Cerulean.Components
         }
         public Color? BackColor { get; set; }
 
-        private void UpdateChildComponents(object window)
+        private void UpdateChildComponents(IWindow window)
         {
             if (_cellSizes is null)
                 return;
@@ -160,10 +158,9 @@ namespace Cerulean.Components
             }
         }
 
-        public override void Update(object? window, Size clientArea)
+        public override void Update(IWindow window, Size clientArea)
         {
-            if (window is not null)
-                CallHook(this, EventHook.BeforeUpdate, window, clientArea);
+            CallHook(this, EventHook.BeforeUpdate, window, clientArea);
 
             // anchor to top left
             X = 0;
@@ -174,18 +171,16 @@ namespace Cerulean.Components
 
             // calculate client area for each cell
             CalculateCellSizes(clientArea);
+            
+            UpdateChildComponents(window);
 
-            if (window is not null)
-                UpdateChildComponents(window);
-
-            if (Modified && window is Window ceruleanWindow)
+            if (Modified)
             {
                 Modified = false;
-                ceruleanWindow.FlagForRedraw();
+                window.FlagForRedraw();
             }
-
-            if (window is not null)
-                CallHook(this, EventHook.AfterUpdate, window, clientArea);
+            
+            CallHook(this, EventHook.AfterUpdate, window, clientArea);
         }
 
         public override void Draw(IGraphics graphics, int viewportX, int viewportY, Size viewportSize)

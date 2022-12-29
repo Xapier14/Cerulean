@@ -4,7 +4,6 @@ using Cerulean.Core.Input;
 
 namespace Cerulean.Components
 {
-    [SkipAutoRefGeneration]
     public sealed class TextBox : Component, ISized
     {
         private const int PADDING = 4;
@@ -164,7 +163,7 @@ namespace Cerulean.Components
             IsHoverableComponent = true;
         }
 
-        public override void Update(object? window, Size clientArea)
+        public override void Update(IWindow window, Size clientArea)
         {
             ClientArea = Size ?? clientArea;
 

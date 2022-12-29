@@ -1,15 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Cerulean.Common;
-
-namespace Cerulean.Core
+﻿namespace Cerulean.Common
 {
     public static class Scaling
     {
-        public static double GetDpiScaledValue(Window? window, double value)
+        public static double GetDpiScaledValue(IWindow? window, double value)
         {
             if (window == null)
                 return value;
@@ -19,7 +12,7 @@ namespace Cerulean.Core
             return value * scale;
         }
 
-        public static int GetDpiScaledValue(Window? window, int value)
+        public static int GetDpiScaledValue(IWindow? window, int value)
         {
             if (window == null)
                 return value;
@@ -29,7 +22,7 @@ namespace Cerulean.Core
             return (int)Math.Floor(value * scale);
         }
 
-        public static Size GetDpiScaledValue(Window? window, Size value)
+        public static Size GetDpiScaledValue(IWindow? window, Size value)
         {
             if (window == null)
                 return value;
@@ -40,7 +33,7 @@ namespace Cerulean.Core
             };
         }
 
-        public static Size? GetDpiScaledValue(Window? window, Size? value)
+        public static Size? GetDpiScaledValue(IWindow? window, Size? value)
         {
             if (window == null || value == null)
                 return value;
@@ -51,7 +44,7 @@ namespace Cerulean.Core
             };
         }
 
-        public static (int, int) GetDpiScaledValue(Window? window, (int, int) value)
+        public static (int, int) GetDpiScaledValue(IWindow? window, (int, int) value)
         {
             if (window == null)
                 return value;

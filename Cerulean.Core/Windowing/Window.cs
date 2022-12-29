@@ -1,5 +1,4 @@
-﻿using System.Reflection.Metadata;
-using Cerulean.Common;
+﻿using Cerulean.Common;
 using static SDL2.SDL;
 
 namespace Cerulean.Core
@@ -13,12 +12,11 @@ namespace Cerulean.Core
         public string Text { get; set; } = string.Empty;
         public bool Cancel { get; set; }
     }
-    public sealed class Window
+    public sealed class Window : IWindow
     {
         #region Private+Internals
         private readonly IGraphicsFactory _graphicsFactory;
         private readonly int _threadId;
-        internal IntPtr WindowPtr { get; private set; }
 
         internal bool OnCloseFromEvent;
         private string _windowTitle = "";
@@ -27,11 +25,12 @@ namespace Cerulean.Core
         #endregion
 
         public Action<string>? TextUpdatedDelegate { get; set; }
+        public IntPtr WindowPtr { get; private set; }
 
         /// <summary>
         /// The default window size for windows created without size specified.
         /// </summary>
-        public static readonly Size DefaultWindowSize = new(600, 400);
+        //public static readonly Size DefaultWindowSize = new(600, 400);
         public delegate void WindowEventHandler(Window sender, WindowEventArgs e);
 
         #region Events
@@ -264,7 +263,7 @@ namespace Cerulean.Core
         /// <summary>
         /// The parent window of this window.
         /// </summary>
-        public Window? ParentWindow { get; init; }
+        public IWindow? ParentWindow { get; init; }
         /// <summary>
         /// The layout being used by this window.
         /// </summary>
@@ -367,6 +366,16 @@ namespace Cerulean.Core
             return (float)Scaling.GetDpiScaledValue(this, value);
         }
 
+        public Size GetDpiScaledValue(Size value)
+        {
+            var ret = new Size
+            {
+                W = GetDpiScaledValue(value.W),
+                H = GetDpiScaledValue(value.H)
+            };
+            return ret;
+        }
+
         public void SetComponentScaledX(Component component, int x)
         {
             component.X = GetDpiScaledValue(x);
@@ -386,16 +395,6 @@ namespace Cerulean.Core
         public void SetComponentScaledSize(ISized component, Size size)
         {
             component.Size = Scaling.GetDpiScaledValue(this, size);
-        }
-
-        public Size GetDpiScaledValue(Size value)
-        {
-            var ret = new Size
-            {
-                W = GetDpiScaledValue(value.W),
-                H = GetDpiScaledValue(value.H)
-            };
-            return ret;
         }
 
         private void EnsureMainThread(string? message = null)

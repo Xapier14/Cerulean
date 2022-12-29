@@ -4,7 +4,6 @@ using Cerulean.Core;
 
 namespace Cerulean.Components
 {
-    [SkipAutoRefGeneration]
     public class Label : Component, ISized
     {
         private Size? _size;
@@ -122,21 +121,19 @@ namespace Cerulean.Components
             CanBeParent = false;
         }
 
-        public override void Update(object? window, Size clientArea)
+        public override void Update(IWindow window, Size clientArea)
         {
-            if (window is not null)
-                CallHook(this, EventHook.BeforeUpdate, window, clientArea);
+            CallHook(this, EventHook.BeforeUpdate, window, clientArea);
 
             ClientArea = Size ?? clientArea;
 
-            if (Modified && window is Window ceruleanWindow)
+            if (Modified)
             {
                 Modified = false;
-                ceruleanWindow.FlagForRedraw();
+                window.FlagForRedraw();
             }
-
-            if (window is not null)
-                CallHook(this, EventHook.AfterUpdate, window, clientArea);
+            
+            CallHook(this, EventHook.AfterUpdate, window, clientArea);
         }
 
         public override void Draw(IGraphics graphics, int viewportX, int viewportY, Size viewportSize)
