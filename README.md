@@ -3,7 +3,11 @@
   <b>Useful Tools</b><br>
   <a href="#">CLI Tool</a> | 
   <a href="#">Layout Designer</a>
-</p><br>
+</p>
+<h4>Available on Nuget</h4>
+
+![Nuget](https://img.shields.io/nuget/v/Cerulean.Core?label=Cerulean.Core) ![Nuget](https://img.shields.io/nuget/v/Cerulean.Common?label=Cerulean.Common) ![Nuget](https://img.shields.io/nuget/v/Cerulean.Components?label=Cerulean.Components) ![Nuget](https://img.shields.io/nuget/v/Cerulean.CLI?label=Cerulean.CLI)
+
 <h2>Basic Information</h2>
 Write <strong>cross-platform</strong> GUI apps using simple XML and C#.<br>
 Mainly testing on Windows and Ubuntu. Feel free to test on other platforms.<br>
