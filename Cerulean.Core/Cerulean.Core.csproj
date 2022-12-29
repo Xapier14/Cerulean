@@ -11,6 +11,12 @@
     <Product>Cerulean Core API</Product>
     <Description>The Cerulean Core API.</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Title>Cerulean.Core</Title>
+    <PackageProjectUrl>https://github.com/Xapier14/Cerulean</PackageProjectUrl>
+    <Version>0.1.0</Version>
+    <RepositoryUrl>https://github.com/Xapier14/Cerulean.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">

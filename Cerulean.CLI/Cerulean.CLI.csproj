@@ -10,6 +10,18 @@
 		<Platforms>AnyCPU;x86;x64</Platforms>
 		<AssemblyVersion>0.2.2.0</AssemblyVersion>
 		<FileVersion>0.2.2.0</FileVersion>
+		<PackAsTool>true</PackAsTool>
+		<ToolCommandName>crn</ToolCommandName>
+		<PackageOutputPath>./nupkg</PackageOutputPath>
+		<SignAssembly>False</SignAssembly>
+		<Version>0.2.2</Version>
+		<Title>Cerulean.CLI</Title>
+		<PackageId>Cerulean.CLI</PackageId>
+		<Company></Company>
+		<Authors>Lance Crisang</Authors>
+		<PackageProjectUrl>https://github.com/Xapier14/Cerulean</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Xapier14/Cerulean.git</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
 	</PropertyGroup>
 
 	<ItemGroup>
