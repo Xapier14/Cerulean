@@ -20,15 +20,8 @@
     <RepositoryType>git</RepositoryType>
     <PackageProjectUrl>https://github.com/Xapier14/Cerulean</PackageProjectUrl>
     <PackageReadmeFile></PackageReadmeFile>
-    <PackageLicenseFile>MIT</PackageLicenseFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Include="MIT">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
