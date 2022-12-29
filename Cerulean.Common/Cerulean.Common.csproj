@@ -11,9 +11,9 @@
     <Description>Shared code for Cerulean Core API.</Description>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>Cerulean.Common</Title>
-    <AssemblyVersion>0.1.0.0</AssemblyVersion>
-    <FileVersion>0.1.0.0</FileVersion>
-    <Version>0.1.0</Version>
+    <AssemblyVersion></AssemblyVersion>
+    <FileVersion></FileVersion>
+    <Version>0.2.0</Version>
     <IncludeSymbols>True</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <RepositoryUrl>https://github.com/Xapier14/Cerulean.git</RepositoryUrl>
