@@ -231,7 +231,7 @@ namespace Cerulean.Common
             if (!DisableTopLevelHooks)
                 CallHook(this, EventHook.BeforeUpdate, window, clientArea);
 
-            if (!CanBeParent)
+            if (CanBeParent)
             {
                 foreach (var child in Children)
                 {
