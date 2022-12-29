@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Reflection;
 using Cerulean.Common;
 
 namespace Cerulean.CLI;
@@ -28,10 +29,13 @@ internal static class Splash
         var name = "crn.exe";
         try
         {
+            var versionString = Assembly.GetEntryAssembly()?
+                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+                .InformationalVersion;
             var version = FileVersionInfo.GetVersionInfo(Path.Combine(AppContext.BaseDirectory, "crn.exe"));
             name = version.InternalName ?? "crn.exe";
             Console.WriteLine(
-                $" Cerulean CLI: {version.FileMajorPart}.{version.FileMinorPart}.{version.FileBuildPart}");
+                $" Cerulean CLI: {versionString}");
         }
         catch
         {
