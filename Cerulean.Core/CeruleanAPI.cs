@@ -3,6 +3,7 @@ using Cerulean.Core.Input;
 using Cerulean.Core.Logging;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
+using SDL2;
 using static SDL2.SDL;
 
 namespace Cerulean.Core
@@ -249,6 +250,7 @@ namespace Cerulean.Core
         /// </summary>
         private CeruleanAPI()
         {
+            DllMap.RegisterDllMap();
             _thread = new Thread(WorkerThread);
             _windows = new ConcurrentDictionary<uint, Window>();
             _modals = new ConcurrentBag<Window>();
