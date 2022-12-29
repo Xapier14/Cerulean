@@ -59,7 +59,8 @@ namespace Cerulean.Components
         /// </summary>
         public void Start()
         {
-            if (IsRunning) return;
+            if (IsRunning)
+                return;
             IsRunning = true;
             _time = DateTime.Now.Ticks;
         }
@@ -89,14 +90,15 @@ namespace Cerulean.Components
                 return;
 
             var deltaTicks = DateTime.Now.Ticks - _time;
-            if (deltaTicks < TimeSpan.FromMilliseconds(Interval).Ticks) return;
+            if (deltaTicks < TimeSpan.FromMilliseconds(Interval).Ticks)
+                return;
             _time = DateTime.Now.Ticks;
             OnElapse?.Invoke(this, window, new TimerEventArgs
             {
                 Interval = Interval,
                 InBetween = TimeSpan.FromTicks(deltaTicks)
             });
-            
+
             CallHook(this, EventHook.AfterDraw, window, clientArea);
         }
     }

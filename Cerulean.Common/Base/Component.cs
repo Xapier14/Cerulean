@@ -1,5 +1,4 @@
 ﻿using System.Dynamic;
-using System.Runtime.CompilerServices;
 
 namespace Cerulean.Common
 {
@@ -94,7 +93,7 @@ namespace Cerulean.Common
         {
             _eventHooks.RemoveAll(x => x.Item1 == eventType);
         }
-        
+
         #region Dynamic
 
         public override bool TryGetMember(GetMemberBinder binder, out object? result)
@@ -279,7 +278,8 @@ namespace Cerulean.Common
         public virtual void Draw(IGraphics graphics, int viewportX, int viewportY, Size viewportSize)
         {
             // skip if component is functional, aka: no draw func
-            if (!ClientArea.HasValue) return;
+            if (!ClientArea.HasValue)
+                return;
 
             // cache viewport data to be used by CheckHoveredComponent()
             CacheViewportData(viewportX, viewportY, viewportSize);

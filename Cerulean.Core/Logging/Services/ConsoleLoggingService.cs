@@ -10,12 +10,13 @@ namespace Cerulean.Core
 
         void ILoggingService.Init()
         {
-            
+
         }
 
         public void Log(string message, LogSeverity severity = LogSeverity.General)
         {
-            if (severity > LoggingLevel) return;
+            if (severity > LoggingLevel)
+                return;
             lock (_lock)
             {
                 Console.WriteLine("[{0}] [{1}] {2}",

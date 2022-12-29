@@ -148,7 +148,7 @@ namespace Cerulean.Components
                 _fontStyle = value;
             }
         }
-        
+
         #endregion
 
         #region State
@@ -219,7 +219,7 @@ namespace Cerulean.Components
             var textY = viewportY + PADDING;
             var scaledFontSize = Scaling.GetDpiScaledValue((Window)ParentWindow!, FontSize);
             var textViewport = new Size(viewportSize.W - PADDING * 2, viewportSize.H - PADDING * 2);
-            
+
             // try to partition the text to make it short but not too short
             var textPart = Text;
             var (textWidth, _) = graphics.MeasureText(textPart, FontName, FontStyle, scaledFontSize);
@@ -263,7 +263,7 @@ namespace Cerulean.Components
             if (BorderColor.HasValue && FocusedColor.HasValue)
                 graphics.DrawRectangle(0, 0, ClientArea.Value, _hasFocus ? FocusedColor.Value : BorderColor.Value);
         }
-        
+
         public override Component? CheckHoveredComponent(int x, int y)
         {
             if (CachedViewportSize is not { } viewport ||

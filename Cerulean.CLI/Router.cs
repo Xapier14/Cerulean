@@ -1,6 +1,5 @@
-﻿using System.Reflection;
-using Cerulean.Common;
-using Cerulean.CLI.Attributes;
+﻿using Cerulean.CLI.Attributes;
+using System.Reflection;
 
 namespace Cerulean.CLI;
 
@@ -85,7 +84,7 @@ internal class Router
             Environment.Exit(exitCode);
         return true;
     }
-    
+
 
     public static void ParseArguments(string[] argsRaw, out string[] args, out List<string> flags,
         out Dictionary<string, string> options)

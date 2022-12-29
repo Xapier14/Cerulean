@@ -1,5 +1,4 @@
 using Cerulean.Common;
-using Cerulean.Core;
 
 namespace Cerulean.Components
 {
@@ -120,7 +119,7 @@ namespace Cerulean.Components
                 Modified = false;
                 window.FlagForRedraw();
             }
-            
+
             CallHook(this, EventHook.AfterUpdate, window, clientArea);
         }
 
@@ -131,7 +130,7 @@ namespace Cerulean.Components
 
             // cache viewport data to be used by CheckHoveredComponent()
             CacheViewportData(viewportX, viewportY, viewportSize);
-            
+
             CallHook(this, EventHook.BeforeDraw, graphics, viewportX, viewportY, viewportSize);
 
             // draw border rect
@@ -144,7 +143,7 @@ namespace Cerulean.Components
             var barY = 2;
             Size barArea = new(ClientArea.Value.W - 4, ClientArea.Value.H - 4);
             Size barBackArea = new(ClientArea.Value.W - 4, ClientArea.Value.H - 4);
-                
+
             // compute bar area
             switch (Orientation)
             {

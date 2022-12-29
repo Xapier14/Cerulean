@@ -1,5 +1,4 @@
 ﻿using Cerulean.Common;
-using Cerulean.Core;
 
 namespace Cerulean.Components
 {
@@ -175,7 +174,8 @@ namespace Cerulean.Components
         {
             Checked = !Checked;
 
-            if (Parent is not InputContext inputContext) return;
+            if (Parent is not InputContext inputContext)
+                return;
 
             if (Checked)
                 inputContext.AddCheckboxValue(InputGroup, InputData);
@@ -199,7 +199,7 @@ namespace Cerulean.Components
             CallHook(this, EventHook.BeforeUpdate, window, clientArea);
 
             ClientArea = Size ?? clientArea;
-            
+
             GetChild("Button_BoxHandle").X = window.GetDpiScaledValue(5);
             GetChild("Button_BoxHandle").Y = window.GetDpiScaledValue(5);
             GetChild<ISized>("Button_BoxHandle").Size = window.GetDpiScaledValue(new Size(12, 12));
@@ -215,7 +215,7 @@ namespace Cerulean.Components
             }
 
             base.Update(window, clientArea);
-            
+
             CallHook(this, EventHook.AfterUpdate, window, clientArea);
         }
 

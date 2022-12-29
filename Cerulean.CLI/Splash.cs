@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Reflection;
-using Cerulean.Common;
 
 namespace Cerulean.CLI;
 
@@ -27,20 +26,21 @@ internal static class Splash
         var buildBranch = config.GetProperty<string>("BUILD_BRANCH") ?? string.Empty;
 
         var name = "crn.exe";
+        var versionString = Assembly.GetEntryAssembly()?
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+            .InformationalVersion;
         try
         {
-            var versionString = Assembly.GetEntryAssembly()?
-                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
-                .InformationalVersion;
             var version = FileVersionInfo.GetVersionInfo(Path.Combine(AppContext.BaseDirectory, "crn.exe"));
             name = version.InternalName ?? "crn.exe";
-            Console.WriteLine(
-                $" Cerulean CLI: {versionString}");
         }
-        catch
+        catch (Exception)
         {
-            ColoredConsole.WriteLine(" Cerulean CLI: ?.?.? $red^(malformed executable?)$r^");
+            // ignored
         }
+
+        Console.WriteLine(
+            $" Cerulean CLI: {versionString}");
 
         if (!string.IsNullOrEmpty(buildBranch))
         {

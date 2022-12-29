@@ -234,7 +234,7 @@ namespace Cerulean.Components
                 Modified = false;
                 window.FlagForRedraw();
             }
-            
+
             CallHook(this, EventHook.AfterUpdate, window, clientArea);
         }
 

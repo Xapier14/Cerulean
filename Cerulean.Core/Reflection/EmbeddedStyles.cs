@@ -1,11 +1,6 @@
-﻿using System;
+﻿using Cerulean.Common;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using Cerulean.Common;
 
 namespace Cerulean.Core
 {
@@ -48,7 +43,7 @@ namespace Cerulean.Core
                 ? "No styles loaded."
                 : $"Loaded {_styles.Count} style(s).");
         }
-        
+
         public Style? FetchStyle(string name, string? localScopeId = null)
         {
             foreach (var ((styleName, localId), style) in _styles)
@@ -59,7 +54,7 @@ namespace Cerulean.Core
                     continue;
                 if (localId is not null && scopes?.Contains(localId) == false)
                     continue;
-                
+
                 return style;
             }
             return null;

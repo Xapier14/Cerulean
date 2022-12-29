@@ -19,7 +19,7 @@ namespace Cerulean.Core.Logging
         public struct ProfilerItem
         {
             public string Label { get; init; }
-            public long StartTicks  { get; init; }
+            public long StartTicks { get; init; }
         }
 
         private readonly Stack<ProfilerItem> _callStack = new();

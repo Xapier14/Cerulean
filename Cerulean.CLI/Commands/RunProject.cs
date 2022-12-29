@@ -15,7 +15,7 @@ internal class RunProject : ICommand
 
         var router = Router.GetRouter();
         router.ExecuteCommand("build-xml", "-silent");
-            
+
         var config = Config.GetConfig();
 
         options.TryGetValue("arch", out var arch);

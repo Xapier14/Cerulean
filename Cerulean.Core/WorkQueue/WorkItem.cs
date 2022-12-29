@@ -17,7 +17,7 @@
         //     Result = null;
         //     _args = Array.Empty<object>();
         // }
-        
+
         public WorkItem(Action<object[]> action, params object[] args)
         {
             _action = action;
@@ -44,7 +44,8 @@
 
         public void BeginTask()
         {
-            if (IsCompleted) return;
+            if (IsCompleted)
+                return;
             _action?.Invoke(_args);
             Result = _func?.Invoke(_args);
             IsCompleted = true;

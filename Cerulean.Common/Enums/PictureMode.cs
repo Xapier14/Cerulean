@@ -1,5 +1,3 @@
-using System.ComponentModel;
-
 namespace Cerulean.Common
 {
     public enum PictureMode

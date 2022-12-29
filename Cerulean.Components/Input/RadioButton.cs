@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Cerulean.Common;
-using Cerulean.Core;
+﻿using Cerulean.Common;
 
 namespace Cerulean.Components
 {
@@ -153,7 +147,7 @@ namespace Cerulean.Components
         public RadioButton()
         {
             DisableTopLevelHooks = true;
-            
+
             Button radioHandle = AddChild("Button_RadioHandle", new Button
             {
                 X = 5,
@@ -193,7 +187,7 @@ namespace Cerulean.Components
         {
             if (Parent is not InputContext inputContext)
                 return;
-            
+
             inputContext.UpdateRadioGroupValue(InputGroup, InputData);
 
             var otherRadioButtons = inputContext.Children
@@ -228,7 +222,7 @@ namespace Cerulean.Components
             CallHook(this, EventHook.BeforeUpdate, window, clientArea);
 
             ClientArea = Size ?? clientArea;
-            
+
             GetChild("Button_RadioHandle").X = window.GetDpiScaledValue(5);
             GetChild("Button_RadioHandle").Y = window.GetDpiScaledValue(5);
             GetChild<ISized>("Button_RadioHandle").Size = window.GetDpiScaledValue(new Size(12, 12));
@@ -244,7 +238,7 @@ namespace Cerulean.Components
             }
 
             base.Update(window, clientArea);
-            
+
             CallHook(this, EventHook.AfterUpdate, window, clientArea);
         }
 

@@ -21,7 +21,8 @@ namespace Cerulean.Core
         private static bool TryGetFile(string dirPath, string name, out string filePath)
         {
             filePath = string.Empty;
-            if (!Directory.Exists(dirPath)) return false;
+            if (!Directory.Exists(dirPath))
+                return false;
             var dirInfo = new DirectoryInfo(dirPath);
             var files = dirInfo.GetFiles("*", SearchOption.AllDirectories)
                 .Where(file =>
@@ -34,7 +35,8 @@ namespace Cerulean.Core
                 })
                 .OrderBy(f => f.Name)
                 .ToArray();
-            if (!files.Any()) return false;
+            if (!files.Any())
+                return false;
             filePath = files[0].FullName;
             CeruleanAPI.GetAPI().Log($"Found font {filePath}.");
             return true;

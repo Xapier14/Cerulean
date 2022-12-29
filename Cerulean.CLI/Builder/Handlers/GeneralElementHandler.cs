@@ -1,6 +1,6 @@
-﻿using System.Text;
+﻿using Cerulean.Common;
+using System.Text;
 using System.Xml.Linq;
-using Cerulean.Common;
 
 namespace Cerulean.CLI;
 
@@ -14,8 +14,8 @@ internal class GeneralElementHandler : IElementHandler
         IBuilder builder, IBuilderContext context, string parent = "")
     {
         var localName = element.Name.LocalName;
-        var elementType = localName.Contains('.') ? localName[(localName.LastIndexOf('.')+1)..] : localName;
-        var namespacePart = localName.Contains('.') ? localName.Remove(localName.LastIndexOf('.')-1) : string.Empty;
+        var elementType = localName.Contains('.') ? localName[(localName.LastIndexOf('.') + 1)..] : localName;
+        var namespacePart = localName.Contains('.') ? localName.Remove(localName.LastIndexOf('.') - 1) : string.Empty;
 
         var namespaceCandidate = context.Imports
             .Select(ns => $"{ns}{namespacePart}")
@@ -81,7 +81,7 @@ internal class GeneralElementHandler : IElementHandler
 
         const string footer = "});\n";
         stringBuilder.AppendIndented(indentDepth, footer);
-        
+
         // global styles
         var importedSheets = string.Join(';', context.ImportedSheets);
         if (importedSheets != string.Empty)

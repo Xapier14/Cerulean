@@ -21,7 +21,8 @@ namespace Cerulean.Core
 
         public void AddTexture(Texture texture)
         {
-            if (TryGetTexture(texture.Identity, out _)) return;
+            if (TryGetTexture(texture.Identity, out _))
+                return;
             if (_cache.Count >= _maxCount && _cache.Tail is not null)
             {
                 var ptr = _cache.Tail.Data.SDLTexture;

@@ -1,9 +1,9 @@
 ﻿
+using Cerulean.Common;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using Cerulean.Common;
 
 namespace Cerulean.CLI;
 
@@ -93,15 +93,15 @@ public class Builder : IBuilder
 
         var localLayouts = xml.Root.Elements("Layout").ToArray();
         var localStyles = xml.Root.Elements("Style").ToArray();
-        
-        _layouts.AddRange(localLayouts.Select( xElement => (xElement, context)));
-        _styles.AddRange(localStyles.Select( xElement => (xElement, context)));
-        
+
+        _layouts.AddRange(localLayouts.Select(xElement => (xElement, context)));
+        _styles.AddRange(localStyles.Select(xElement => (xElement, context)));
+
         ColoredConsole.Debug($"[$green^DEV$r^] XML: $cyan^{xmlFilePath}$r^, layouts: $yellow^{localLayouts.Length}$r^, styles: $yellow^{localStyles.Length}$r^");
 
         context.IsStylesheet = localLayouts.Length == 0 && localStyles.Length > 0;
         _sheets.Add(localId, context);
-        
+
         ColoredConsole.Debug($"[$green^DEV$r^] XML: $cyan^{xmlFilePath}$r^, isStylesheet: $yellow^{context.IsStylesheet}$r^");
 
         return true;
@@ -410,10 +410,11 @@ public class Builder : IBuilder
 
         return componentRef;
     }
-    
+
     public static string? RemoveNullableType(string? nullableTypeString)
     {
-        if (nullableTypeString == null) return null;
+        if (nullableTypeString == null)
+            return null;
         var match = Regex.Match(nullableTypeString, "^System.Nullable`1\\[\\[(.+), (.+), (.+), (.+), (.+)\\]\\]$");
         return match.Success ? match.Groups[1].Value : nullableTypeString;
     }

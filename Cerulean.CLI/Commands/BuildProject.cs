@@ -70,9 +70,9 @@ public class BuildProject : ICommand
 
         // Bundle dependencies if not found
         ColoredConsole.WriteLine("$yellow^[CRN]$r^ Assessing dependencies...");
-        Router.GetRouter().ExecuteCommand("bundle", 
-            projectPath, 
-            "-arch", arch, 
+        Router.GetRouter().ExecuteCommand("bundle",
+            projectPath,
+            "-arch", arch,
             "-os", os,
             "-config", netConfig,
             "-nv", netVersion);

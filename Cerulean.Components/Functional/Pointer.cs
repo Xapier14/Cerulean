@@ -1,6 +1,5 @@
 ﻿
 using Cerulean.Common;
-using Cerulean.Core;
 using Cerulean.Core.Input;
 
 namespace Cerulean.Components
@@ -21,12 +20,12 @@ namespace Cerulean.Components
         {
             CallHook(this, EventHook.BeforeUpdate, window, clientArea);
 
-            var ( globalX, globalY) = Mouse.GetGlobalMousePosition();
+            var (globalX, globalY) = Mouse.GetGlobalMousePosition();
             ClientArea = null;
-            var ( windowX, windowY) = window.WindowPosition;
+            var (windowX, windowY) = window.WindowPosition;
             _x = globalX - windowX;
             _y = globalY - windowY;
-            
+
             CallHook(this, EventHook.AfterUpdate, window, clientArea);
         }
     }

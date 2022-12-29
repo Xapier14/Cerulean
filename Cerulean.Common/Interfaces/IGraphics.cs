@@ -1,6 +1,4 @@
-﻿using System.Security.Principal;
-
-namespace Cerulean.Common
+﻿namespace Cerulean.Common
 {
     public interface IGraphics
     {

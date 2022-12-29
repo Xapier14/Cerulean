@@ -1,15 +1,12 @@
-﻿using System;
+﻿using Cerulean.CLI.Attributes;
+using Cerulean.Common;
 using System.Diagnostics;
-using System.Net;
 using System.Reflection;
-using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using Cerulean.CLI.Attributes;
-using Cerulean.Common;
 
 namespace Cerulean.CLI;
 

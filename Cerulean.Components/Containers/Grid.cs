@@ -171,7 +171,7 @@ namespace Cerulean.Components
 
             // calculate client area for each cell
             CalculateCellSizes(clientArea);
-            
+
             UpdateChildComponents(window);
 
             if (Modified)
@@ -179,7 +179,7 @@ namespace Cerulean.Components
                 Modified = false;
                 window.FlagForRedraw();
             }
-            
+
             CallHook(this, EventHook.AfterUpdate, window, clientArea);
         }
 
@@ -189,7 +189,7 @@ namespace Cerulean.Components
                 return;
             if (_cellSizes is null)
                 return;
-            
+
             CacheViewportData(viewportX, viewportY, viewportSize);
 
             CallHook(this, EventHook.BeforeDraw, graphics, viewportX, viewportY, viewportSize);
@@ -243,7 +243,7 @@ namespace Cerulean.Components
                 var offsetX = aX;
                 var offsetY = aY;
                 var childSize = new Size(component.ClientArea!.Value);
-                
+
                 // check left is clipping
                 if (component.X + oldX < 0)
                 {

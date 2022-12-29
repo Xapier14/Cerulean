@@ -16,7 +16,7 @@ namespace Cerulean.Core.Input
         {
             if (SDL_GetMouseFocus() != window.WindowPtr)
                 return null;
-            
+
             _ = SDL_GetMouseState(out var x, out var y);
             return (x, y);
         }

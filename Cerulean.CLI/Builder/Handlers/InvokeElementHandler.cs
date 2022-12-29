@@ -1,6 +1,6 @@
-﻿using System.Text;
+﻿using Cerulean.Common;
+using System.Text;
 using System.Xml.Linq;
-using Cerulean.Common;
 
 namespace Cerulean.CLI;
 

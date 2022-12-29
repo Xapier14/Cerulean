@@ -22,6 +22,7 @@
 		<PackageProjectUrl>https://github.com/Xapier14/Cerulean</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/Xapier14/Cerulean.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	</PropertyGroup>
 
 	<ItemGroup>

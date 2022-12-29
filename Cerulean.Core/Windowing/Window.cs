@@ -399,7 +399,8 @@ namespace Cerulean.Core
 
         private void EnsureMainThread(string? message = null)
         {
-            if (_threadId == Environment.CurrentManagedThreadId) return;
+            if (_threadId == Environment.CurrentManagedThreadId)
+                return;
             var exception = message == null ?
                 new ThreadSafetyException() :
                 new ThreadSafetyException(message);

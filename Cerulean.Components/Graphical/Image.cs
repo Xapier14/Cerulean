@@ -1,7 +1,6 @@
+using Cerulean.Common;
 using System.Text;
 using System.Text.RegularExpressions;
-using Cerulean.Core;
-using Cerulean.Common;
 
 namespace Cerulean.Components
 {
@@ -128,7 +127,7 @@ namespace Cerulean.Components
                 Modified = false;
                 window.FlagForRedraw();
             }
-            
+
             CallHook(this, EventHook.AfterUpdate, window, clientArea);
         }
 

@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Cerulean.CLI
 {
@@ -41,7 +37,8 @@ namespace Cerulean.CLI
             var value = hintedString;
 
             // attribute value-part has datatype hint
-            if (!regex.Success && overrideType is null) return value;
+            if (!regex.Success && overrideType is null)
+                return value;
             var type = overrideType ?? regex.Groups[1].ToString().ToLower();
             var raw = overrideType is null ? regex.Groups[2].ToString() : hintedString;
             string? specificComponent = null;
@@ -108,7 +105,8 @@ namespace Cerulean.CLI
             StringBuilder component = new();
             var nests = nestedName.Split('.');
             component.Append(root).Append("GetChild(\"").Append(nests[0]).Append("\")");
-            for (var i = 1; i < nests.Length; i++) component.Append(".GetChild(\"").Append(nests[i]).Append("\")");
+            for (var i = 1; i < nests.Length; i++)
+                component.Append(".GetChild(\"").Append(nests[i]).Append("\")");
             return component.ToString();
         }
 

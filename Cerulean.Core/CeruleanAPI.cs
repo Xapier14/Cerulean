@@ -1,10 +1,8 @@
 ﻿using Cerulean.Common;
+using Cerulean.Core.Input;
 using Cerulean.Core.Logging;
 using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Cerulean.Core.Input;
-using SDL2;
 using static SDL2.SDL;
 
 namespace Cerulean.Core
@@ -592,7 +590,8 @@ namespace Cerulean.Core
                 return window;
             }, initialize);
 
-            if (result is Window resultWindow) return resultWindow;
+            if (result is Window resultWindow)
+                return resultWindow;
 
             var error2 = new GeneralAPIException("Window could not be created.");
             _logger?.Log(error2.Message, LogSeverity.Error, error2);
@@ -615,7 +614,7 @@ namespace Cerulean.Core
             return CreateWindow(FetchLayout(windowLayoutName), windowTitle, windowSize, initialize);
         }
 
-        
+
 
         public Window CreateDialogModal(Layout layout, string windowTitle, Size? size = null)
         {
@@ -645,7 +644,8 @@ namespace Cerulean.Core
                 if (args.Length <= 0 ||
                     args[0] is not Window { IsInitialized: true } window)
                     return;
-                if (window.Closed) return;
+                if (window.Closed)
+                    return;
 
                 // simulate OnClose event
                 if (!window.OnCloseFromEvent)

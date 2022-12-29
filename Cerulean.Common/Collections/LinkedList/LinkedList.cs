@@ -194,7 +194,8 @@ namespace Cerulean.Common.Collections
                 _started = true;
                 return true;
             }
-            if (_current.Next is null) return false;
+            if (_current.Next is null)
+                return false;
             _current = _current.Next;
             return true;
         }

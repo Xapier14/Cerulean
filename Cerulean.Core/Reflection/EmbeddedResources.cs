@@ -1,7 +1,6 @@
-﻿using System.Collections.Concurrent;
-using System.Reflection;
+﻿using Cerulean.Common;
+using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
-using Cerulean.Common;
 using static SDL2.SDL;
 
 namespace Cerulean.Core

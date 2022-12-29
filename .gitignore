@@ -4,6 +4,7 @@
 .sonarqube/
 Cerulean.Stub.*/
 Cerulean.CLI/Properties/
+Cerulean.CLI/nupkg/
 bin/
 obj/
 Examples/TestBed/

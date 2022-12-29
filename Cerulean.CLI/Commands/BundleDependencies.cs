@@ -1,6 +1,6 @@
-﻿using System.IO.Compression;
-using Cerulean.CLI.Attributes;
+﻿using Cerulean.CLI.Attributes;
 using Cerulean.CLI.JsonStructure;
+using System.IO.Compression;
 
 namespace Cerulean.CLI;
 

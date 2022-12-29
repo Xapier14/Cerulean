@@ -394,14 +394,15 @@ namespace Cerulean.Core
                                 var scale = (double)size.W / imageSize.W;
                                 w = size.W;
                                 h = (int)(imageSize.H * scale);
-                            } else 
+                            }
+                            else
                             {
                                 var scale = (double)size.H / imageSize.H;
                                 h = size.H;
                                 w = (int)(imageSize.W * scale);
                             }
                             imageX = x + _globalX + (size.W - w) / 2;
-                            imageY = y + _globalY +  (size.H - h) / 2;
+                            imageY = y + _globalY + (size.H - h) / 2;
                             break;
                         case PictureMode.Fit:
                             var factor = Math.Min((double)size.W / imageSize.W, (double)size.H / imageSize.H);
@@ -411,7 +412,8 @@ namespace Cerulean.Core
                             imageY = y + _globalY + (size.H - h) / 2;
                             break;
                     }
-                } else
+                }
+                else
                 {
                     var xRep = (int)Math.Ceiling((double)size.W / imageSize.W);
                     var yRep = (int)Math.Ceiling((double)size.H / imageSize.H);
@@ -434,9 +436,10 @@ namespace Cerulean.Core
                     w = w,
                     h = h
                 };
-                
+
                 SDL_RenderCopy(RendererPtr, sdlTexture, IntPtr.Zero, ref target);
-            } else 
+            }
+            else
             {
                 throw new GeneralAPIException("Could not load texture.");
             }
@@ -523,7 +526,7 @@ namespace Cerulean.Core
                 };
                 _textureCache.AddTexture(textTexture.Value);
                 CeruleanAPI.GetAPI().Profiler?.EndProfilingCurrentPoint();
-                
+
                 CeruleanAPI.GetAPI().Profiler?.EndProfilingCurrentPoint();
             }
             CeruleanAPI.GetAPI().Profiler?.StartProfilingPoint("DrawTexture");
@@ -561,7 +564,7 @@ namespace Cerulean.Core
         {
             var font = _fontCache.GetFont(fontName, fontStyle, fontPointSize);
             TTF_SizeUTF8(font.Data, text, out var w, out var h);
-            if (textWrap == 0  || textWrap >= w)
+            if (textWrap == 0 || textWrap >= w)
                 return (w, h);
             var totalRows = (w / textWrap);
             return (textWrap, totalRows * h);

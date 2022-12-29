@@ -31,7 +31,7 @@ namespace Cerulean.Common
             {
                 setters.ForEach(setter => setter.ApplyTo(component));
             }
-            
+
             // apply style to component's children
             if (!ApplyToChildren)
                 return;

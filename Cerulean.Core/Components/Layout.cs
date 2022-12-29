@@ -25,7 +25,8 @@ namespace Cerulean.Core
 
         protected void QueueStyle(Component component, Style? style)
         {
-            if (style == null) return;
+            if (style == null)
+                return;
             _queuedStyles.Enqueue((component, style));
         }
 
