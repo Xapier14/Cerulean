@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using Microsoft.CodeAnalysis;
@@ -7,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Text;
 using System.Linq;
+using System.Security.Authentication.ExtendedProtection;
 using Cerulean.Analyzer.Extensions;
 
 namespace Cerulean.Analyzer
@@ -14,51 +16,48 @@ namespace Cerulean.Analyzer
     [Generator]
     public class ComponentRefGenerator : ISourceGenerator
     {
+        private readonly RefXMLBuilder _refBuilder = new();
+        private string _component = string.Empty;
+        private string _namespace = string.Empty;
+
         public void Initialize(GeneratorInitializationContext context)
         {
             context.RegisterForSyntaxNotifications(() => new ClassSyntaxReceiver());
+            _refBuilder.XmlPath = @"D:\Cerulean\Cerulean.Components.xml";
         }
 
         public void Execute(GeneratorExecutionContext context)
         {
             var syntaxReceiver = (ClassSyntaxReceiver?)context.SyntaxReceiver;
 
-            var cds = syntaxReceiver?.ClassDeclaration;
-
-            if (cds == null)
+            if (syntaxReceiver is null)
                 return;
 
-            if (cds.Identifier.Text.EndsWith("Ref"))
-                return;
-
-            var classAttributes = cds.AttributeLists.FirstOrDefault()?.GetAttributes(context.Compilation);
-            Logger.WriteLine("Writing ref for {0}", cds.Identifier.Text);
-            var className = cds.Identifier.Text + "Ref";
-            var source = new SourceBuilder
+            foreach (var cds in syntaxReceiver.ClassDeclaration)
             {
-                Namespace = RetrieveNamespace(cds),
-                ClassName = className
-            };
-            source.AddUsingDirective("Cerulean.Common");
-            source.AddInheritance("IComponentRef");
-            source.AddInitProperty("string", "ComponentName", $"\"{cds.Identifier.Text}\"");
-            source.AddInitProperty("string", "Namespace", $"\"{RetrieveNamespace(cds)}\"");
-            source.AddInitProperty("IEnumerable<PropertyRefEntry>", "Properties");
+                if (cds == null)
+                    return;
+                
+                Logger.WriteLine("Writing ref for {0}", cds.Identifier.Text);
 
-            Logger.WriteLine("SourceBuilder created.");
-            ProcessMembers(source, cds, context.Compilation);
-            Logger.WriteLine("Members processed.");
-            File.WriteAllText(@"D:\Cerulean\test\class-gen.txt", source.ToString());
-            Logger.WriteLine("Wrote test gen file.");
-            context.AddSource(source);
-        }
+                var classSymbol = cds.GetDeclaredSymbol(context.Compilation) as ITypeSymbol;
 
-        public void Output(GeneratorExecutionContext context, string hintName, string s)
-        {
-            hintName = hintName.Select(x => char.IsLetterOrDigit(x) ? x : '_').ToArray().AsSpan().ToString();
-            var name = $"{hintName}.{Guid.NewGuid()}.cs";
-            File.WriteAllText(@"D:\Cerulean\src\Lab\" + name, s);
-            context.AddSource(name, s);
+                if (classSymbol?.BaseType?.Name is not "Component" or "Cerulean.Common.Component")
+                {
+                    Logger.WriteLine("Skipping {0} as it's base type is not Component", cds.Identifier.Text);
+                    Logger.WriteLine("{0}'s base type is {1}", cds.Identifier.Text, classSymbol?.BaseType?.Name ?? "none");
+                    continue;
+                }
+
+                _component = cds.Identifier.Text;
+                _namespace = RetrieveNamespace(cds);
+            
+                _refBuilder.AddComponent(
+                    cds.Identifier.Text,
+                    RetrieveNamespace(cds),
+                    ProcessMembers(cds, context.Compilation)
+                );
+            }
         }
 
         public string RetrieveNamespace(ClassDeclarationSyntax classDeclarationSyntax)
@@ -73,32 +72,30 @@ namespace Cerulean.Analyzer
             return ((NamespaceDeclarationSyntax)syntaxNode).Name.ToString() ?? "";
         }
 
-        public void ProcessMembers(SourceBuilder sourceBuilder, ClassDeclarationSyntax classDeclarationSyntax, Compilation compilation)
+        public IDictionary<string, string> ProcessMembers(ClassDeclarationSyntax classDeclarationSyntax, Compilation compilation)
         {
-            sourceBuilder.WriteLineToConstructor("var tuples = new[]", "{");
-            sourceBuilder.IncreaseIndentToConstructor();
-            classDeclarationSyntax.Members.ToList().ForEach(mds => ProcessMember(sourceBuilder, mds, compilation));
-            sourceBuilder.DecreaseIndentToConstructor();
-            sourceBuilder.WriteLineToConstructor("};", "Properties = PropertyRefEntry.GenerateEntriesFromTuples(tuples);");
+            var result = new Dictionary<string, string>();
+            classDeclarationSyntax.Members.ToList().ForEach(mds => ProcessMember(result, mds, compilation));
+            return result;
         }
 
-        public void ProcessMember(SourceBuilder sourceBuilder, MemberDeclarationSyntax mds, Compilation compilation)
+        public void ProcessMember(IDictionary<string, string> properties, MemberDeclarationSyntax mds, Compilation compilation)
         {
             var memberData = mds.GetDeclaredSymbol(compilation);
             if (memberData is IPropertySymbol propertyData)
-                PropertyHandler.Write(sourceBuilder, propertyData, mds.GetAttributes(compilation));
+                PropertyHandler.Write(properties, propertyData, mds.GetAttributes(compilation));
         }
     }
 
     class ClassSyntaxReceiver : ISyntaxReceiver
     {
-        public ClassDeclarationSyntax? ClassDeclaration { get; private set; }
+        public IList<ClassDeclarationSyntax> ClassDeclaration { get; } = new List<ClassDeclarationSyntax>();
 
         public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
         {
             if (syntaxNode is ClassDeclarationSyntax cds)
             {
-                ClassDeclaration = cds;
+                ClassDeclaration.Add(cds);
             }
         }
     }

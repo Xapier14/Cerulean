@@ -8,7 +8,7 @@ namespace Cerulean.Analyzer
 {
     internal static class PropertyHandler
     {
-        public static void Write(SourceBuilder sourceBuilder, IPropertySymbol property, IReadOnlyList<AttributeData> attributes)
+        public static void Write(IDictionary<string, string> result, IPropertySymbol property, IReadOnlyList<AttributeData> attributes)
         {
             var type = property.Type.ToString();
             var name = property.Name;
@@ -28,14 +28,14 @@ namespace Cerulean.Analyzer
             var isLateBound = lateBoundAttribute is not null;
 
             if (type is "Cerulean.Common.Component" or "Cerulean.Common.Component?"
-                && componentTypeAttribute is not null)
+                || componentTypeAttribute is not null)
             {
-                var componentType = (string?)componentTypeAttribute.ConstructorArguments[0].Value ?? "Cerulean.Common.Component";
+                var componentType = (string?)componentTypeAttribute?.ConstructorArguments[0].Value ?? "Cerulean.Common.Component";
                 Logger.WriteLine("This is the type {0}", componentType);
-                isLateBound = (bool?)componentTypeAttribute.ConstructorArguments[1].Value ?? true;
+                isLateBound = (bool?)componentTypeAttribute?.ConstructorArguments[1].Value ?? true;
                 type = $"component<{componentType}>";
             }
-            sourceBuilder.WriteLineToConstructor($"(\"{name}\", \"{type}{(isLateBound ? "*" : "")}\"),");
+            result.Add(name, $"{type.Replace("?", "")}{(isLateBound ? "*" : "")}");
         }
     }
 }
