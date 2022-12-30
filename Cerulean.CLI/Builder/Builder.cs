@@ -310,6 +310,7 @@ public class Builder : IBuilder
     {
         var modulesDir = Path.Join(Environment.CurrentDirectory, ".modules");
         var externalAssemblies = new List<Assembly>();
+        var xmlRefs = new List<XDocument>();
 
         if (Directory.Exists(modulesDir))
         {
@@ -321,6 +322,16 @@ public class Builder : IBuilder
                     {
                         ColoredConsole.Debug($"[$green^DEV$rs^] Loading file {dll.FullName}...");
                         return Assembly.Load(File.ReadAllBytes(dll.FullName));
+                    })
+            );
+            ColoredConsole.Debug("[$green^DEV$rs^] Loading xml references from '.modules'...");
+            var xmlFiles = new DirectoryInfo(modulesDir).EnumerateFiles("*.xml");
+            xmlRefs.AddRange(
+                xmlFiles.Select(
+                    xml =>
+                    {
+                        ColoredConsole.Debug($"[$green^DEV$rs^] Loading file {xml.FullName}...");
+                        return XDocument.Load(xml.FullName);
                     })
             );
         }
@@ -342,7 +353,19 @@ public class Builder : IBuilder
                 _references.Add(GenerateReference(component));
         });
 
-
+        xmlRefs.ForEach(xDocument =>
+        {
+            var root = xDocument.Root;
+            if (root is null)
+                return;
+            var componentsInXml = root.Elements("Component");
+            foreach (var component in componentsInXml)
+            {
+                var result = GenerateFromXElement(component);
+                if (result is not null)
+                    _references.Add(result);
+            }
+        });
     }
 
     private void RegisterHandler(string? handlerName, ConstructorInfo? handlerConstructor)
@@ -409,6 +432,29 @@ public class Builder : IBuilder
         }
 
         return componentRef;
+    }
+
+    private static ComponentRef? GenerateFromXElement(XElement component)
+    {
+        var name = component.Attribute("Name")?.Value;
+        var fromNamespace = component.Attribute("Namespace")?.Value;
+        if (name is null || fromNamespace is null)
+            return null;
+
+        var reference = new ComponentRef
+        {
+            ComponentName = name,
+            Namespace = fromNamespace
+        };
+        foreach (var property in component.Elements("Property"))
+        {
+            var propName = property.Attribute("Name")?.Value;
+            var propType = property.Attribute("Type")?.Value;
+            if (propName is null || propType is null)
+                continue;
+            reference.AddType(propName, propType);
+        }
+        return reference;
     }
 
     public static string? RemoveNullableType(string? nullableTypeString)

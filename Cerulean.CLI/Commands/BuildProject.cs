@@ -64,19 +64,6 @@ public class BuildProject : ICommand
         if (Build(projectPath, arch, os, netConfig))
             return -3;
 
-        // get csproj info
-        var csproj = Helper.GetProjectFileInDirectory(projectPath);
-        var netVersion = Helper.GetXMLNetVersion(csproj);
-
-        // Bundle dependencies if not found
-        ColoredConsole.WriteLine("$yellow^[CRN]$r^ Assessing dependencies...");
-        Router.GetRouter().ExecuteCommand("bundle",
-            projectPath,
-            "-arch", arch,
-            "-os", os,
-            "-config", netConfig,
-            "-nv", netVersion);
-
         Console.WriteLine();
         ColoredConsole.WriteLine("$green^Cerulean project built successfully!$r^");
         ColoredConsole.WriteLine("Try running with '$yellow^crn run$r^'");

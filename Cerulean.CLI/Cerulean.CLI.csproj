@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<EnablePreviewFeatures>true</EnablePreviewFeatures>
@@ -7,17 +7,16 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AssemblyName>crn</AssemblyName>
-		<Platforms>AnyCPU;x86;x64</Platforms>
-		<AssemblyVersion>0.2.2.0</AssemblyVersion>
-		<FileVersion>0.2.2.0</FileVersion>
+		<Platforms>AnyCPU</Platforms>
+		<AssemblyVersion></AssemblyVersion>
+		<FileVersion></FileVersion>
 		<PackAsTool>true</PackAsTool>
 		<ToolCommandName>crn</ToolCommandName>
-		<PackageOutputPath>./nupkg</PackageOutputPath>
+		<PackageOutputPath></PackageOutputPath>
 		<SignAssembly>False</SignAssembly>
-		<Version>0.2.2</Version>
+		<Version>0.2.3</Version>
 		<Title>Cerulean.CLI</Title>
 		<PackageId>Cerulean.CLI</PackageId>
-		<Company></Company>
 		<Authors>Lance Crisang</Authors>
 		<PackageProjectUrl>https://github.com/Xapier14/Cerulean</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/Xapier14/Cerulean.git</RepositoryUrl>
@@ -25,6 +24,12 @@
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <Compile Remove="nupkg\**" />
+	  <EmbeddedResource Remove="nupkg\**" />
+	  <None Remove="nupkg\**" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\Cerulean.Common\Cerulean.Common.csproj" />

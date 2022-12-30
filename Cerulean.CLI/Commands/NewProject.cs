@@ -1,6 +1,8 @@
 ﻿using Cerulean.CLI.Attributes;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
+using System.Xml.Linq;
 
 namespace Cerulean.CLI;
 
@@ -19,6 +21,7 @@ public class NewProject : ICommand
         {
             Console.WriteLine("Directory already contains a project or solution file.");
             Console.WriteLine("Aborting command...");
+            Environment.Exit(0);
         }
 
         // ensure directory exists
@@ -29,24 +32,38 @@ public class NewProject : ICommand
     {
         Console.WriteLine("Creating project boilerplate + settings...");
         Directory.CreateDirectory(workingDir + "/Layouts");
+        Directory.CreateDirectory(workingDir + "/.modules");
         File.WriteAllText(workingDir + "/Usings.cs", USINGS_BOILERPLATE);
         File.WriteAllText(workingDir + "/Program.cs", PROGRAM_BOILERPLATE);
         File.WriteAllText(workingDir + "/Layouts/ExampleLayout.xml", LAYOUT_BOILERPLATE);
         File.WriteAllText(workingDir + "/.gitignore", GIT_IGNORE_LIST);
         File.WriteAllText(workingDir + "/app.manifest", APP_MANIFEST);
+        File.WriteAllText(workingDir + "/.modules/Cerulean.Components.xml", CERULEAN_COMPONENTS_TEMP_XML);
+
         // inject includes item group to project xml
         var projectDirInfo = new DirectoryInfo(workingDir);
         var projectInfo = projectDirInfo
             .EnumerateFiles()
             .First(fileInfo => string.Equals(fileInfo.Extension, ".csproj", StringComparison.OrdinalIgnoreCase));
-        var projectStream = File.OpenWrite(projectInfo.FullName);
-        var seekAmount = "</Project></PropertyGroup>".Length + 4;
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            seekAmount += 2;
-        projectStream.Seek(-seekAmount, SeekOrigin.End);
-        var bytesToInject = Encoding.UTF8.GetBytes(PROJECT_XML_INJECT);
-        projectStream.Write(bytesToInject);
-        projectStream.Close();
+
+        var projectXml = XDocument.Load(projectInfo.FullName);
+        var root = projectXml.Root;
+
+        var propertyGroup = root?.Element("PropertyGroup");
+        var itemGroup = root?.Element("ItemGroup");
+
+        propertyGroup?.Add(new XElement("ApplicationManifest")
+        {
+            Value = "app.manifest"
+        });
+        var compile1 = new XElement("Compile");
+        compile1.SetAttributeValue("Include", ".cerulean\\*.cs");
+        var compile2 = new XElement("Compile");
+        compile2.SetAttributeValue("Remove", "Cerulean\\**");
+        itemGroup?.Add(compile1);
+        itemGroup?.Add(compile2);
+        root?.Save(projectInfo.FullName);
+
         Console.WriteLine("Initialized project!\n");
     }
 
@@ -63,26 +80,8 @@ public class NewProject : ICommand
         return Path.GetFullPath(workingDir);
     }
 
-    public int DoAction(string[] args, IEnumerable<string> flags, IDictionary<string, string> options)
+    public int GenerateBleedingEdge(string workingDir, Config config)
     {
-        // get current configuration
-        var config = Config.GetConfig();
-
-        // get working directory
-        var workingDir = DetermineWorkingDirectoryFromArgs(args);
-
-        // confirm if user wants to create a project in working directory
-        Console.WriteLine("A project will be created in the folder {0}.", workingDir);
-        Console.Write("Do you want to proceed? (Y/n): ");
-        if (Console.ReadLine() is { } choice
-            && string.Equals(choice, "n", StringComparison.OrdinalIgnoreCase))
-        {
-            return 0;
-        }
-
-        // create project dir
-        CreateProjectDirectory(workingDir);
-
         // create dotnet console project
         if (Helper.DoTask("Creating .NET console project...",
                 "dotnet",
@@ -137,12 +136,93 @@ public class NewProject : ICommand
             return -7;
         }
 
-        // restore test dependencies
-        if (Helper.DoTask("Doing restore on Cerulean.Test...",
+        return 0;
+    }
+
+    public int GenerateStable(string workingDir, Config config)
+    {
+        // create dotnet console project
+        if (Helper.DoTask("Creating .NET console project...",
                 "dotnet",
-                "restore", workingDir + "/Cerulean/Cerulean.Test"))
+                "new console", workingDir))
         {
-            return -8;
+            return -1;
+        }
+
+        // create a git repository
+        if (Helper.DoTask("Creating a git repository...",
+                "git",
+                "init", workingDir))
+        {
+            return -2;
+        }
+
+        // add Cerulean.Core NuGet package
+        if (Helper.DoTask("Adding Cerulean.Core NuGet package...",
+                "dotnet",
+                "add package Cerulean.Core", workingDir))
+        {
+            return -3;
+        }
+
+        // add Cerulean.Components NuGet package
+        if (Helper.DoTask("Adding Cerulean.Components NuGet package...",
+                "dotnet",
+                "add package Cerulean.Components", workingDir))
+        {
+            return -4;
+        }
+
+        // add Cerulean.SDL2-CS NuGet package
+        if (Helper.DoTask("Adding Cerulean.SDL2-CS NuGet package...",
+                "dotnet",
+                "add package Cerulean.SDL2-CS", workingDir))
+        {
+            return -5;
+        }
+
+        return 0;
+    }
+
+    public int DoAction(string[] args, IEnumerable<string> flags, IDictionary<string, string> options)
+    {
+        // get current configuration
+        var config = Config.GetConfig();
+
+        // get working directory
+        var workingDir = DetermineWorkingDirectoryFromArgs(args);
+
+        // confirm if user wants to create a project in working directory
+        Console.WriteLine("A project will be created in the folder {0}.", workingDir);
+        Console.Write("Do you want to proceed? (Y/n): ");
+        if (Console.ReadLine() is { } choice
+            && string.Equals(choice, "n", StringComparison.OrdinalIgnoreCase))
+        {
+            return 0;
+        }
+
+        var template = args.Length > 1 ? args[1] : "stable";
+
+        // create project dir
+        CreateProjectDirectory(workingDir);
+
+        var genErrorCode = template.ToLower() switch
+        {
+            "stable" => GenerateStable(workingDir, config),
+            "bleedingedge" => GenerateBleedingEdge(workingDir, config),
+            _ => 1
+        };
+
+        if (genErrorCode == 1)
+        {
+            ColoredConsole.WriteLine("$red^Project template is invalid!$rs^");
+            return genErrorCode;
+        }
+
+        if (genErrorCode != 0)
+        {
+            ColoredConsole.WriteLine("$red^Error generating project template!$rs^");
+            return genErrorCode;
         }
 
         // initialize project
@@ -206,16 +286,6 @@ public class NewProject : ICommand
           "  </Layout>\n" +
           "</CeruleanXML>\n";
 
-    private const string PROJECT_XML_INJECT
-        = "    <ApplicationManifest>app.manifest</ApplicationManifest>\n" +
-          "  </PropertyGroup>\n" +
-          "\n" +
-          "  <ItemGroup>\n" +
-          "    <Compile Include=\".cerulean\\*.cs\" />\n" +
-          "    <Compile Remove=\"Cerulean\\**\" />\n" +
-          "  </ItemGroup>\n" +
-          "</Project>\n";
-
     private const string APP_MANIFEST
         = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
           "<assembly manifestVersion=\"1.0\" xmlns=\"urn:schemas-microsoft-com:asm.v1\">\n" +
@@ -241,6 +311,135 @@ public class NewProject : ICommand
           "obj/\n" +
           "scripts/\n" +
           "publish/\n";
+
+    private const string CERULEAN_COMPONENTS_TEMP_XML
+        =
+        "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+        "<RefXML>\n" +
+        "  <Component Name=\"Grid\" Namespace=\"Cerulean.Components\">\n" +
+        "    <Property Name=\"ColumnCount\" Type=\"int\" />\n" +
+        "    <Property Name=\"RowCount\" Type=\"int\" />\n" +
+        "    <Property Name=\"BackColor\" Type=\"Cerulean.Common.Color\" />\n" +
+        "  </Component>\n" +
+        "  <Component Name=\"Panel\" Namespace=\"Cerulean.Components\">\n" +
+        "    <Property Name=\"Size\" Type=\"Cerulean.Common.Size\" />\n" +
+        "    <Property Name=\"HintW\" Type=\"int\" />\n" +
+        "    <Property Name=\"HintH\" Type=\"int\" />\n" +
+        "    <Property Name=\"BackColor\" Type=\"Cerulean.Common.Color\" />\n" +
+        "    <Property Name=\"BorderColor\" Type=\"Cerulean.Common.Color\" />\n" +
+        "  </Component>\n" +
+        "  <Component Name=\"Pointer\" Namespace=\"Cerulean.Components\">\n" +
+        "    <Property Name=\"X\" Type=\"int\" />\n" +
+        "    <Property Name=\"Y\" Type=\"int\" />\n" +
+        "  </Component>\n" +
+        "  <Component Name=\"Timer\" Namespace=\"Cerulean.Components\">\n" +
+        "    <Property Name=\"IsRunning\" Type=\"bool\" />\n" +
+        "    <Property Name=\"Interval\" Type=\"int\" />\n" +
+        "  </Component>\n" +
+        "  <Component Name=\"Image\" Namespace=\"Cerulean.Components\">\n" +
+        "    <Property Name=\"Size\" Type=\"Cerulean.Common.Size\" />\n" +
+        "    <Property Name=\"HintW\" Type=\"int\" />\n" +
+        "    <Property Name=\"HintH\" Type=\"int\" />\n" +
+        "    <Property Name=\"ImageSource\" Type=\"string\" />\n" +
+        "    <Property Name=\"BackColor\" Type=\"Cerulean.Common.Color\" />\n" +
+        "    <Property Name=\"BorderColor\" Type=\"Cerulean.Common.Color\" />\n" +
+        "    <Property Name=\"PictureMode\" Type=\"Cerulean.Common.PictureMode\" />\n" +
+        "    <Property Name=\"Opacity\" Type=\"double\" />\n" +
+        "    <Property Name=\"Visible\" Type=\"bool\" />\n" +
+        "  </Component>\n" +
+        "  <Component Name=\"Label\" Namespace=\"Cerulean.Components\">\n" +
+        "    <Property Name=\"Size\" Type=\"Cerulean.Common.Size\" />\n" +
+        "    <Property Name=\"HintW\" Type=\"int\" />\n" +
+        "    <Property Name=\"HintH\" Type=\"int\" />\n" +
+        "    <Property Name=\"BackColor\" Type=\"Cerulean.Common.Color\" />\n" +
+        "    <Property Name=\"ForeColor\" Type=\"Cerulean.Common.Color\" />\n" +
+        "    <Property Name=\"Text\" Type=\"string\" />\n" +
+        "    <Property Name=\"FontName\" Type=\"string\" />\n" +
+        "    <Property Name=\"FontSize\" Type=\"int\" />\n" +
+        "    <Property Name=\"FontStyle\" Type=\"string\" />\n" +
+        "    <Property Name=\"WrapText\" Type=\"bool\" />\n" +
+        "  </Component>\n" +
+        "  <Component Name=\"ProgressBar\" Namespace=\"Cerulean.Components\">\n" +
+        "    <Property Name=\"Size\" Type=\"Cerulean.Common.Size\" />\n" +
+        "    <Property Name=\"HintW\" Type=\"int\" />\n" +
+        "    <Property Name=\"HintH\" Type=\"int\" />\n" +
+        "    <Property Name=\"ForeColor\" Type=\"Cerulean.Common.Color\" />\n" +
+        "    <Property Name=\"BackColor\" Type=\"Cerulean.Common.Color\" />\n" +
+        "    <Property Name=\"BorderColor\" Type=\"Cerulean.Common.Color\" />\n" +
+        "    <Property Name=\"Value\" Type=\"int\" />\n" +
+        "    <Property Name=\"Maximum\" Type=\"int\" />\n" +
+        "    <Property Name=\"Orientation\" Type=\"Cerulean.Common.Orientation\" />\n" +
+        "  </Component>\n" +
+        "  <Component Name=\"Rectangle\" Namespace=\"Cerulean.Components\">\n" +
+        "    <Property Name=\"Size\" Type=\"Cerulean.Common.Size\" />\n" +
+        "    <Property Name=\"HintW\" Type=\"int\" />\n" +
+        "    <Property Name=\"HintH\" Type=\"int\" />\n" +
+        "    <Property Name=\"FillColor\" Type=\"Cerulean.Common.Color\" />\n" +
+        "    <Property Name=\"BorderColor\" Type=\"Cerulean.Common.Color\" />\n" +
+        "    <Property Name=\"FillOpacity\" Type=\"double\" />\n" +
+        "    <Property Name=\"BorderOpacity\" Type=\"double\" />\n" +
+        "  </Component>\n" +
+        "  <Component Name=\"Button\" Namespace=\"Cerulean.Components\">\n" +
+        "    <Property Name=\"Size\" Type=\"Cerulean.Common.Size\" />\n" +
+        "    <Property Name=\"HintW\" Type=\"int\" />\n" +
+        "    <Property Name=\"HintH\" Type=\"int\" />\n" +
+        "    <Property Name=\"Text\" Type=\"string\" />\n" +
+        "    <Property Name=\"FontName\" Type=\"string\" />\n" +
+        "    <Property Name=\"FontSize\" Type=\"int\" />\n" +
+        "    <Property Name=\"FontStyle\" Type=\"string\" />\n" +
+        "    <Property Name=\"BackColor\" Type=\"Cerulean.Common.Color\" />\n" +
+        "    <Property Name=\"ForeColor\" Type=\"Cerulean.Common.Color\" />\n" +
+        "    <Property Name=\"BorderColor\" Type=\"Cerulean.Common.Color\" />\n" +
+        "    <Property Name=\"HighlightColor\" Type=\"Cerulean.Common.Color\" />\n" +
+        "    <Property Name=\"ActivatedColor\" Type=\"Cerulean.Common.Color\" />\n" +
+        "  </Component>\n" +
+        "  <Component Name=\"CheckBox\" Namespace=\"Cerulean.Components\">\n" +
+        "    <Property Name=\"Size\" Type=\"Cerulean.Common.Size\" />\n" +
+        "    <Property Name=\"HintW\" Type=\"int\" />\n" +
+        "    <Property Name=\"HintH\" Type=\"int\" />\n" +
+        "    <Property Name=\"ForeColor\" Type=\"Cerulean.Common.Color\" />\n" +
+        "    <Property Name=\"Checked\" Type=\"bool\" />\n" +
+        "    <Property Name=\"Text\" Type=\"string\" />\n" +
+        "    <Property Name=\"FontName\" Type=\"string\" />\n" +
+        "    <Property Name=\"FontSize\" Type=\"int\" />\n" +
+        "    <Property Name=\"FontStyle\" Type=\"string\" />\n" +
+        "    <Property Name=\"WrapText\" Type=\"bool\" />\n" +
+        "    <Property Name=\"InputData\" Type=\"string\" />\n" +
+        "    <Property Name=\"InputGroup\" Type=\"string\" />\n" +
+        "  </Component>\n" +
+        "  <Component Name=\"InputContext\" Namespace=\"Cerulean.Components\">\n" +
+        "    <Property Name=\"SubmitButton\" Type=\"component&lt;Cerulean.Component.Button&gt;*\" />\n" +
+        "  </Component>\n" +
+        "  <Component Name=\"RadioButton\" Namespace=\"Cerulean.Components\">\n" +
+        "    <Property Name=\"Size\" Type=\"Cerulean.Common.Size\" />\n" +
+        "    <Property Name=\"HintW\" Type=\"int\" />\n" +
+        "    <Property Name=\"HintH\" Type=\"int\" />\n" +
+        "    <Property Name=\"ForeColor\" Type=\"Cerulean.Common.Color\" />\n" +
+        "    <Property Name=\"SelectedColor\" Type=\"Cerulean.Common.Color\" />\n" +
+        "    <Property Name=\"Selected\" Type=\"bool\" />\n" +
+        "    <Property Name=\"Text\" Type=\"string\" />\n" +
+        "    <Property Name=\"FontName\" Type=\"string\" />\n" +
+        "    <Property Name=\"FontSize\" Type=\"int\" />\n" +
+        "    <Property Name=\"FontStyle\" Type=\"string\" />\n" +
+        "    <Property Name=\"WrapText\" Type=\"bool\" />\n" +
+        "    <Property Name=\"InputData\" Type=\"string\" />\n" +
+        "    <Property Name=\"InputGroup\" Type=\"string\" />\n" +
+        "  </Component>\n" +
+        "  <Component Name=\"TextBox\" Namespace=\"Cerulean.Components\">\n" +
+        "    <Property Name=\"Size\" Type=\"Cerulean.Common.Size\" />\n" +
+        "    <Property Name=\"HintW\" Type=\"int\" />\n" +
+        "    <Property Name=\"HintH\" Type=\"int\" />\n" +
+        "    <Property Name=\"BackColor\" Type=\"Cerulean.Common.Color\" />\n" +
+        "    <Property Name=\"BorderColor\" Type=\"Cerulean.Common.Color\" />\n" +
+        "    <Property Name=\"FocusedColor\" Type=\"Cerulean.Common.Color\" />\n" +
+        "    <Property Name=\"ForeColor\" Type=\"Cerulean.Common.Color\" />\n" +
+        "    <Property Name=\"MaxLength\" Type=\"int\" />\n" +
+        "    <Property Name=\"Text\" Type=\"string\" />\n" +
+        "    <Property Name=\"FontName\" Type=\"string\" />\n" +
+        "    <Property Name=\"FontSize\" Type=\"int\" />\n" +
+        "    <Property Name=\"FontStyle\" Type=\"string\" />\n" +
+        "  </Component>\n" +
+        "</RefXML>";
 
     #endregion
 }
