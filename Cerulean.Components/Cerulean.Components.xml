@@ -1,0 +1,126 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RefXML>
+  <Component Name="Grid" Namespace="Cerulean.Components">
+    <Property Name="ColumnCount" Type="int" />
+    <Property Name="RowCount" Type="int" />
+    <Property Name="BackColor" Type="Cerulean.Common.Color" />
+  </Component>
+  <Component Name="Panel" Namespace="Cerulean.Components">
+    <Property Name="Size" Type="Cerulean.Common.Size" />
+    <Property Name="HintW" Type="int" />
+    <Property Name="HintH" Type="int" />
+    <Property Name="BackColor" Type="Cerulean.Common.Color" />
+    <Property Name="BorderColor" Type="Cerulean.Common.Color" />
+  </Component>
+  <Component Name="Pointer" Namespace="Cerulean.Components">
+    <Property Name="X" Type="int" />
+    <Property Name="Y" Type="int" />
+  </Component>
+  <Component Name="Timer" Namespace="Cerulean.Components">
+    <Property Name="IsRunning" Type="bool" />
+    <Property Name="Interval" Type="int" />
+  </Component>
+  <Component Name="Image" Namespace="Cerulean.Components">
+    <Property Name="Size" Type="Cerulean.Common.Size" />
+    <Property Name="HintW" Type="int" />
+    <Property Name="HintH" Type="int" />
+    <Property Name="ImageSource" Type="string" />
+    <Property Name="BackColor" Type="Cerulean.Common.Color" />
+    <Property Name="BorderColor" Type="Cerulean.Common.Color" />
+    <Property Name="PictureMode" Type="Cerulean.Common.PictureMode" />
+    <Property Name="Opacity" Type="double" />
+    <Property Name="Visible" Type="bool" />
+  </Component>
+  <Component Name="Label" Namespace="Cerulean.Components">
+    <Property Name="Size" Type="Cerulean.Common.Size" />
+    <Property Name="HintW" Type="int" />
+    <Property Name="HintH" Type="int" />
+    <Property Name="BackColor" Type="Cerulean.Common.Color" />
+    <Property Name="ForeColor" Type="Cerulean.Common.Color" />
+    <Property Name="Text" Type="string" />
+    <Property Name="FontName" Type="string" />
+    <Property Name="FontSize" Type="int" />
+    <Property Name="FontStyle" Type="string" />
+    <Property Name="WrapText" Type="bool" />
+  </Component>
+  <Component Name="ProgressBar" Namespace="Cerulean.Components">
+    <Property Name="Size" Type="Cerulean.Common.Size" />
+    <Property Name="HintW" Type="int" />
+    <Property Name="HintH" Type="int" />
+    <Property Name="ForeColor" Type="Cerulean.Common.Color" />
+    <Property Name="BackColor" Type="Cerulean.Common.Color" />
+    <Property Name="BorderColor" Type="Cerulean.Common.Color" />
+    <Property Name="Value" Type="int" />
+    <Property Name="Maximum" Type="int" />
+    <Property Name="Orientation" Type="Cerulean.Common.Orientation" />
+  </Component>
+  <Component Name="Rectangle" Namespace="Cerulean.Components">
+    <Property Name="Size" Type="Cerulean.Common.Size" />
+    <Property Name="HintW" Type="int" />
+    <Property Name="HintH" Type="int" />
+    <Property Name="FillColor" Type="Cerulean.Common.Color" />
+    <Property Name="BorderColor" Type="Cerulean.Common.Color" />
+    <Property Name="FillOpacity" Type="double" />
+    <Property Name="BorderOpacity" Type="double" />
+  </Component>
+  <Component Name="Button" Namespace="Cerulean.Components">
+    <Property Name="Size" Type="Cerulean.Common.Size" />
+    <Property Name="HintW" Type="int" />
+    <Property Name="HintH" Type="int" />
+    <Property Name="Text" Type="string" />
+    <Property Name="FontName" Type="string" />
+    <Property Name="FontSize" Type="int" />
+    <Property Name="FontStyle" Type="string" />
+    <Property Name="BackColor" Type="Cerulean.Common.Color" />
+    <Property Name="ForeColor" Type="Cerulean.Common.Color" />
+    <Property Name="BorderColor" Type="Cerulean.Common.Color" />
+    <Property Name="HighlightColor" Type="Cerulean.Common.Color" />
+    <Property Name="ActivatedColor" Type="Cerulean.Common.Color" />
+  </Component>
+  <Component Name="CheckBox" Namespace="Cerulean.Components">
+    <Property Name="Size" Type="Cerulean.Common.Size" />
+    <Property Name="HintW" Type="int" />
+    <Property Name="HintH" Type="int" />
+    <Property Name="ForeColor" Type="Cerulean.Common.Color" />
+    <Property Name="Checked" Type="bool" />
+    <Property Name="Text" Type="string" />
+    <Property Name="FontName" Type="string" />
+    <Property Name="FontSize" Type="int" />
+    <Property Name="FontStyle" Type="string" />
+    <Property Name="WrapText" Type="bool" />
+    <Property Name="InputData" Type="string" />
+    <Property Name="InputGroup" Type="string" />
+  </Component>
+  <Component Name="InputContext" Namespace="Cerulean.Components">
+    <Property Name="SubmitButton" Type="component&lt;Cerulean.Component.Button&gt;*" />
+  </Component>
+  <Component Name="RadioButton" Namespace="Cerulean.Components">
+    <Property Name="Size" Type="Cerulean.Common.Size" />
+    <Property Name="HintW" Type="int" />
+    <Property Name="HintH" Type="int" />
+    <Property Name="ForeColor" Type="Cerulean.Common.Color" />
+    <Property Name="SelectedColor" Type="Cerulean.Common.Color" />
+    <Property Name="Selected" Type="bool" />
+    <Property Name="Text" Type="string" />
+    <Property Name="FontName" Type="string" />
+    <Property Name="FontSize" Type="int" />
+    <Property Name="FontStyle" Type="string" />
+    <Property Name="WrapText" Type="bool" />
+    <Property Name="InputData" Type="string" />
+    <Property Name="InputGroup" Type="string" />
+  </Component>
+  <Component Name="TextBox" Namespace="Cerulean.Components">
+    <Property Name="Size" Type="Cerulean.Common.Size" />
+    <Property Name="HintW" Type="int" />
+    <Property Name="HintH" Type="int" />
+    <Property Name="BackColor" Type="Cerulean.Common.Color" />
+    <Property Name="BorderColor" Type="Cerulean.Common.Color" />
+    <Property Name="FocusedColor" Type="Cerulean.Common.Color" />
+    <Property Name="ForeColor" Type="Cerulean.Common.Color" />
+    <Property Name="MaxLength" Type="int" />
+    <Property Name="Text" Type="string" />
+    <Property Name="FontName" Type="string" />
+    <Property Name="FontSize" Type="int" />
+    <Property Name="FontStyle" Type="string" />
+  </Component>
+</RefXML>
